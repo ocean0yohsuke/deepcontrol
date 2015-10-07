@@ -266,7 +266,7 @@ You would soon realize exactly what more deeper level means by reading the examp
 import DeepControl.Applicative ((**:))
 import DeepControl.Monad
 
-listlist :: [[String]]
+listlist :: [[String]]             -- List-List Monad
 listlist = [["a","b"]] >>== \x -> 
            [[0],[1,2]] >>== \y -> 
            (**:) $ x ++ show y
@@ -321,6 +321,6 @@ pythagorean_triples = filter isJust |$> (
 
 ### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.1.0.0/docs/DeepControl-Arrow.html)
 
-### [Commutive](https://hackage.haskell.org/package/deepcontrol-0.1.0.0/docs/DeepControl-Commutive.html)
+### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.1.0.0/docs/DeepControl-Commutative.html)
 
 
