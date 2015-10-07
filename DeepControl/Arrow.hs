@@ -1,7 +1,7 @@
 {-|
 Module      : DeepControl.Commutative
 Description : Enable deep level Arrow programming.
-Copyright   : KONISHI Yohuske 2015,
+Copyright   : KONISHI Yohsuke 2015,
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
