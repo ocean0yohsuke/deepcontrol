@@ -140,6 +140,9 @@ bra-ket notation:
     > 1 <|(+)|> 2 <|(*)|> 3
     9
 
+    > 1 <|(,)|> 2
+    (1,2)
+
 #### Level-1
 
 bra-ket notation:
@@ -232,15 +235,15 @@ braket-cover notation:
     [Just 3]
     > [Just 1] <<$|(+)|*- Just 2 
     [Just 3]
-    > [1] -*|(+)|$>> [Just 2] 
+    > [1]       -*|(+)|$>> [Just 2] 
     [Just 3]
-    > Just 1 *-|(+)|$>> [Just 2] 
+    > Just 1    *-|(+)|$>> [Just 2] 
     [Just 3]
-    > Just 1 *-|[Just (+)]|** 2
+    > Just 1    *-|[Just (+)]|** 2
     [Just 3]
-    > Just 1 *-|[Just (+)]|*- Just 2
+    > Just 1    *-|[Just (+)]|*- Just 2
     [Just 3]
-    > [1] -*|[Just (+)]|*- Just 2
+    > [1]       -*|[Just (+)]|*- Just 2
     [Just 3]
     > [1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
     [Just 3,Just (-1),Just 2,Nothing]
