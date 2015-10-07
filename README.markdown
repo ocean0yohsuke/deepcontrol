@@ -1,4 +1,6 @@
-# deepcontrol: A Haskell module that enables more deeper level style programming than the usual Control.xxx modules provide, especially for Applicative and Monad.
+# deepcontrol
+
+A Haskell module that enables more deeper level style programming than the usual Control.xxx modules provide, especially for Applicative and Monad.
 
 ## Installing with [Stack](https://github.com/commercialhaskell/stack/blob/master/doc/GUIDE.md)
 
@@ -31,20 +33,20 @@ Now start ghci and see if it works well.
 
 ### Fetch from [Stackage](http://www.stackage.org/)
 
-Add "deepcontrol" to your .cabal file:
+Add `deepcontrol` to your .cabal file:
 
--yourproject.cabal:
+yourproject.cabal:
 
       ...
       build-depends:       ...
                          , deepcontrol
 
-On your project folder run "stack build" to get Stack to install deepcontrol into your project.
+On your project folder run "stack build" to get Stack to install `deepcontrol` into your project.
 
     .../yourproject$ stack build
 
-If Stack yields as below, it means that deepcontrol failed to be resolved on yourproject's Stack resolver.
-Probably you will get this message since deepcontrol is just one of miner modules yet.
+If Stack yields as below, it means that `deepcontrol` failed to be resolved on yourproject's Stack resolver.
+Probably you will get this message since `deepcontrol` is just one of miner modules yet.
 
     .../yourproject$ stack build
     While constructing the BuildPlan the following exceptions were encountered:
@@ -59,10 +61,10 @@ Please follow the message direction.
 
 ### Fetch from [Hackage](https://hackage.haskell.org/package/deepcontrol)
 
-Ok, I(you) got deepcontrol isn't in Stackage. Then let's fetch deepcontrol from Hackage.
-Add "deepcontrol-0.1.0.0" to your extra-deps field in stack.yaml too:
+Ok, I(you) got `deepcontrol` isn't in Stackage. Then let's fetch `deepcontrol` from Hackage.
+Add `deepcontrol-0.1.0.0` to your extra-deps field in stack.yaml too:
 
--stack.yaml:
+stack.yaml:
 
     extra-deps:
     ...
@@ -72,7 +74,7 @@ And type as below:
 
     .../yourproject$ stack build
 
-Stack must fetch and install deepcontrol automatically.
+Stack must fetch and install `deepcontrol` automatically.
 
     ../yourproject$ stack build
     deepcontrol-0.1.0.0: configure
@@ -126,123 +128,123 @@ You would soon realize exactly what more deeper level means by reading the examp
 
 #### Level-0
 
-bra-ket notation
+bra-ket notation:
 
-    > (1+) |> 2 :: Int
+    > (1+) |> 2 
     3
-    > 1 <| (+2) :: Int
+    > 1 <| (+2) 
     3
 
-    > 1 <|(+)|> 2 :: Int
+    > 1 <|(+)|> 2 
     3
-    > 1 <|(+)|> 2 <|(*)|> 3 :: Int
+    > 1 <|(+)|> 2 <|(*)|> 3
     9
 
 #### Level-1
 
-bra-ket notation
+bra-ket notation:
 
-    > (1+) |$> [2] :: [Int]
+    > (1+) |$> [2] 
     [3]
-    > [1] <$| (+2) :: [Int]
+    > [1] <$| (+2) 
     [3] 
     > ("<"++)|$> ["a","b"] <$|(++">")
     ["<a>","<b>"]
 
-    > [(1+)] |*> [2] :: [Int]
+    > [(1+)] |*> [2]
     [3]
 
-    > [1] <$|(+)|*> [2] :: [Int]
+    > [1] <$|(+)|*> [2]
     [3] 
-    > [1] <$|(+)|*> [0,1,2] :: [Int]
+    > [1] <$|(+)|*> [0,1,2] 
     [1,2,3]
-    > [0,1] <$|(+)|*> [2,3] <$|(+)|*> [4,5] :: [Int]
+    > [0,1] <$|(+)|*> [2,3] <$|(+)|*> [4,5]
     [6,7,7,8,7,8,8,9]
 
-    > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Just 2,  Just 3] :: (Maybe [Int])
+    > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Just 2,  Just 3] 
     Just [1,2,3]
-    > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Nothing, Just 3] :: (Maybe [Int])
+    > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Nothing, Just 3]
     Nothing
 
-    > filter (even <$|(&&)|*> (10 >)) [1..100] :: [Int]
+    > filter (even <$|(&&)|*> (10 >)) [1..100] 
     [2,4,6,8]
-    > filter (even <$|(&&)|*> (10 >) <$|(&&)|*> (5 <)) [1..100] :: [Int]
+    > filter (even <$|(&&)|*> (10 >) <$|(&&)|*> (5 <)) [1..100] 
     [6,8]
 
 braket-cover notation
 
-    > [(1+)] |* 2 :: [Int]
+    > [(1+)] |* 2 
     [3] 
-    > [1] <$|(+)|* 2 :: [Int]
+    > [1] <$|(+)|* 2 
     [3]
-    > [1] <$|(+)|* 2 <$|(*)|* 3 :: [Int]
+    > [1] <$|(+)|* 2 <$|(*)|* 3 
     [9]
 
-    > Just 1 <$|(,)|* 2 :: Maybe (Int, Int)
+    > Just 1 <$|(,)|* 2 
     Just (1,2)
 
-    > 1 *| [(+2)] :: [Int]
+    > 1 *| [(+2)] 
     [3]
-    > 1 *| [(+)] |* 2 :: [Int]
+    > 1 *| [(+)] |* 2 
     [3]
-    > 1 *|[(+),(-),(*),(^)]|* 2 :: [Int]
+    > 1 *|[(+),(-),(*),(^)]|* 2 
     [3,-1,2,1]
 
-    > 1 *|Just (,)|* 2 :: Maybe (Int, Int)
+    > 1 *|Just (,)|* 2
     Just (1,2)
 
 #### Level-2
 
-bra-ket notation
+bra-ket notation:
 
-    > (+1) |$>> [[2]] :: [[Int]]
+    > (+1) |$>> [[2]]
     [[3]]
-    > [[2]] <<$| (+1) :: [[Int]]
+    > [[2]] <<$| (+1)
     [[3]]
 
-    > [Just 1] <<$|(+)|*>> [Just 2] :: [Maybe Int]
+    > [Just 1] <<$|(+)|*>> [Just 2]
     [Just 3]
-    > [Just 1] <<$|(,)|*>> [Just 2] :: [Maybe (Int, Int)]
+    > [Just 1] <<$|(,)|*>> [Just 2] 
     [Just (1,2)]
 
-    > [[1]] <<$|(+)|*>> [[2]] <<$|(-)|*>> [[3]] :: [[Int]]
+    > [[1]] <<$|(+)|*>> [[2]] <<$|(-)|*>> [[3]]
     [[0]]
 
     > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right (Just 2), Right (Just 3)]) :: Either () (Maybe Int)
     Right (Just 6)
     > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right Nothing, Right (Just 3)]) :: Either () (Maybe Int)
     Right Nothing
-    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right Nothing, Left ()]) :: Either () (Maybe Int)
+    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right Nothing, Left ()])
     Left ()
 
-braket-cover notation
+braket-cover notation:
 
-    > [Just 1] <<$|(+)|** 2 :: [Maybe Int]
+    > [Just 1] <<$|(+)|** 2 
     [Just 3]
-    > 1 **|(+)|$>> [Just 2] :: [Maybe Int]
+    > 1 **|(+)|$>> [Just 2] 
     [Just 3]
-    > 1 **|[Just (+)]|**  2 :: [Maybe Int]
+    > 1 **|[Just (+)]|**  2 
     [Just 3]
-    > 1 **|[Just (+), Just (-), Just (*), Nothing]|** 2 :: [Maybe Int]
+    > 1 **|[Just (+), Just (-), Just (*), Nothing]|** 2 
     [Just 3,Just (-1),Just 2,Nothing]
 
-    > [Just 1] <<$|(+)|-* [2] :: [Maybe Int]
+    > [Just 1] <<$|(+)|-* [2] 
     [Just 3]
-    > [Just 1] <<$|(+)|*- Just 2 :: [Maybe Int]
+    > [Just 1] <<$|(+)|*- Just 2 
     [Just 3]
-    > [1] -*|(+)|$>> [Just 2] :: [Maybe Int]
+    > [1] -*|(+)|$>> [Just 2] 
     [Just 3]
-    > Just 1 *-|(+)|$>> [Just 2] :: [Maybe Int]
+    > Just 1 *-|(+)|$>> [Just 2] 
     [Just 3]
-    > Just 1 *-|[Just (+)]|** 2 :: [Maybe Int]
+    > Just 1 *-|[Just (+)]|** 2
     [Just 3]
-    > Just 1 *-|[Just (+)]|*- Just 2 :: [Maybe Int]
+    > Just 1 *-|[Just (+)]|*- Just 2
     [Just 3]
-    > [1] -*|[Just (+)]|*- Just 2 :: [Maybe Int]
+    > [1] -*|[Just (+)]|*- Just 2
     [Just 3]
-    > [1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2 :: [Maybe Int]
+    > [1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
     [Just 3,Just (-1),Just 2,Nothing]
-    > [0,1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2 :: [Maybe Int]
+    > [0,1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
     [Just 2,Just 3,Just (-2),Just (-1),Just 0,Just 2,Nothing,Nothing]
 
 #### Level-3
@@ -271,6 +273,7 @@ listlist = [["a","b"]] >>== \x ->
 
 -- > listlist
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
+```
 
 ```haskell
 import DeepControl.Applicative
@@ -289,6 +292,7 @@ pythagorean_triples = filter isJust $
 
 -- > pythagorean_triples
 -- [Just (3,4,5),Just (6,8,10)]
+```
 
 #### Level-3
 
@@ -313,6 +317,7 @@ pythagorean_triples = filter isJust |$> (
 -- (3,4,5)
 -- (6,8,10)
 -- [Just (3,4,5),Just (6,8,10)]
+```
 
 ### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.1.0.0/docs/DeepControl-Arrow.html)
 
