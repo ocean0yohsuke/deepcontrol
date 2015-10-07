@@ -1,6 +1,6 @@
 # deepcontrol
 
-A Haskell module that enables more deeper level style programming than the usual Control.xxx modules provide, especially for Applicative and Monad.
+A Haskell library that enables more deeper level style programming than the usual Control.xxx modules provide, especially for Applicative and Monad.
 
 ## Installing with [Stack](https://github.com/commercialhaskell/stack/blob/master/doc/GUIDE.md)
 
@@ -45,8 +45,8 @@ On your project folder run "stack build" to get Stack to install `deepcontrol` i
 
     .../yourproject$ stack build
 
-If Stack yields as below, it means that `deepcontrol` failed to be resolved on yourproject's Stack resolver.
-Probably you will get this message since `deepcontrol` is just one of miner modules yet.
+If Stack yields a messeage below, it means that `deepcontrol` failed to be resolved on yourproject's Stack resolver.
+Probably you will get this message since `deepcontrol` is just one of miner libraries yet.
 
     .../yourproject$ stack build
     While constructing the BuildPlan the following exceptions were encountered:
@@ -95,7 +95,7 @@ Launch the terminal and go to your project folder:
 
     .../yourproject$
 
-If you haven't done setup cabal sandbox yet, type as below so that `deepcontrol` will be installed locally on your prject folder:
+If you haven't done setup cabal sandbox on your project folder yet, type as below so that `deepcontrol` will be installed locally on your project folder:
 
     .../yourproject$ cabal sandbox init
     Writing a default package environment file to
