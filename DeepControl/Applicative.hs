@@ -254,7 +254,7 @@ f |** x = f |*>> ((**:) x)
 (|-*) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 a -> f1 (f2 b)
 f |-* x = f |*>> ((-*) x)
 
--- | Combination consisted of ket @'|*>>'@ and cover @'*-'@, defined as @f |-* x = f |*>> ((*-) x)@.
+-- | Combination consisted of ket @'|*>>'@ and cover @'*-'@, defined as @f |*- x = f |*>> ((*-) x)@.
 --
 -- >>> [Just 1] <<$|(+)|*- Just 2 
 -- [Just 3]
@@ -267,6 +267,7 @@ f |*- x = f |*>> ((*-) x)
 -- [Just 3]
 (-*|) :: (Applicative f1, Applicative f2) => f1 a -> f1 (f2 (a -> b)) -> f1 (f2 b)
 (-*|) = flip (|-*)
+
 -- | The auguments-flipped function for @'|*-'@.
 --
 -- >>> Just 1 *-|(+)|$>> [Just 2]

@@ -1,16 +1,24 @@
 name:                deepcontrol
 version:             0.1.0.0
-synopsis:            Enable deeper level style of programming than the usual control provides
-description:         This module enables deeper level style of programming than the usual control provides, especially for Applicative and Monad.
+synopsis:            Enable more deeper level style of programming than the usual Control.xxx modules provide
+description:         This module enables more deeper level style of programming than the usual Control.xxx modules provides, especially for Applicative and Monad.
 license:             BSD3
 license-file:        LICENSE
 author:              KONISHI Yohsuke
 maintainer:          ocean0yohsuke@gmail.com
+homepage:            https://github.com/ocean0yohsuke/deepcontrol
 copyright:           KONISHI Yohsuke
 category:            Control
 build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
+extra-source-files:  README.md
+
+bug-reports:         https://github.com/ocean0yohsuke/deepcontrol/issues
+
+source-repository head
+  type:           git
+  location:       https://github.com/ocean0yohsuke/deepcontrol.git
 
 library
   exposed-modules:     DeepControl.Arrow
