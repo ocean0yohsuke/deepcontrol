@@ -235,19 +235,19 @@ braket-cover notation:
     [Just 3]
     > [Just 1] <<$|(+)|*- Just 2 
     [Just 3]
-    > [1]       -*|(+)|$>> [Just 2] 
+    >      [1]  -*|(+)|$>> [Just 2] 
     [Just 3]
-    > Just 1    *-|(+)|$>> [Just 2] 
+    >   Just 1  *-|(+)|$>> [Just 2] 
     [Just 3]
-    > Just 1    *-|[Just (+)]|** 2
+    >   Just 1  *-|[Just (+)]|** 2
     [Just 3]
-    > Just 1    *-|[Just (+)]|*- Just 2
+    >   Just 1  *-|[Just (+)]|*- Just 2
     [Just 3]
-    > [1]       -*|[Just (+)]|*- Just 2
+    >      [1]  -*|[Just (+)]|*- Just 2
     [Just 3]
-    > [1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
+    >      [1]  -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
     [Just 3,Just (-1),Just 2,Nothing]
-    > [0,1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
+    >    [0,1]  -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
     [Just 2,Just 3,Just (-2),Just (-1),Just 0,Just 2,Nothing,Nothing]
 
 #### Level-3
