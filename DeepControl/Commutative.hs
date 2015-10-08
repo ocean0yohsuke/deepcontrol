@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Commutative
-Description : Commutative Functor, Applicative, Monad.
+Description : Commutative Functor.
 Copyright   : KONISHI Yohsuke 2015,
               Conor McBride and Ross Paterson 2005
 License     : BSD-style (see the LICENSE file in the distribution)

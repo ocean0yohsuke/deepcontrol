@@ -9,7 +9,7 @@ Portability : ---
 
 This module enables you to program in applicative style for more __deeper__ level than the usual 'Control.Applicative' module expresses.
 You would soon realize exactly what __/more deeper level/__ means by reading the example codes in order, which are attached on the functions below.
-Note: all braket-cover notation for Level-4 and Level-5 is not written yet.
+Note: all braket-cover notation for Level-4 and Level-5 haven't been written yet.
 -}
 module DeepControl.Applicative (
     module Control.Applicative,
@@ -33,6 +33,10 @@ module DeepControl.Applicative (
     (|$>>), (<<$|), (|*>>), (<<*|),
     -- ** braket-cover notation
     (|**), (**|), (|-*), (|*-), (-*|), (*-|),
+    -- ** sequnce notation
+    (*>>), (<<*), 
+    -- ** sequnce-cover notation
+    (*->), (<*-), (-*>), (<-*),
 
     -- * Level-3
     -- ** cover notation
@@ -43,18 +47,27 @@ module DeepControl.Applicative (
     (|***), (***|),
     (|-**), (|*-*), (|**-), (|--*), (|-*-), (|*--),
     (-**|), (*-*|), (**-|), (--*|), (-*-|), (*--|),
+    -- ** sequnce notation
+    (*>>>), (<<<*),
+    -- ** sequnce-cover notation
+    (*-->), (-*->), (--*>), (**->), (*-*>), (-**>),
+    (<*--), (<-*-), (<--*), (<**-), (<*-*), (<-**),
 
     -- * Level-4
     -- ** cover notation
     (****:), 
     -- ** bra-ket notation
     (|$>>>>), (<<<<$|), (|*>>>>), (<<<<*|),
+    -- ** sequnce notation
+    (*>>>>), (<<<<*),
 
     -- * Level-5
     -- ** cover notation
     (*****:), 
     -- ** bra-ket notation
     (|$>>>>>), (<<<<<$|), (|*>>>>>), (<<<<<*|),
+    -- ** sequnce notation
+    (*>>>>>), (<<<<<*),
 
     ) where 
 
@@ -64,6 +77,7 @@ import Control.Applicative
 -- Level-0 functions
 
 infixl 4  |>, <|
+
 -- | Alias for @'$'@. 
 -- 
 -- >>> (1+) |> 2
@@ -88,12 +102,14 @@ infixl 4  |>, <|
 -- -----------------------------------------------------------------------------
 -- Level-1 functions
 
-infixl 5  *:
+infixl 6  *:
+
 -- | Alias for @'pure'@.
 (*:) :: (Applicative f) => a -> f a
 (*:) = pure
 
 infixl 4 |$>
+
 -- | Alias for @'<$>'@.
 --
 -- >>> (1+) |$> [2] 
@@ -102,6 +118,7 @@ infixl 4 |$>
 (|$>) = (<$>)
 
 infixl 3  <$|, |*>, <*|, |*, *|
+
 -- | The auguments-flipped function for @'|$>'@.
 --
 -- >>> [1] <$| (+2) 
@@ -140,7 +157,7 @@ infixl 3  <$|, |*>, <*|, |*, *|
 (<*|) :: Applicative f => f a -> f (a -> b) -> f b
 (<*|) = flip (|*>)
 
--- | Combination consisted of ket @'|*>'@ and cover @'*:'@, defined as @f |* x = f |*> ((*:) x)@.
+-- | Combination consisted of ket @'|*>'@ and cover @'*:'@, defined as @f |* x = f |*> (*:) x@.
 --
 -- >>> [(1+)] |* 2
 -- [3]
@@ -152,7 +169,7 @@ infixl 3  <$|, |*>, <*|, |*, *|
 -- >>> Just 1 <$|(,)|* 2 
 -- Just (1,2)
 (|*) :: Applicative f => f (a -> b) -> a -> f b
-f |* x = f |*> ((*:) x)
+f |* x = f |*> (*:) x
 
 -- | The auguments-flipped function for @'|*'@. 
 --
@@ -165,28 +182,26 @@ f |* x = f |*> ((*:) x)
 -- 
 -- >>> 1 *|Just (,)|* 2
 -- Just (1,2)
---
 (*|) :: Applicative f => a -> f (a -> b) -> f b
 (*|) = flip (|*)
 
 -- -----------------------------------------------------------------------------
 -- Level-2 functions
 
-infixl 5  **:
-infixl 5  -*, *-
+infixl 6  **:
+infixl 6  -*, *-
 -- | Combination consisted of cover @'*:'@ twice, defined as @(**:) = (*:) . (*:)@.
 (**:) :: (Applicative f1, Applicative f2) => a -> f1 (f2 a)
 (**:) = (*:) . (*:)
-
 -- | Combination consisted of cover @'*:'@ and ket @'|$>'@, defined as @(-*) = ((*:)|$>)@.
 (-*) :: (Applicative f1, Applicative f2) => f1 a -> f1 (f2 a)
 (-*) = ((*:)|$>) 
-
-(*-) :: (Applicative f1, Applicative f2) => f2 a -> f1 (f2 a)
 -- | Alias for @'*:'@. 
+(*-) :: (Applicative f1, Applicative f2) => f2 a -> f1 (f2 a)
 (*-) = (*:)
 
 infixl 4  |$>>
+
 -- | Combination consisted of cover @'|$>'@ twice, defined as @(|$>>) = (|$>) . (|$>)@.
 --
 -- >>> (+1) |$>> [[2]]
@@ -197,6 +212,7 @@ infixl 4  |$>>
 infixl 3  <<$|, |*>>, <<*|
 infixl 3  |**, **|
 infixl 3  |-*, |*-, -*|, *-|
+
 -- | The auguments-flipped function for @'|$>>'@
 --
 -- >>> [[2]] <<$| (+1)
@@ -224,16 +240,16 @@ infixl 3  |-*, |*-, -*|, *-|
 (|*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
 (|*>>) = liftA2 (|*>)
 
--- | The auguments-flipped function for @'|*>>'@.
+-- | The lifted function of @'<*|'@, defined as @(<<*|) = liftA2 (<*|)@.
 (<<*|) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 (a -> b)) -> f1 (f2 b)
-(<<*|) = flip (|*>>)
+(<<*|) = liftA2 (<*|)
 
--- | Combination consisted of ket @'|*>>'@ and cover @'**:'@, defined as @f |** x = f |*>> ((**:) x)@.
+-- | Combination consisted of ket @'|*>>'@ and cover @'**:'@, defined as @f |** x = f |*>> (**:) x@.
 --
 -- >>> [Just 1] <<$|(+)|** 2
 -- [Just 3]
 (|**) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> a -> f1 (f2 b)
-f |** x = f |*>> ((**:) x)
+f |** x = f |*>> (**:) x
 
 -- | The auguments-flipped function for @'|**'@.
 --
@@ -247,19 +263,19 @@ f |** x = f |*>> ((**:) x)
 (**|) :: (Applicative f1, Applicative f2) => a -> f1 (f2 (a -> b)) -> f1 (f2 b)
 (**|)  = flip (|**)
 
--- | Combination consisted of ket @'|*>>'@ and cover @'-*'@, defined as @f |-* x = f |*>> ((-*) x)@.
+-- | Combination consisted of ket @'|*>>'@ and cover @'-*'@, defined as @f |-* x = f |*>> (-*) x@.
 --
 -- >>> [Just 1] <<$|(+)|-* [2]
 -- [Just 3]
 (|-*) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 a -> f1 (f2 b)
-f |-* x = f |*>> ((-*) x)
+f |-* x = f |*>> (-*) x
 
--- | Combination consisted of ket @'|*>>'@ and cover @'*-'@, defined as @f |*- x = f |*>> ((*-) x)@.
+-- | Combination consisted of ket @'|*>>'@ and cover @'*-'@, defined as @f |*- x = f |*>> (*-) x@.
 --
 -- >>> [Just 1] <<$|(+)|*- Just 2 
 -- [Just 3]
 (|*-) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f2 a -> f1 (f2 b)
-f |*- x = f |*>> ((*-) x)
+f |*- x = f |*>> (*-) x
 
 -- | The auguments-flipped function for @'|-*'@.
 --
@@ -282,22 +298,97 @@ f |*- x = f |*>> ((*-) x)
 -- [Just 3,Just (-1),Just 2,Nothing]
 -- >>> [0,1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
 -- [Just 2,Just 3,Just (-2),Just (-1),Just 0,Just 2,Nothing,Nothing]
+--
+-- >>> print 1 -*|return [\_ _ -> 3]|-* print 2
+-- 1
+-- 2
+-- [3]
 (*-|) :: (Applicative f1, Applicative f2) => f2 a -> f1 (f2 (a -> b)) -> f1 (f2 b)
 (*-|) = flip (|*-)
 
-{-
-infixl 3  <<*, *>>
+infixl 5  <<*, *>>
+infixl 5  *->, <*-, -*>, <-*
+
+-- | The lifted function of @'*>'@, defined as @liftA2 (*>)@.
+{- 
+--
+-- >>> ((*:)|$> print 1) *>> return [2]
+-- 1
+-- [2]
+-}
 (*>>) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 b) -> f1 (f2 b)
 (*>>) = liftA2 (*>)
+
+-- | The lifted function of @'<*'@, defined as @liftA2 (<*)@.
+{-
+--
+-- >>> return [2] <<* ((*:)|$> print 1)
+-- 1
+-- [2]
+-- >>> ((*:)|$> print 1) *>> return [3] <<* ((*:)|$> print 2)
+-- 1
+-- 2
+-- [3]
+-}
 (<<*) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 b) -> f1 (f2 a)
 (<<*) = liftA2 (<*)
+
+-- | Combination consisted of sequence @'*>>'@ and cover @'*:'@, defined as:
+--
+-- a *-> x = (*:) a *>> x
+{-
+--
+-- >>> [1] *-> return [2] 
+-- [2]
 -}
+(*->) :: (Applicative f1, Applicative f2) => f2 a -> f1 (f2 b) -> f1 (f2 b)
+a *-> x = (*:) a *>> x
+
+-- | Combination consisted of sequence @'<<*'@ and cover @'*:'@, defined as:
+--
+-- x <*- a = x <<* (*:) a
+{-
+--
+-- >>> return [2] <*- [1] 
+-- [2]
+-}
+(<*-) :: (Applicative f1, Applicative f2) => f1 (f2 b) -> f2 a -> f1 (f2 b)
+x <*- a = x <<* (*:) a
+
+-- | Combination consisted of sequence @'*>>'@ and cover @'-*'@, defined as:
+--
+-- a -*> x = (-*) a *>> x
+--
+{-
+--
+-- >>> print [1] -*> return [2]
+-- [1]
+-- [2]
+-}
+(-*>) :: (Applicative f1, Applicative f2) => f1 a -> f1 (f2 b) -> f1 (f2 b)
+a -*> x = (-*) a *>> x
+
+-- | Combination consisted of sequence @'<<*'@ and cover @'-*'@, defined as:
+--
+-- x <-* a = x <<* (-*) a
+{-
+--
+-- >>> return [2] <-* print [1]
+-- [1]
+-- [2]
+-- >>> print [1] -*> return [3] <-* print [2]
+-- [1]
+-- [2]
+-- [3]
+-}
+(<-*) :: (Applicative f1, Applicative f2) => f1 (f2 b) -> f1 a -> f1 (f2 b)
+x <-* a = x <<* (-*) a
 
 -- -----------------------------------------------------------------------------
 -- Level-3 functions
 
-infixl 5  ***:
-infixl 5  -**, *-*, **-, --*, -*-, *--
+infixl 6  ***:
+infixl 6  -**, *-*, **-, --*, -*-, *--
 (***:) :: (Applicative f1, Applicative f2, Applicative f3) => a -> f1 (f2 (f3 a))
 (***:) = (*:) . (**:)
 (-**) :: (Applicative f1, Applicative f2, Applicative f3) => f1 a -> f1 (f2 (f3 a))
@@ -329,22 +420,22 @@ infixl 3  -**|, *-*|, **-|, --*|, -*-|, *--|
 (<<<*|) = flip (|*>>>)
 
 (|***) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> a -> f1 (f2 (f3 b))
-f |*** x = f |*>>> ((***:) x)
+f |*** x = f |*>>> (***:) x
 (***|) :: (Applicative f1, Applicative f2, Applicative f3) => a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
 (***|)  = flip (|***)
 
 (|-**) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f1 a -> f1 (f2 (f3 b))
-f |-** x = f |*>>> ((-**) x)
+f |-** x = f |*>>> (-**) x
 (|*-*) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f2 a -> f1 (f2 (f3 b))
-f |*-* x = f |*>>> ((*-*) x)
+f |*-* x = f |*>>> (*-*) x
 (|**-) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f3 a -> f1 (f2 (f3 b))
-f |**- x = f |*>>> ((**-) x)
+f |**- x = f |*>>> (**-) x
 (|--*) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f1 (f2 a) -> f1 (f2 (f3 b))
-f |--* x = f |*>>> ((--*) x)
+f |--* x = f |*>>> (--*) x
 (|*--) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f2 (f3 a) -> f1 (f2 (f3 b))
-f |*-- x = f |*>>> ((*--) x)
+f |*-- x = f |*>>> (*--) x
 (|-*-) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f1 (f3 a) -> f1 (f2 (f3 b))
-f |-*- x = f |*>>> ((-*-) x)
+f |-*- x = f |*>>> (-*-) x
 
 (-**|) :: (Applicative f1, Applicative f2, Applicative f3) => f1 a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
 (-**|) = flip (|-**)
@@ -359,18 +450,44 @@ f |-*- x = f |*>>> ((-*-) x)
 (-*-|) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f3 a) -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
 (-*-|) = flip (|-*-)
 
-{-
-infixl 3  <<<*, *>>>
+infixl 5  <<<*, *>>>
 (*>>>) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 a)) -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
 (*>>>) = liftA2 (*>>)
 (<<<*) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 a)) -> f1 (f2 (f3 b)) -> f1 (f2 (f3 a))
 (<<<*) = liftA2 (<<*)
--}
+
+infixl 5  *-->, -*->, --*>, **->, *-*>, -**>
+(*-->) :: (Applicative f1, Applicative f2, Applicative f3) => f2 (f3 a) -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
+a *--> x = (*--) a *>>> x
+(-*->) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f3 a) -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
+a -*-> x = (-*-) a *>>> x
+(--*>) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 a) -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
+a --*> x = (--*) a *>>> x
+(**->) :: (Applicative f1, Applicative f2, Applicative f3) => f3 a -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
+a **-> x = (**-) a *>>> x
+(*-*>) :: (Applicative f1, Applicative f2, Applicative f3) => f2 a -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
+a *-*> x = (*-*) a *>>> x
+(-**>) :: (Applicative f1, Applicative f2, Applicative f3) => f1 a -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
+a -**> x = (-**) a *>>> x
+
+infixl 5  <*--, <-*-, <--*, <**-, <*-*, <-**
+(<*--) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 b)) -> f2 (f3 a) -> f1 (f2 (f3 b))
+x <*-- a = x <<<* (*--) a
+(<-*-) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 b)) -> f1 (f3 a) -> f1 (f2 (f3 b))
+x <-*- a = x <<<* (-*-) a
+(<--*) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 b)) -> f1 (f2 a) -> f1 (f2 (f3 b))
+x <--* a = x <<<* (--*) a
+(<**-) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 b)) -> f3 a -> f1 (f2 (f3 b))
+x <**- a = x <<<* (**-) a 
+(<*-*) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 b)) -> f2 a -> f1 (f2 (f3 b))
+x <*-* a = x <<<* (*-*) a
+(<-**) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 b)) -> f1 a -> f1 (f2 (f3 b))
+x <-** a = x <<<* (-**) a
 
 -- -----------------------------------------------------------------------------
 -- Level-4 functions
 
-infixl 5  ****:
+infixl 6  ****:
 (****:) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => a -> f1 (f2 (f3 (f4 a)))
 (****:) = (***:) . (*:)
 
@@ -386,18 +503,16 @@ infixl 3  <<<<$|, |*>>>>, <<<<*|
 (<<<<*|) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 a))) -> f1 (f2 (f3 (f4 (a -> b)))) -> f1 (f2 (f3 (f4 b)))
 (<<<<*|) = flip (|*>>>>)
 
-{-
-infixl 3  <<<<*, *>>>>
+infixl 5  <<<<*, *>>>>
 (*>>>>) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 a))) -> f1 (f2 (f3 (f4 b))) -> f1 (f2 (f3 (f4 b)))
 (*>>>>) = liftA2 (*>>>)
 (<<<<*) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 a))) -> f1 (f2 (f3 (f4 b))) -> f1 (f2 (f3 (f4 a)))
 (<<<<*) = liftA2 (<<<*)
--}
 
 -- -----------------------------------------------------------------------------
 -- Level-5 functions
 
-infixl 5  *****:
+infixl 6  *****:
 (*****:) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => a -> f1 (f2 (f3 (f4 (f5 a))))
 (*****:) = (*:) . (****:)
 
@@ -413,10 +528,9 @@ infixl 3  <<<<<$|, |*>>>>>, <<<<<*|
 (<<<<<*|) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 a)))) -> f1 (f2 (f3 (f4 (f5 (a -> b))))) -> f1 (f2 (f3 (f4 (f5 b))))
 (<<<<<*|) = flip (|*>>>>>)
 
-{-
-infixl 3  <<<<<*, *>>>>>
+infixl 5  <<<<<*, *>>>>>
 (*>>>>>) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 a)))) -> f1 (f2 (f3 (f4 (f5 b)))) -> f1 (f2 (f3 (f4 (f5 b))))
 (*>>>>>) = liftA2 (*>>>>)
 (<<<<<*) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 a)))) -> f1 (f2 (f3 (f4 (f5 b)))) -> f1 (f2 (f3 (f4 (f5 a))))
 (<<<<<*) = liftA2 (<<<<*)
--}
+
