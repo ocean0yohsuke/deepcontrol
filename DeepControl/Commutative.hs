@@ -1,8 +1,8 @@
 {-|
 Module      : DeepControl.Commutative
 Description : Commutative Functor.
-Copyright   : KONISHI Yohsuke 2015,
-              Conor McBride and Ross Paterson 2005
+Copyright   : Conor McBride and Ross Paterson 2005,
+              (C) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental

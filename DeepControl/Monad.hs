@@ -1,7 +1,7 @@
 {-|
 Module      : DeepControl.Monad
 Description : Enable deep level Monad programming.
-Copyright   : KONISHI Yohsuke 2015
+Copyright   : (C) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
@@ -276,7 +276,6 @@ class (Monad m4) => Monad4 m4 where
 f >====> g = \x -> f x >>>>== g
 (>>>>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m3 (m4 a))) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >>>>~ k = m >>>>== \_ -> k
-
 
 instance Monad4 Maybe where
     mmmmv >>>>== f = 

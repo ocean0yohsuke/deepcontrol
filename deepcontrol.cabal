@@ -25,13 +25,19 @@ library
                      , DeepControl.Applicative
                      , DeepControl.Commutative
                      , DeepControl.Monad
+                     , DeepControl.Monad.Except
+                     , DeepControl.Monad.List
+                     , DeepControl.Monad.Maybe
                      , DeepControl.Monad.RWS
                      , DeepControl.Monad.Reader
                      , DeepControl.Monad.State
                      , DeepControl.Monad.Writer
+                     , DeepControl.MonadTrans
   -- other-modules:       
-  other-extensions:    Arrows
-  build-depends:       base >=4.8 && <4.9, mtl >=2.2 && <2.3
+  -- other-extensions:    
+  build-depends:       base >=4.8 && <4.9
+                     , mtl >=2.2 && <2.3
+                     , transformers
   --hs-source-dirs:      
   default-language:    Haskell2010
   --Ghc-Options:         -Wall -O2

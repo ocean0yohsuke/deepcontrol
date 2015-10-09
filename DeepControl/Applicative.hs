@@ -1,7 +1,7 @@
 {-|
 Module      : DeepControl.Applicative
 Description : Enable deep level Applicative style programming.
-Copyright   : KONISHI Yohsuke 2015
+Copyright   : (C) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
