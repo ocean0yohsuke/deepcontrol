@@ -1,5 +1,5 @@
 name:                deepcontrol
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Enable more deeper level style of programming than the usual Control.xxx modules provide
 description:         This module enables more deeper level style of programming than the usual Control.xxx modules provides, especially for Applicative and Monad.
 license:             BSD3
