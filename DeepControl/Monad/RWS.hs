@@ -148,7 +148,7 @@ withRWST f m = RWST $ \r s -> uncurry (runRWST m) (f r s)
 
 liftCatch :: Catch e m (a,s,w) -> Catch e (RWST r w s m) a
 liftCatch catchE m h =
-    RWST $ \ r s -> runRWST m r s `catchE` \ e -> runRWST (h e) r s
+    RWST $ \r s -> runRWST m r s `catchE` \e -> runRWST (h e) r s
 
 ----------------------------------------------------------------------
 -- Level-2

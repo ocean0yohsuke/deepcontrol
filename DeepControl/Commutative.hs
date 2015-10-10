@@ -16,8 +16,8 @@ module DeepControl.Commutative (
     -- * The 'Commutative' class
     Commutative(..),
     -- * Utility functions
-    commuteMap,
-    commuteFor,
+    cmap,
+    cfor,
     -- * General definitions for superclass methods
     fmapDefault,
     foldMapDefault,
@@ -36,11 +36,11 @@ class (Functor c) => Commutative c where
   commute :: Applicative f => c (f a) -> f (c a)
 
 -- | Do @fmap f@ then commute, the same for @'Data.Traversable.traverse'@.
-commuteMap :: (Applicative f, Commutative c) => (a -> f b) -> c a -> f (c b)
-commuteMap f = commute . (f |$>)
--- | The auguments-flipped function for @'commuteMap'@, the same for @'Data.Traversable.for'@.
-commuteFor :: (Applicative f, Commutative c) => c a -> (a -> f b) -> f (c b)
-commuteFor = flip commuteMap
+cmap :: (Applicative f, Commutative c) => (a -> f b) -> c a -> f (c b)
+cmap f = commute . (f |$>)
+-- | The auguments-flipped function for @'cmap'@, the same for @'Data.Traversable.for'@.
+cfor :: (Applicative f, Commutative c) => c a -> (a -> f b) -> f (c b)
+cfor = flip cmap
 
 instance Commutative Maybe where
     commute (Just fa) = Just |$> fa
@@ -69,12 +69,12 @@ instance Commutative ((->) r) where
 --   instance, provided that 'commute' is defined. (Using
 --   `fmapDefault` with a `Commutative` instance will result in infinite recursion.)
 fmapDefault :: Commutative t => (a -> b) -> t a -> t b
-fmapDefault f = getId . commuteMap (Id . f)
+fmapDefault f = getId . cmap (Id . f)
 
 -- | This function may be used as a value for `Data.Foldable.foldMap`
 --   in a `Foldable` instance.
 foldMapDefault :: (Commutative t, Monoid m) => (a -> m) -> t a -> m
-foldMapDefault f = getConst . commuteMap (Const . f)
+foldMapDefault f = getConst . cmap (Const . f)
 
 -- local instances
 newtype Id a = Id { getId :: a }

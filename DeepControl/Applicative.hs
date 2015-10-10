@@ -9,7 +9,7 @@ Portability : ---
 
 This module enables you to program in applicative style for more __deeper__ level than the usual 'Control.Applicative' module expresses.
 You would soon realize exactly what __/more deeper level/__ means by reading the example codes in order, which are attached on the functions below.
-Note: all braket-cover notation for Level-4 and Level-5 haven't been written yet.
+Note: all the braket-cover notation for Level-4 and Level-5 haven't been written yet.
 -}
 module DeepControl.Applicative (
     module Control.Applicative,
@@ -231,11 +231,11 @@ infixl 3  |-*, |*-, -*|, *-|
 -- >>> [[1]] <<$|(+)|*>> [[2]] <<$|(-)|*>> [[3]]
 -- [[0]]
 --
--- >>> foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right (Just 2), Right (Just 3)]) :: Either () (Maybe Int)
+-- >>> foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right (Just 2), Right (Just 3)] :: Either () (Maybe Int)
 -- Right (Just 6)
--- >>> foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right Nothing, Right (Just 3)]) :: Either () (Maybe Int)
+-- >>> foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right Nothing, Right (Just 3)] :: Either () (Maybe Int)
 -- Right Nothing
--- >>> foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right Nothing, Left ()])
+-- >>> foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right Nothing, Left ()]
 -- Left ()
 (|*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
 (|*>>) = liftA2 (|*>)

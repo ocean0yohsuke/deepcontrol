@@ -213,11 +213,11 @@ bra-ket notation:
     > [[1]] <<$|(+)|*>> [[2]] <<$|(-)|*>> [[3]]
     [[0]]
 
-    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right (Just 2), Right (Just 3)]) :: Either () (Maybe Int)
+    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right (Just 2), Right (Just 3)] :: Either () (Maybe Int)
     Right (Just 6)
-    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right Nothing, Right (Just 3)]) :: Either () (Maybe Int)
+    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right Nothing, Right (Just 3)] :: Either () (Maybe Int)
     Right Nothing
-    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right Nothing, Left ()])
+    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right Nothing, Left ()]
     Left ()
 
 braket-cover notation:
