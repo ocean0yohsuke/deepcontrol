@@ -62,13 +62,13 @@ Please follow the message direction.
 ### Fetch from [Hackage](https://hackage.haskell.org/package/deepcontrol)
 
 Ok, I(you) got `deepcontrol` isn't in Stackage. Then let's fetch `deepcontrol` from Hackage.
-Add `deepcontrol-0.1.0.0` to your extra-deps field in stack.yaml too:
+Add `deepcontrol-0.2.0.0` to your extra-deps field in stack.yaml too:
 
 stack.yaml:
 
     extra-deps:
     ...
-    - deepcontrol-0.1.0.0
+    - deepcontrol-0.2.0.0
 
 And type as below:
 
@@ -77,7 +77,7 @@ And type as below:
 Stack must fetch and install `deepcontrol` automatically.
 
     ../yourproject$ stack build
-    deepcontrol-0.1.0.0: configure
+    deepcontrol-0.2.0.0: configure
     ...
 
 Now start ghci and see if it works well.
@@ -119,7 +119,7 @@ Now start ghci and see if it works well.
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.1.0.0/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.2.0.0/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses. 
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -258,7 +258,7 @@ Work well likewise.
 
 Not completely written up yet.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.1.0.0/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.2.0.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -322,8 +322,8 @@ pythagorean_triples = filter isJust |$> (
 -- [Just (3,4,5),Just (6,8,10)]
 ```
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.1.0.0/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.2.0.0/docs/DeepControl-Arrow.html)
 
-### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.1.0.0/docs/DeepControl-Commutative.html)
+### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.2.0.0/docs/DeepControl-Commutative.html)
 
 
