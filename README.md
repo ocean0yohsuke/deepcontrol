@@ -313,7 +313,7 @@ factorial n | n > 0  =
     tell [v] -->~
     (***:) (n * v)
 
--- > runWriter |$>> factorial
+-- > runWriter |$>> factorial 5
 -- 0
 -- 1
 -- 1
