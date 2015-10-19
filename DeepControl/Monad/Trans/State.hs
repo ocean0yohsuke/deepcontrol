@@ -1,5 +1,5 @@
 {-|
-Module      : DeepControl.Monad.State
+Module      : DeepControl.Monad.Trans.State
 Description : 
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology, 2001,
@@ -9,24 +9,14 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module is just a concise mimic for State Monad in mtl(monad-transformer-library).
-The qualifier "concise" means that this module doesn't make no attempt to transform functions of any kind of Monad automatically.
-So when making some new data type of StateT, you have to manually define involved Monad instances, 
-for example `DeepControl.Monad.MonadError`, 
-by making use of the transformation functions such as `trans`, `trans2`, etc.
-Admittedly it is tedious though, you can deeply understand monad-transformation mechanism instead.
+This module extended State Monad in mtl(monad-transformer-library).
 -}
 {-# LANGUAGE MultiParamTypeClasses,
              FlexibleInstances,
              UndecidableInstances #-}
-module DeepControl.Monad.State (
-    MonadState(..),
-    modify, gets,
+module DeepControl.Monad.Trans.State (
+    module Control.Monad.State,
 
-    -- * Level-0
-    State(..), evalState, execState, mapState, withState,
-    -- * Level-1
-    StateT(..), evalStateT, execStateT, mapStateT, withStateT, liftCatch,
     -- * Level-2
     StateT2(..), evalStateT2, execStateT2, mapStateT2, withStateT2, 
     -- * Level-3
@@ -36,98 +26,10 @@ module DeepControl.Monad.State (
 
 import DeepControl.Applicative
 import DeepControl.Monad
-import DeepControl.MonadTrans
+import DeepControl.Monad.Trans
 
-import Control.Monad.State (MonadState(..))
+import Control.Monad.State 
 import Control.Monad.Signatures
-
-modify :: MonadState s m => (s -> s) -> m ()
-modify f = state $ \s -> ((), f s)
-
-gets :: MonadState s m => (s -> a) -> m a
-gets f = state $ \s -> (f s, s)
-
-----------------------------------------------------------------------
--- Level-0
-
-newtype State s a = State { runState :: s -> (a, s) }
-
-instance Functor (State s) where
-    fmap f v = State $ \s ->
-        (\(a, s') -> (f a, s')) $ runState v s
-instance Applicative (State s) where
-    pure a = State $ \s -> (a,s) 
-    (<*>) = ap
-instance Monad (State s) where  
-    return          = (*:)
-    (State v) >>= f = 
-        State $ \s -> 
-            v s >- \(a, s') ->
-            runState (f a) s'
-
-instance MonadState s (State s) where
-    get   = State $ \s -> (s, s)
-    put s = State $ \_ -> ((), s)
-
-evalState :: State s a -> s -> a
-evalState m s = 
-    let (a, _) = runState m s
-    in a
-execState :: State s a -> s -> s
-execState m s = 
-    let (_, s') = runState m s
-    in s'
-
-mapState :: ((a, s) -> (b, s)) -> State s a -> State s b
-mapState f m = State $ f . runState m
-withState :: (s -> s) -> State s a -> State s a
-withState f m = State $ runState m . f
-
-----------------------------------------------------------------------
--- Level-1
-
-newtype StateT s m a = StateT { runStateT :: (s -> m (a,s)) }
-
-instance (Functor m) => Functor (StateT s m) where
-    fmap f v = StateT $ \s ->
-        (\(a, s') -> (f a, s')) |$> runStateT v s
-instance (Monad m) => Applicative (StateT s m) where
-    pure a = StateT $ \s -> (*:) (a,s)
-    (<*>)  = ap
-instance (Monad m) => Monad (StateT s m) where
-    return = pure
-    (StateT v) >>= f = 
-        StateT $ \s -> 
-            v s >>= \(a, s') ->
-            runStateT (f a) s'
-instance (Monad m) => MonadState s (StateT s m) where
-    get   = StateT $ \s -> (*:) (s, s)
-    put s = StateT $ \_ -> (*:) ((), s)
-
-instance MonadTrans (StateT s) where
-    trans m = StateT $ \s -> 
-        m >>= \a ->
-        (*:) (a, s)
-instance (MonadIO m, Monad m) => MonadIO (StateT s m) where
-    liftIO = trans . liftIO
-
-evalStateT :: (Monad m) => StateT s m a -> s -> m a
-evalStateT m s = 
-    runStateT m s >>= \(a, _) ->
-    (*:) a
-execStateT :: (Monad m) => StateT s m a -> s -> m s
-execStateT m s = 
-    runStateT m s >>= \(_, s') ->
-    (*:) s'
-
-mapStateT :: (m (a, s) -> n (b, s)) -> StateT s m a -> StateT s n b
-mapStateT f m = StateT $ f . runStateT m
-withStateT :: (s -> s) -> StateT s m a -> StateT s m a
-withStateT f m = StateT $ runStateT m . f
-
-liftCatch :: Catch e m (a,s) -> Catch e (StateT s m) a
-liftCatch catch m h =
-    StateT $ \ s -> runStateT m s `catch` \ e -> runStateT (h e) s
 
 ----------------------------------------------------------------------
 -- Level-2

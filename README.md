@@ -4,7 +4,7 @@ A Haskell library that enables more deeper level style programming than the usua
 
 ## Installing with [Stack](https://github.com/commercialhaskell/stack/blob/master/doc/GUIDE.md)
 
-If you haven't installed Stack yet, install [Stack](https://github.com/commercialhaskell/stack#readme). 
+If you haven't installed Stack yet, install [Stack](https://github.com/commercialhaskell/stack#readme).
 
 If you have never even used Stack, launch the terminal and go to your working directory:
 
@@ -62,13 +62,13 @@ Please follow the message direction.
 ### Fetch from [Hackage](https://hackage.haskell.org/package/deepcontrol)
 
 Ok, I(you) got `deepcontrol` isn't in Stackage. Then let's fetch `deepcontrol` from Hackage.
-Add `deepcontrol-0.2.0.0` to your extra-deps field in stack.yaml too:
+Add `deepcontrol-0.3.0.0` to your extra-deps field in stack.yaml too:
 
 stack.yaml:
 
     extra-deps:
     ...
-    - deepcontrol-0.2.0.0
+    - deepcontrol-0.3.0.0
 
 And type as below:
 
@@ -77,7 +77,7 @@ And type as below:
 Stack must fetch and install `deepcontrol` automatically.
 
     ../yourproject$ stack build
-    deepcontrol-0.2.0.0: configure
+    deepcontrol-0.3.0.0: configure
     ...
 
 Now start ghci and see if it works well.
@@ -109,7 +109,7 @@ To install `deepcontrol` on your project folder, type as below:
     .../yourproject$ cabal install deepcontrol
     Resolving dependencies...
     ...
-    
+
 Now start ghci and see if it works well.
 
     .../yourproject$ cabal repl
@@ -119,9 +119,9 @@ Now start ghci and see if it works well.
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.2.0.0/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Applicative.html)
 
-This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses. 
+This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
 
     Prelude> :m DeepControl.Applicative
@@ -130,12 +130,12 @@ You would soon realize exactly what more deeper level means by reading the examp
 
 bra-ket notation:
 
-    > (1+) |> 2 
+    > (1+) |> 2
     3
-    > 1 <| (+2) 
+    > 1 <| (+2)
     3
 
-    > 1 <|(+)|> 2 
+    > 1 <|(+)|> 2
     3
     > 1 <|(+)|> 2 <|(*)|> 3
     9
@@ -147,10 +147,10 @@ bra-ket notation:
 
 bra-ket notation:
 
-    > (1+) |$> [2] 
+    > (1+) |$> [2]
     [3]
-    > [1] <$| (+2) 
-    [3] 
+    > [1] <$| (+2)
+    [3]
     > ("<"++)|$> ["a","b"] <$|(++">")
     ["<a>","<b>"]
 
@@ -158,39 +158,39 @@ bra-ket notation:
     [3]
 
     > [1] <$|(+)|*> [2]
-    [3] 
-    > [1] <$|(+)|*> [0,1,2] 
+    [3]
+    > [1] <$|(+)|*> [0,1,2]
     [1,2,3]
     > [0,1] <$|(+)|*> [2,3] <$|(+)|*> [4,5]
     [6,7,7,8,7,8,8,9]
 
-    > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Just 2,  Just 3] 
+    > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Just 2,  Just 3]
     Just [1,2,3]
     > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Nothing, Just 3]
     Nothing
 
-    > filter (even <$|(&&)|*> (10 >)) [1..100] 
+    > filter (even <$|(&&)|*> (10 >)) [1..100]
     [2,4,6,8]
-    > filter (even <$|(&&)|*> (10 >) <$|(&&)|*> (5 <)) [1..100] 
+    > filter (even <$|(&&)|*> (10 >) <$|(&&)|*> (5 <)) [1..100]
     [6,8]
 
 braket-cover notation
 
-    > [(1+)] |* 2 
-    [3] 
-    > [1] <$|(+)|* 2 
+    > [(1+)] |* 2
     [3]
-    > [1] <$|(+)|* 2 <$|(*)|* 3 
+    > [1] <$|(+)|* 2
+    [3]
+    > [1] <$|(+)|* 2 <$|(*)|* 3
     [9]
 
-    > Just 1 <$|(,)|* 2 
+    > Just 1 <$|(,)|* 2
     Just (1,2)
 
-    > 1 *| [(+2)] 
+    > 1 *| [(+2)]
     [3]
-    > 1 *| [(+)] |* 2 
+    > 1 *| [(+)] |* 2
     [3]
-    > 1 *|[(+),(-),(*),(^)]|* 2 
+    > 1 *|[(+),(-),(*),(^)]|* 2
     [3,-1,2,1]
 
     > 1 *|Just (,)|* 2
@@ -207,7 +207,7 @@ bra-ket notation:
 
     > [Just 1] <<$|(+)|*>> [Just 2]
     [Just 3]
-    > [Just 1] <<$|(,)|*>> [Just 2] 
+    > [Just 1] <<$|(,)|*>> [Just 2]
     [Just (1,2)]
 
     > [[1]] <<$|(+)|*>> [[2]] <<$|(-)|*>> [[3]]
@@ -222,22 +222,22 @@ bra-ket notation:
 
 braket-cover notation:
 
-    > [Just 1] <<$|(+)|** 2 
+    > [Just 1] <<$|(+)|** 2
     [Just 3]
-    > 1 **|(+)|$>> [Just 2] 
+    > 1 **|(+)|$>> [Just 2]
     [Just 3]
-    > 1 **|[Just (+)]|**  2 
+    > 1 **|[Just (+)]|**  2
     [Just 3]
-    > 1 **|[Just (+), Just (-), Just (*), Nothing]|** 2 
+    > 1 **|[Just (+), Just (-), Just (*), Nothing]|** 2
     [Just 3,Just (-1),Just 2,Nothing]
 
-    > [Just 1] <<$|(+)|-* [2] 
+    > [Just 1] <<$|(+)|-* [2]
     [Just 3]
-    > [Just 1] <<$|(+)|*- Just 2 
+    > [Just 1] <<$|(+)|*- Just 2
     [Just 3]
-    >      [1]  -*|(+)|$>> [Just 2] 
+    >      [1]  -*|(+)|$>> [Just 2]
     [Just 3]
-    >   Just 1  *-|(+)|$>> [Just 2] 
+    >   Just 1  *-|(+)|$>> [Just 2]
     [Just 3]
     >   Just 1  *-|[Just (+)]|** 2
     [Just 3]
@@ -258,7 +258,7 @@ Work well likewise.
 
 Not completely written up yet.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.2.0.0/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -270,8 +270,8 @@ import DeepControl.Applicative ((**:))
 import DeepControl.Monad
 
 listlist :: [[String]]             -- List-List Monad
-listlist = [["a","b"]] >>== \x -> 
-           [[0],[1,2]] >>== \y -> 
+listlist = [["a","b"]] >>== \x ->
+           [[0],[1,2]] >>== \y ->
            (**:) $ x ++ show y
 
 -- > listlist
@@ -281,20 +281,19 @@ listlist = [["a","b"]] >>== \x ->
 ```haskell
 import DeepControl.Applicative
 import DeepControl.Monad
+import DeepControl.Monad.Trans.Writer
 
-isJust (Just _) = True
-isJust _        = False
+factorial :: Int ->
+             Maybe (Writer [Int] Int)  -- Maybe-Writer Monad
+factorial n | n < 0  = (-*) Nothing
+factorial n | n == 0 = (*:) $ tell [0] >> return 1
+factorial n | n > 0  =
+    factorial (n-1) >>== \v ->
+    tell [v] ->~
+    (**:) (n * v)
 
-pythagorean_triples :: [Maybe (Int, Int, Int)]  -- List-Maybe Monad
-pythagorean_triples = filter isJust $
-    [1..10] >-== \x ->
-    [1..10] >-== \y ->
-    [1..10] >-== \z ->
-    guard (x < y && x*x + y*y == z*z) ->~
-    (**:) (x,y,z)
-
--- > pythagorean_triples
--- [Just (3,4,5),Just (6,8,10)]
+-- > runWriter |$> factorial 5
+-- Just (120,[0,1,1,2,6,24])
 ```
 
 #### Level-3
@@ -302,28 +301,68 @@ pythagorean_triples = filter isJust $
 ```haskell
 import DeepControl.Applicative
 import DeepControl.Monad
+import DeepControl.Monad.Trans.Writer
 
-isJust (Just _) = True
-isJust _        = False
+factorial :: Int ->
+             IO (Maybe (Writer [Int] Int))    -- IO-Maybe-Writer Monad
+factorial n | n < 0  = (*-*) Nothing
+factorial n | n == 0 = (**:) $ tell [0] >> return 1
+factorial n | n > 0  =
+    factorial (n-1) >>>== \v ->
+    print v >--~
+    tell [v] -->~
+    (***:) (n * v)
 
-pythagorean_triples :: IO [Maybe (Int, Int, Int)]  -- IO-List-Maybe Monad
-pythagorean_triples = filter isJust |$> (
-    [1..10] ->-== \x ->
-    [1..10] ->-== \y ->
-    [1..10] ->-== \z ->
-    guard (x < y && x*x + y*y == z*z) -->~
-    print (x,y,z) >--~
-    (***:) (x,y,z)
-  )
+-- > runWriter |$>> factorial
+-- 0
+-- 1
+-- 1
+-- 2
+-- 6
+-- 24
+-- Just (120,[0,1,1,2,6,24])
+```
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Monad-Trans.html)
 
--- > pythagorean_triples
--- (3,4,5)
--- (6,8,10)
--- [Just (3,4,5),Just (6,8,10)]
+#### Level-2
+
+Here is a monad transformer example how to implement Ackermann function, improved to stop within a certain limit of time, with ReaderT2-IO-Maybe monad, a level-2 monad-transformation.
+
+```haskell
+import DeepControl.Applicative
+import DeepControl.Commutative (commute)
+import DeepControl.Monad ((>-))
+import DeepControl.Monad.Trans (trans2)
+import DeepControl.Monad.Trans.Reader
+
+import System.Timeout (timeout)
+
+type TimeLimit = Int
+
+ackermannTimeLimit :: TimeLimit -> Int -> Int ->
+                      IO (Maybe Int)                 -- IO-Maybe monad
+ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
+  where
+    ackermannIO :: Int -> Int -> IO Int
+    ackermannIO 0 n = (*:) $ n + 1
+    ackermannIO m n | m > 0 && n == 0 = ackermannIO (m-1) 1
+                    | m > 0 && n > 0  = ackermannIO m (n-1) >>= ackermannIO (m-1)
+
+ackermannR :: Int -> Int ->
+              ReaderT2 TimeLimit IO Maybe Int        -- ReaderT2-IO-Maybe monad
+ackermannR x y = do
+    timelimit <- ask
+    trans2 $ ackermannTimeLimit timelimit x y        -- transform(lift) IO-Maybe function to ReaderT2-IO-Maybe function
+
+calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
+calc_ackermann timelimit x y = ackermannR x y >- \r -> runReaderT2 r timelimit
+
+-- λ> commute $ calc_ackermann 1000 |$> [0..4] |* 4
+-- [Just 5,Just 6,Just 11,Just 125,Nothing]
 ```
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.2.0.0/docs/DeepControl-Arrow.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Monad-Morph.html)
 
-### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.2.0.0/docs/DeepControl-Commutative.html)
+### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Commutative.html)
 
-
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Arrow.html)

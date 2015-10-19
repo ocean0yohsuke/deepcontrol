@@ -1,11 +1,13 @@
-module Main where
 import Test.HUnit
 
 import DeepControl.Applicative
 import DeepControl.Monad
+import DeepControl.Monad.Trans.Writer
+import DeepControl.Monad.Trans.Reader
 
-import DeepControl.Monad.Writer
-import DeepControl.Monad.Reader
+import Control.Monad.Identity
+
+import Safe
 
 main :: IO ()
 main = do
@@ -14,13 +16,14 @@ main = do
         , TestList tLevel2
         , TestList tLevel3
         ]
+    runTestTT tests_Level0
     runTestTT tests_Level2
     runTestTT tests_Level3
     return ()
 
 tLevel0 = ("Level0" ~:) |$>
-    [ (3 >- Just)    ~?= (Just 3)
-    , (Just -< 3)    ~?= (Just 3)
+    [ (3 >- Just)    ~?= Just 3
+    , (Just -< 3)    ~?= Just 3
 
     , (1 >- (+1) >- (*2) >- (+3))     ~?= 7
     , (1 >- ((+1) >-> (*2) >-> (+3))) ~?= 7
@@ -50,30 +53,42 @@ tLevel3 = ("Level3" ~:) |$> [
     , (Right Nothing    >>>== \x -> (***:) (x+1) >>>== \x -> (***:) (x+2)) ~?= (Right Nothing :: Either () (Maybe [Int]))
     ]
 
+tests_Level0 :: Test
+tests_Level0 = test [ 
+      "plus" ~: "(>-)" ~: do
+        let plus :: Int -> Int -> Int
+            plus x y = 
+                x >- \a ->
+                y >- \b ->
+                a + b
+        plus 3 4 @?= 7
+    ]
+
 tests_Level2 :: Test
 tests_Level2 = test [ 
       "List-List" ~: "(>>==)" ~: do
-        let actual = [["a","b"]] >>== \x ->
+        let actual :: [[String]]
+            actual = [["a","b"]] >>== \x ->
                      [[0],[1,2]] >>== \y ->
                      (**:) $ x ++ show y
         actual @?= [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 
     , "List-Maybe" ~: "(>>==), (>>~)" ~: do
-        let actual = (Just |$> [1..10]) >>== \x ->
-                     (Just |$> [1..10]) >>== \y ->
-                     (Just |$> [1..10]) >>== \z -> 
-                     ((*:) $ guard (x < y && x*x + y*y == z*z)) >>~
-                     (**:) (x,y,z)
-        filter isJust actual @?= [Just (3,4,5),Just (6,8,10)]
-    , "List-Maybe" ~: "(>-==), (->~)" ~: do
-        let actual = [1..10] >-== \x ->
-                     [1..10] >-== \y ->
-                     [1..10] >-== \z -> 
-                     guard (x < y && x*x + y*y == z*z) ->~
-                     (**:) (x,y,z)
-        filter isJust actual @?= [Just (3,4,5),Just (6,8,10)]
+        let actual :: [Maybe Double]
+            actual = (readMay |$> ["1", "2", "_"]) >>== \a ->
+                     (readMay |$> ["0", "2"]) >>== \b ->
+                     ((*:) $ guard (b /= 0.0)) >>~
+                     (**:) $ a / b
+        actual @?= [Just 0.5,Just 1.0,Nothing]
+    , "List-Maybe" ~: "(->~)" ~: do
+        let actual :: [Maybe Double]
+            actual = (readMay |$> ["1", "2", "_"]) >>== \a ->
+                     (readMay |$> ["0", "2"]) >>== \b ->
+                     guard (b /= 0.0) ->~
+                     (**:) $ a / b
+        actual @?= [Just 0.5,Just 1.0,Nothing]
 
-    , "(->)-Maybe" ~: do
+    , "(->)-Maybe" ~: "(>-==)" ~: do
         let lengthM :: [Int] -> Maybe Int
             lengthM [] = Nothing
             lengthM xs = Just (length xs) 
@@ -88,7 +103,7 @@ tests_Level2 = test [
         let sumR :: Reader [Int] Int
             sumR = sum |$> ask
             lengthRM :: Reader [Int] (Maybe Int)
-            lengthRM = Reader $ \r -> case r of
+            lengthRM = ReaderT $ \r -> Identity $ case r of
                                         [] -> Nothing
                                         xs -> Just (length xs) 
             averageRM :: Reader [Int] (Maybe Double)
@@ -110,9 +125,6 @@ tests_Level2 = test [
         (runWriter |$> factorial 5) @?= Just (120,[0,1,1,2,6,24])
 
     ]
-  where
-    isJust (Just _) = True
-    isJust _        = False
 
 tests_Level3 :: Test
 tests_Level3 = test [ 

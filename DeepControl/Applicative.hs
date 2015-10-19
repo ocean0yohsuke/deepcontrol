@@ -310,68 +310,48 @@ infixl 5  <<*, *>>
 infixl 5  *->, <*-, -*>, <-*
 
 -- | The lifted function of @'*>'@, defined as @liftA2 (*>)@.
-{- 
 --
--- >>> ((*:)|$> print 1) *>> return [2]
+-- >>> ((-*) $ print 1) *>> return [2]
 -- 1
 -- [2]
--}
 (*>>) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 b) -> f1 (f2 b)
 (*>>) = liftA2 (*>)
 
 -- | The lifted function of @'<*'@, defined as @liftA2 (<*)@.
-{-
 --
--- >>> return [2] <<* ((*:)|$> print 1)
+-- >>> return [2] <<* ((-*) $ print 1)
 -- 1
 -- [2]
--- >>> ((*:)|$> print 1) *>> return [3] <<* ((*:)|$> print 2)
+-- >>> ((-*) $ print 1) *>> return [3] <<* ((-*) $ print 2)
 -- 1
 -- 2
 -- [3]
--}
 (<<*) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 b) -> f1 (f2 a)
 (<<*) = liftA2 (<*)
 
--- | Combination consisted of sequence @'*>>'@ and cover @'*:'@, defined as:
---
--- a *-> x = (*:) a *>> x
-{-
+-- | Combination consisted of sequence @'*>>'@ and cover @'*:'@.
 --
 -- >>> [1] *-> return [2] 
 -- [2]
--}
 (*->) :: (Applicative f1, Applicative f2) => f2 a -> f1 (f2 b) -> f1 (f2 b)
 a *-> x = (*:) a *>> x
 
--- | Combination consisted of sequence @'<<*'@ and cover @'*:'@, defined as:
---
--- x <*- a = x <<* (*:) a
-{-
+-- | Combination consisted of sequence @'<<*'@ and cover @'*:'@.
 --
 -- >>> return [2] <*- [1] 
 -- [2]
--}
 (<*-) :: (Applicative f1, Applicative f2) => f1 (f2 b) -> f2 a -> f1 (f2 b)
 x <*- a = x <<* (*:) a
 
--- | Combination consisted of sequence @'*>>'@ and cover @'-*'@, defined as:
---
--- a -*> x = (-*) a *>> x
---
-{-
+-- | Combination consisted of sequence @'*>>'@ and cover @'-*'@.
 --
 -- >>> print [1] -*> return [2]
 -- [1]
 -- [2]
--}
 (-*>) :: (Applicative f1, Applicative f2) => f1 a -> f1 (f2 b) -> f1 (f2 b)
 a -*> x = (-*) a *>> x
 
--- | Combination consisted of sequence @'<<*'@ and cover @'-*'@, defined as:
---
--- x <-* a = x <<* (-*) a
-{-
+-- | Combination consisted of sequence @'<<*'@ and cover @'-*'@.
 --
 -- >>> return [2] <-* print [1]
 -- [1]
@@ -380,7 +360,6 @@ a -*> x = (-*) a *>> x
 -- [1]
 -- [2]
 -- [3]
--}
 (<-*) :: (Applicative f1, Applicative f2) => f1 (f2 b) -> f1 a -> f1 (f2 b)
 x <-* a = x <<* (-*) a
 

@@ -1,5 +1,5 @@
 {-|
-Module      : DeepControl.Monad.State
+Module      : DeepControl.Monad.Trans.State
 Description : 
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology, 2001,
@@ -9,23 +9,13 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module is just a concise mimic for Reader Monad in mtl(monad-transformer-library).
-The qualifier "concise" means that this module doesn't make no attempt to transform functions of any kind of Monad automatically.
-So when making some new data type of WriterT, you have to manually define involved Monad instances, 
-for example `DeepControl.Monad.MonadError`, 
-by making use of the transformation functions such as `trans`, `trans2`, etc.
-Admittedly it is tedious though, you can deeply understand monad-transformation mechanism instead.
+This module extended Writer Monad in mtl(monad-transformer-library).
 -}
 {-# LANGUAGE MultiParamTypeClasses, 
              FlexibleInstances #-}
-module DeepControl.Monad.Writer (
-    MonadWriter(..),
-    listens, censor,
+module DeepControl.Monad.Trans.Writer (
+    module Control.Monad.Writer,
 
-    -- * Level-0
-    Writer(..), execWriter, mapWriter,
-    -- * Level-1
-    WriterT(..), execWriterT, mapWriterT, liftCatch,
     -- * Level-2
     WriterT2(..), execWriterT2, mapWriterT2,
     -- * Level-3
@@ -35,118 +25,36 @@ module DeepControl.Monad.Writer (
 
 import DeepControl.Applicative
 import DeepControl.Monad
-import DeepControl.MonadTrans
+import DeepControl.Monad.Trans
 
-import Control.Monad.Writer (MonadWriter(..))
+import Control.Monad.Writer
 import Control.Monad.Signatures
 import Data.Monoid
-
-listens :: MonadWriter w m => (w -> b) -> m a -> m (a, b)
-listens f m = do
-    (a, w) <- listen m
-    return (a, f w)
-
-censor :: MonadWriter w m => (w -> w) -> m a -> m a
-censor f m = pass $ do
-    a <- m
-    return (a, f)
-
-----------------------------------------------------------------------
--- Level-0
-
-newtype Writer w a = Writer { runWriter :: (a, w) }
-
-instance Functor (Writer w) where
-    fmap f v = Writer $ (\(a, w) -> (f a, w)) $ (runWriter v)
-instance (Monoid w) => Applicative (Writer w) where
-    pure a = Writer $ (a, mempty)
-    (<*>) = \(Writer (f, w)) (Writer (a, w')) ->
-        Writer (f a, w <> w')
-
-instance (Monoid w) => Monad (Writer w) where
-    return = pure
-    mv >>= f = 
-        mv >- \(Writer (a, w)) -> 
-        (\(Writer (b, w')) -> Writer (b, w <> w')) $ f a
-instance (Monoid w) => Monad2 (Writer w) where
-    mmv >>== f = 
-        mmv >>= \(Writer (a, w)) -> 
-        (\(Writer (b, w')) -> Writer (b, w <> w')) |$> f a
-instance (Monoid w) => Monad3 (Writer w) where
-    mmv >>>== f = 
-        mmv >>== \(Writer (a, w)) -> 
-        (\(Writer (b, w')) -> Writer (b, w <> w')) |$>> f a
-instance (Monoid w) => Monad4 (Writer w) where
-    mmv >>>>== f = 
-        mmv >>>== \(Writer (a, w)) -> 
-        (\(Writer (b, w')) -> Writer (b, w <> w')) |$>>> f a
-instance (Monoid w) => Monad5 (Writer w) where
-    mmv >>>>>== f = 
-        mmv >>>>== \(Writer (a, w)) -> 
-        (\(Writer (b, w')) -> Writer (b, w <> w')) |$>>>> f a
-
-instance (Monoid w) => MonadWriter w (Writer w) where
-    writer   = Writer
-    tell w   = writer ((), w)
-    listen m = Writer $ 
-        runWriter m >- \(a, w) ->
-        ((a, w), w) 
-    pass m   = Writer $ 
-        runWriter m >- \((a, f), w) ->
-        (a, f w)
-
-execWriter :: Writer w a -> w
-execWriter m =
-    runWriter m >- \(_, w) ->
-    w
-
-mapWriter :: ((a, w) -> (b, w')) -> Writer w a -> Writer w' b
-mapWriter f m = Writer $ f (runWriter m)
+import Control.Monad.Identity
 
 ----------------------------------------------------------------------
 -- Level-1
 
-newtype WriterT w m a = WriterT { runWriterT :: m (a, w) }
-
-instance (Monad m) => Functor (WriterT w m) where
-    fmap f v = WriterT $ (\(a, w) -> (f a, w)) |$> (runWriterT v)
-instance (Monoid w, Monad m) => Applicative (WriterT w m) where
-    pure a = WriterT $ (*:) (a, mempty)
-    (<*>)  = ap
-instance (Monoid w, Monad m) => Monad (WriterT w m) where  
-    return = pure
-    (WriterT v) >>= f = WriterT $
-        v >>= \(a, w) ->
-        runWriterT (f a) >>= \(a', w') ->
-        (*:) (a', w <> w')
-instance (Monoid w, Monad m) => MonadWriter w (WriterT w m) where
-    writer   = WriterT . (*:)
-    tell w   = writer $ ((), w)
-    listen m = WriterT $
-        runWriterT m >>= \(a, w) ->
-        (*:) ((a, w), w) 
-    pass m   = WriterT $
-        runWriterT m >>= \((a, f), w) ->
-        (*:) (a, f w)
-
-instance (Monoid w) => MonadTrans (WriterT w) where
-    trans m = WriterT $ 
-        m >>= \a ->
-        (*:) (a, mempty)
-instance (Monoid w, MonadIO m, Monad m) => MonadIO (WriterT w m) where
-    liftIO = trans . liftIO
-
-execWriterT :: (Monad m) => WriterT w m a -> m w
-execWriterT m =
-    runWriterT m >>= \(_, w) ->
-    (*:) w
-
-mapWriterT :: (m (a, w) -> n (b, w')) -> WriterT w m a -> WriterT w' n b
-mapWriterT f m = WriterT $ f (runWriterT m)
-
-liftCatch :: Catch e m (a,w) -> Catch e (WriterT w m) a
-liftCatch catchE m h =
-    WriterT $ runWriterT m `catchE` \ e -> runWriterT (h e)
+instance (Monoid w) => Monad2 (Writer w) where
+    mv >>== f = 
+        mv >>= \x -> runWriterT x >- \(Identity (a, w)) ->
+        f a <$| (\x -> runWriterT x >- \(Identity (b, w')) ->
+                       WriterT $ Identity (b, w <> w'))
+instance (Monoid w) => Monad3 (Writer w) where
+    mv >>>== f = 
+        mv >>== \x -> runWriterT x >- \(Identity (a, w)) ->
+        f a <<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
+                        WriterT $ Identity (b, w <> w'))
+instance (Monoid w) => Monad4 (Writer w) where
+    mv >>>>== f = 
+        mv >>>== \x -> runWriterT x >- \(Identity (a, w)) ->
+        f a <<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
+                         WriterT $ Identity (b, w <> w'))
+instance (Monoid w) => Monad5 (Writer w) where
+    mv >>>>>== f = 
+        mv >>>>== \x -> runWriterT x >- \(Identity (a, w)) ->
+        f a <<<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
+                          WriterT $ Identity (b, w <> w'))
 
 ----------------------------------------------------------------------
 -- Level-2

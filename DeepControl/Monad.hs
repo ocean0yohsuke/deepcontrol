@@ -82,6 +82,17 @@ infixl 1  -<, >-
 --
 -- >>> 3 >- Just
 -- Just 3
+--
+-- >>> :{
+-- let plus :: Int -> Int -> Int
+--     plus x y = 
+--         x >- \a ->
+--         y >- \b ->
+--         a + b
+-- in plus 3 4
+-- :}
+-- 7
+--
 (>-) :: a -> (a -> b) -> b
 (>-) = flip (-<)
 
@@ -118,27 +129,25 @@ infixr 1  ->~, >-~
 -- | The 'Monad2' class defines the Monad functions for level-2 types @m1 (m2 a)@; such as [[a]], Maybe [a], Either () (Maybe a), a -> [b], IO [a], etc.
 -- 
 -- >>> :{
+--  -- List-List Monad
 --  [["a","b"]] >>== \x -> 
 --  [[0],[1,2]] >>== \y -> 
---  (**:) $ x ++ show y
+--  (**:) (x ++ show y)
 -- :}
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 --
 -- >>> :{
---  let 
---    isJust (Just _) = True
---    isJust _        = False
---    pythagorean_triple :: [Maybe (Int, Int, Int)]  -- List-Maybe Monad
---    pythagorean_triple = filter isJust $
---        [1..10] >-== \x ->
---        [1..10] >-== \y ->
---        [1..10] >-== \z ->
---        guard (x < y && x*x + y*y == z*z) ->~
---        (**:) (x,y,z)
---  in pythagorean_triple
+--  let lengthM :: [Int] -> Maybe Int   -- ((->) [Int])-Maybe Monad
+--      lengthM [] = Nothing
+--      lengthM xs = Just (length xs) 
+--      averageM :: [Int] -> Maybe Double
+--      averageM = 
+--          sum >-== \s ->      -- sum :: [Int] -> Int -- ((->) [Int]) Monad
+--          lengthM >>== \l ->
+--          (**:) (fromIntegral s / fromIntegral l)
+--  in [averageM [10, 25, 70], averageM []]
 -- :}
--- [Just (3,4,5),Just (6,8,10)]
--- 
+-- [Just 35.0,Nothing]
 -- 
 class (Monad m2) => Monad2 m2 where
   -- | Bind function of level-2.
@@ -193,23 +202,19 @@ infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 -- | The 'Monad3' class defines the Monad functions for level-3 types @m1 (m2 (m3 a)@.
 -- 
 -- >>> :{
---  let 
---    isJust (Just _) = True
---    isJust _        = False
---    pythagorean_triple :: IO [Maybe (Int, Int, Int)]  -- IO-List-Maybe Monad
---    pythagorean_triple = filter isJust |$> (
---        [1..10] ->-== \x ->
---        [1..10] ->-== \y ->
---        [1..10] ->-== \z ->
---        guard (x < y && x*x + y*y == z*z) -->~
---        print (x,y,z) >--~
---        (***:) (x,y,z)
---      )
---  in pythagorean_triple
+-- -- IO-List-List Monad
+-- [["a","b"]] ->>== \x ->
+-- [[0],[1,2]] ->>== \y ->
+-- print (x,y) >--~
+-- (***:) (x ++ show y)
 -- :}
--- (3,4,5)
--- (6,8,10)
--- [Just (3,4,5),Just (6,8,10)]
+-- ("a",0)
+-- ("a",1)
+-- ("a",2)
+-- ("b",0)
+-- ("b",1)
+-- ("b",2)
+-- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 --
 class (Monad m3) => Monad3 m3 where
   (>>>==) :: (Monad m1, Monad2 m2) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
