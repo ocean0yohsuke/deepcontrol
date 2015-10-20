@@ -312,7 +312,6 @@ factorial n | n < 0  = (*-*) Nothing
                        (***:) (n * v)
 
 -- > runWriter |$>> factorial 5
--- 0
 -- 1
 -- 1
 -- 2

@@ -23,6 +23,12 @@ module DeepControl.Monad.Morph (
     -- * Level-3
     (|>>>|), (|<<<|),
 
+    -- * Level-4
+    (|>>>>|), (|<<<<|),
+
+    -- * Level-5
+    (|>>>>>|), (|<<<<<|),
+
     -- * Level-2 example
     -- $Example_Level2
 
@@ -71,6 +77,32 @@ infixr 4  |<<<|
 (|<<<|) :: (Monad m, Monad (t3 m), Monad (t2 (t3 m)), MFunctor t1, MFunctor t2, MFunctor t3) => 
            t1 (t2 (t3 m)) b -> (forall a . m a -> n a) -> t1 (t2 (t3 n)) b
 (|<<<|) f g = (g |>|) |>>| f
+
+-------------------------------------------------------------------------------
+-- Level-4 functions
+
+infixl 4  |>>>>|
+(|>>>>|) :: (Monad m, Monad (t4 m), Monad (t3 (t4 m)), Monad (t2 (t3 (t4 m))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4) => 
+            (forall a . m a -> n a) -> t1 (t2 (t3 (t4 m))) b -> t1 (t2 (t3 (t4 n))) b
+(|>>>>|) f g = (f |>|) |>>>| g
+
+infixr 4  |<<<<|
+(|<<<<|) :: (Monad m, Monad (t4 m), Monad (t3 (t4 m)), Monad (t2 (t3 (t4 m))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4) => 
+            t1 (t2 (t3 (t4 m))) b -> (forall a . m a -> n a) -> t1 (t2 (t3 (t4 n))) b
+(|<<<<|) f g = (g |>|) |>>>| f
+
+-------------------------------------------------------------------------------
+-- Level-5 functions
+
+infixl 4  |>>>>>|
+(|>>>>>|) :: (Monad m, Monad (t5 m), Monad (t4 (t5 m)), Monad (t3 (t4 (t5 m))), Monad (t2 (t3 (t4 (t5 m)))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4, MFunctor t5) => 
+             (forall a . m a -> n a) -> t1 (t2 (t3 (t4 (t5 m)))) b -> t1 (t2 (t3 (t4 (t5 n)))) b
+(|>>>>>|) f g = (f |>|) |>>>>| g
+
+infixr 4  |<<<<<|
+(|<<<<<|) :: (Monad m, Monad (t5 m), Monad (t4 (t5 m)), Monad (t3 (t4 (t5 m))), Monad (t2 (t3 (t4 (t5 m)))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4, MFunctor t5) => 
+             t1 (t2 (t3 (t4 (t5 m)))) b -> (forall a . m a -> n a) -> t1 (t2 (t3 (t4 (t5 n)))) b
+(|<<<<<|) f g = (g |>|) |>>>>| f
 
 -------------------------------------------------------------------------------
 -- TODO
