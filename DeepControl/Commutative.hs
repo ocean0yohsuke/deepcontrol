@@ -44,14 +44,14 @@ cfor = flip cmap
 
 instance Commutative Maybe where
     commute (Just fa) = Just |$> fa
-    commute Nothing = (*:) Nothing
+    commute Nothing   = (*:) Nothing
 
 instance Commutative [] where
     commute = foldr (\x acc -> x <$|(:)|*> acc) ((*:) [])
   
 instance Commutative (Either a) where
     commute (Right x) = Right |$> x
-    commute (Left x) = (*:) $ Left x
+    commute (Left x)  = (*:) $ Left x
 
 instance Commutative ((,) a) where
     commute (x, y) = x <|(,)|$> y

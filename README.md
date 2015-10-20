@@ -286,11 +286,10 @@ import DeepControl.Monad.Trans.Writer
 factorial :: Int ->
              Maybe (Writer [Int] Int)  -- Maybe-Writer Monad
 factorial n | n < 0  = (-*) Nothing
-factorial n | n == 0 = (*:) $ tell [0] >> return 1
-factorial n | n > 0  =
-    factorial (n-1) >>== \v ->
-    tell [v] ->~
-    (**:) (n * v)
+            | n == 0 = (*:) $ tell [0] >> return 1
+            | n > 0  = factorial (n-1) >>== \v ->
+                       tell [v] ->~
+                       (**:) (n * v)
 
 -- > runWriter |$> factorial 5
 -- Just (120,[0,1,1,2,6,24])
@@ -306,12 +305,11 @@ import DeepControl.Monad.Trans.Writer
 factorial :: Int ->
              IO (Maybe (Writer [Int] Int))    -- IO-Maybe-Writer Monad
 factorial n | n < 0  = (*-*) Nothing
-factorial n | n == 0 = (**:) $ tell [0] >> return 1
-factorial n | n > 0  =
-    factorial (n-1) >>>== \v ->
-    print v >--~
-    tell [v] -->~
-    (***:) (n * v)
+            | n == 0 = (**:) $ tell [0] >> return 1
+            | n > 0  = factorial (n-1) >>>== \v ->
+                       print v >--~
+                       tell [v] -->~
+                       (***:) (n * v)
 
 -- > runWriter |$>> factorial 5
 -- 0
@@ -360,6 +358,10 @@ calc_ackermann timelimit x y = ackermannR x y >- \r -> runReaderT2 r timelimit
 -- λ> commute $ calc_ackermann 1000 |$> [0..4] |* 4
 -- [Just 5,Just 6,Just 11,Just 125,Nothing]
 ```
+
+#### Level-3
+
+Work well likewise.
 
 ### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Monad-Morph.html)
 

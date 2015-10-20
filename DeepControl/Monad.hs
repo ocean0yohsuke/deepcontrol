@@ -202,11 +202,11 @@ infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 -- | The 'Monad3' class defines the Monad functions for level-3 types @m1 (m2 (m3 a)@.
 -- 
 -- >>> :{
--- -- IO-List-List Monad
--- [["a","b"]] ->>== \x ->
--- [[0],[1,2]] ->>== \y ->
--- print (x,y) >--~
--- (***:) (x ++ show y)
+--  -- IO-List-List Monad
+--  [["a","b"]] ->>== \x ->
+--  [[0],[1,2]] ->>== \y ->
+--  print (x,y) >--~
+--  (***:) (x ++ show y)
 -- :}
 -- ("a",0)
 -- ("a",1)

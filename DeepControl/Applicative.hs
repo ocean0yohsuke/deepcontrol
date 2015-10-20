@@ -36,7 +36,7 @@ module DeepControl.Applicative (
     -- ** sequnce notation
     (*>>), (<<*), 
     -- ** sequnce-cover notation
-    (*->), (<*-), (-*>), (<-*),
+    (-*>), (<-*), (*->), (<*-), 
 
     -- * Level-3
     -- ** cover notation
@@ -73,7 +73,7 @@ module DeepControl.Applicative (
 
 import Control.Applicative
 
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-0 functions
 
 infixl 4  |>, <|
@@ -99,7 +99,7 @@ infixl 4  |>, <|
 (<|) :: a -> (a -> b) -> b
 (<|) = flip (|>)
 
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-1 functions
 
 infixl 6  *:
@@ -185,7 +185,7 @@ f |* x = f |*> (*:) x
 (*|) :: Applicative f => a -> f (a -> b) -> f b
 (*|) = flip (|*)
 
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-2 functions
 
 infixl 6  **:
@@ -311,57 +311,75 @@ infixl 5  *->, <*-, -*>, <-*
 
 -- | The lifted function of @'*>'@, defined as @liftA2 (*>)@.
 --
--- >>> ((-*) $ print 1) *>> return [2]
+-- >>> sequence $ Just (print 1) *>> (**:) 2
 -- 1
--- [2]
+-- Just 2
+--
+-- >>> (-*) (print 1) *>> return (Just 2)
+-- 1
+-- Just 2
 (*>>) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 b) -> f1 (f2 b)
 (*>>) = liftA2 (*>)
 
 -- | The lifted function of @'<*'@, defined as @liftA2 (<*)@.
 --
--- >>> return [2] <<* ((-*) $ print 1)
+-- >>> sequence $ (**:) 2 <<* Just (print 1)
 -- 1
--- [2]
--- >>> ((-*) $ print 1) *>> return [3] <<* ((-*) $ print 2)
+-- Just 2
+-- >>> sequence $ Just (print 1) *>> (**:) 3 <<* Just (print 2)
 -- 1
 -- 2
--- [3]
+-- Just 3
+--
+-- >>> sequence $ [putStr "1", putStr "2"] *>> (**:) 0 <<* [putStr "3", putStr "4"]
+-- 13142324[0,0,0,0]
 (<<*) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 b) -> f1 (f2 a)
 (<<*) = liftA2 (<*)
 
--- | Combination consisted of sequence @'*>>'@ and cover @'*:'@.
---
--- >>> [1] *-> return [2] 
--- [2]
-(*->) :: (Applicative f1, Applicative f2) => f2 a -> f1 (f2 b) -> f1 (f2 b)
-a *-> x = (*:) a *>> x
-
--- | Combination consisted of sequence @'<<*'@ and cover @'*:'@.
---
--- >>> return [2] <*- [1] 
--- [2]
-(<*-) :: (Applicative f1, Applicative f2) => f1 (f2 b) -> f2 a -> f1 (f2 b)
-x <*- a = x <<* (*:) a
-
 -- | Combination consisted of sequence @'*>>'@ and cover @'-*'@.
 --
--- >>> print [1] -*> return [2]
--- [1]
--- [2]
+-- >>> print 1 -*> (*:) (Just 2)
+-- 1
+-- Just 2
 (-*>) :: (Applicative f1, Applicative f2) => f1 a -> f1 (f2 b) -> f1 (f2 b)
 a -*> x = (-*) a *>> x
 
 -- | Combination consisted of sequence @'<<*'@ and cover @'-*'@.
 --
--- >>> return [2] <-* print [1]
--- [1]
--- [2]
--- >>> print [1] -*> return [3] <-* print [2]
--- [1]
--- [2]
--- [3]
+-- >>> (*:) (Just 2) <-* print 1
+-- 1
+-- Just 2
+-- >>> print 1 -*> (*:) (Just 3) <-* print 2
+-- 1
+-- 2
+-- Just 3
+-- >>> print 1 -*> (*:) (Just 3) <*- Nothing
+-- 1
+-- Nothing
 (<-*) :: (Applicative f1, Applicative f2) => f1 (f2 b) -> f1 a -> f1 (f2 b)
 x <-* a = x <<* (-*) a
+
+-- | Combination consisted of sequence @'*>>'@ and cover @'*:'@.
+--
+-- >>> sequence $ print 1 *-> Just ((*:) 2)
+-- 1
+-- Just 2
+(*->) :: (Applicative f1, Applicative f2) => f2 a -> f1 (f2 b) -> f1 (f2 b)
+a *-> x = (*:) a *>> x
+
+-- | Combination consisted of sequence @'<<*'@ and cover @'*:'@.
+--
+-- >>> sequence $ Just ((*:) 2) <*- print 1
+-- 1
+-- Just 2
+-- >>> sequence $ print 1 *-> Just ((*:) 3) <*- print 2
+-- 1
+-- 2
+-- Just 3
+-- >>> sequence $ print 1 *-> Just ((*:) 3) <-* Nothing
+-- Nothing
+(<*-) :: (Applicative f1, Applicative f2) => f1 (f2 b) -> f2 a -> f1 (f2 b)
+x <*- a = x <<* (*:) a
 
 -- -----------------------------------------------------------------------------
 -- Level-3 functions
