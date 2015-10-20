@@ -196,6 +196,6 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >calc_ackermann'' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 >calc_ackermann'' timelimit x y = ackermann'' x y >- \r -> runReaderT2 r timelimit
 >
->-- λ> commute $ calc_ackermann 1000 |$> [0..4] |* 4
+>-- λ> commute $ calc_ackermann'' 1000 |$> [0..4] |* 4
 >-- [Just 5,Just 6,Just 11,Just 125,Nothing]
 -}
