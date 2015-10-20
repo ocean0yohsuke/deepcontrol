@@ -56,6 +56,10 @@ instance (Monoid w) => Monad5 (Writer w) where
         f a <<<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
                           WriterT $ Identity (b, w <> w'))
 
+instance (Monoid w) => MonadTrans_ (Writer w) (WriterT w) where
+    untrans x = (WriterT . Identity) |$> runWriterT x
+    trans x   = WriterT ((runIdentity . runWriterT) |$> x)
+
 ----------------------------------------------------------------------
 -- Level-2
 
@@ -83,11 +87,11 @@ instance (Monoid w, Monad m1, Monad2 m2) => MonadWriter w (WriterT2 w m1 m2) whe
         (**:) (a, f w)
 
 instance (Monoid w) => MonadTrans2 (WriterT2 w) where
-    trans2 m = WriterT2 $ 
+    lift2 m = WriterT2 $ 
         m >>== \a ->
         (**:) (a, mempty)
 instance (Monoid w, MonadIO m1, Monad m1, Monad2 m2) => MonadIO (WriterT2 w m1 m2) where
-    liftIO = trans2 . (-*) . liftIO
+    liftIO = lift2 . (-*) . liftIO
 
 execWriterT2 :: (Monad m1, Monad2 m2) => WriterT2 w m1 m2 a -> m1 (m2 w)
 execWriterT2 m =
@@ -96,6 +100,10 @@ execWriterT2 m =
 
 mapWriterT2 :: (m1 (m2 (a, w)) -> n1 (n2 (b, w'))) -> WriterT2 w m1 m2 a -> WriterT2 w' n1 n2 b
 mapWriterT2 f m = WriterT2 $ f (runWriterT2 m)
+
+instance (Monoid w) => MonadTransFold2 (WriterT w) (WriterT2 w) where
+    transfold2 (WriterT2 x) = WriterT $ trans x
+    untransfold2 (WriterT x) = WriterT2 $ untrans x
 
 ----------------------------------------------------------------------
 -- Level-3
@@ -124,11 +132,11 @@ instance (Monoid w, Monad m1, Monad2 m2, Monad3 m3) => MonadWriter w (WriterT3 w
         (***:) (a, f w)
 
 instance (Monoid w) => MonadTrans3 (WriterT3 w) where
-    trans3 m = WriterT3 $ 
+    lift3 m = WriterT3 $ 
         m >>>== \a ->
         (***:) (a, mempty)
 instance (Monoid w, MonadIO m1, Monad m1, Monad2 m2, Monad3 m3) => MonadIO (WriterT3 w m1 m2 m3) where
-    liftIO = trans3 . (-**) . liftIO
+    liftIO = lift3 . (-**) . liftIO
 
 execWriterT3 :: (Monad m1, Monad2 m2, Monad3 m3) => WriterT3 w m1 m2 m3 a -> m1 (m2 (m3 w))
 execWriterT3 m =
@@ -137,5 +145,9 @@ execWriterT3 m =
 
 mapWriterT3 :: (m1 (m2 (m3 (a, w))) -> n1 (n2 (n3 (b, w')))) -> WriterT3 w m1 m2 m3 a -> WriterT3 w' n1 n2 n3 b
 mapWriterT3 f m = WriterT3 $ f (runWriterT3 m)
+
+instance (Monoid w) => MonadTransFold3 (WriterT w) (WriterT3 w) where
+    transfold3 (WriterT3 x) = WriterT $ trans2 x 
+    untransfold3 (WriterT x) = WriterT3 $ untrans2 x 
 
 

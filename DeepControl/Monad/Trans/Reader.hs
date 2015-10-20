@@ -53,14 +53,18 @@ instance (Monad m1, Monad2 m2) => MonadReader r (ReaderT2 r m1 m2) where
     local f m = ReaderT2 $ runReaderT2 m . f
 
 instance MonadTrans2 (ReaderT2 r) where
-    trans2 m = ReaderT2 $ \r -> 
+    lift2 m = ReaderT2 $ \r -> 
         m >>== \a ->
         (**:) a
 instance (MonadIO m1, Monad m1, Monad2 m2) => MonadIO (ReaderT2 r m1 m2) where
-    liftIO = trans2 . (-*) . liftIO
+    liftIO = lift2 . (-*) . liftIO
 
 mapReaderT2 :: (m1 (m2 a) -> n1 (n2 b)) -> ReaderT2 r m1 m2 a -> ReaderT2 r n1 n2 b
 mapReaderT2 f m = ReaderT2 $ f . runReaderT2 m
+
+instance MonadTransFold2 (ReaderT r) (ReaderT2 r) where
+    transfold2 (ReaderT2 x) = ReaderT $ x <$| trans
+    untransfold2 (ReaderT x) = ReaderT2 $ x <$| untrans
 
 ----------------------------------------------------------------------
 -- Level-3
@@ -83,12 +87,16 @@ instance (Monad m1, Monad2 m2, Monad3 m3) => MonadReader r (ReaderT3 r m1 m2 m3)
     local f m = ReaderT3 $ runReaderT3 m . f
 
 instance MonadTrans3 (ReaderT3 r) where
-    trans3 m = ReaderT3 $ \r -> 
+    lift3 m = ReaderT3 $ \r -> 
         m >>>== \a ->
         (***:) a
 instance (MonadIO m1, Monad m1, Monad2 m2, Monad3 m3) => MonadIO (ReaderT3 r m1 m2 m3) where
-    liftIO = trans3 . (-**) . liftIO
+    liftIO = lift3 . (-**) . liftIO
 
 mapReaderT3 :: (m1 (m2 (m3 a)) -> n1 (n2 (n3 b))) -> ReaderT3 r m1 m2 m3 a -> ReaderT3 r n1 n2 n3 b
 mapReaderT3 f m = ReaderT3 $ f . runReaderT3 m
+
+instance MonadTransFold3 (ReaderT r) (ReaderT3 r) where
+    transfold3 (ReaderT3 x) = ReaderT $ x <$| trans2
+    untransfold3 (ReaderT x) = ReaderT3 $ x <$| untrans2
 

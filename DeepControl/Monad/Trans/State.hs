@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-|
 Module      : DeepControl.Monad.Trans.State
 Description : 
@@ -32,6 +33,9 @@ import Control.Monad.State
 import Control.Monad.Signatures
 
 ----------------------------------------------------------------------
+-- Level-1
+
+----------------------------------------------------------------------
 -- Level-2
 
 newtype StateT2 s m1 m2 a = StateT2 { runStateT2 :: (s -> m1 (m2 (a,s))) }
@@ -53,11 +57,11 @@ instance (Monad m1, Monad2 m2) => MonadState s (StateT2 s m1 m2) where
     put s = StateT2 $ \_ -> (**:) ((), s)
 
 instance MonadTrans2 (StateT2 s) where
-    trans2 m = StateT2 $ \s -> 
+    lift2 m = StateT2 $ \s -> 
         m >>== \a ->
         (**:) (a, s)
 instance (MonadIO m1, Monad m1, Monad2 m2) => MonadIO (StateT2 s m1 m2) where
-    liftIO = trans2 . (-*) . liftIO
+    liftIO = lift2 . (-*) . liftIO
 
 evalStateT2 :: (Monad m1, Monad2 m2) => StateT2 s m1 m2 a -> s -> m1 (m2 a)
 evalStateT2 m s = 
@@ -72,6 +76,10 @@ mapStateT2 :: (m1 (m2 (a, s)) -> n1 (n2 (b, s))) -> StateT2 s m1 m2 a -> StateT2
 mapStateT2 f m = StateT2 $ f . runStateT2 m
 withStateT2 :: (s -> s) -> StateT2 s m1 m2 a -> StateT2 s m1 m2 a
 withStateT2 f m = StateT2 $ runStateT2 m . f
+
+instance MonadTransFold2 (StateT s) (StateT2 s) where
+    transfold2 (StateT2 x) = StateT $ x <$| trans
+    untransfold2 (StateT x) = StateT2 $ x <$| untrans
 
 ----------------------------------------------------------------------
 -- Level-3
@@ -95,11 +103,11 @@ instance (Monad m1, Monad2 m2, Monad3 m3) => MonadState s (StateT3 s m1 m2 m3) w
     put s = StateT3 $ \_ -> (***:) ((), s)
 
 instance MonadTrans3 (StateT3 s) where
-    trans3 m = StateT3 $ \s -> 
+    lift3 m = StateT3 $ \s -> 
         m >>>== \a ->
         (***:) (a, s)
 instance (MonadIO m1, Monad m1, Monad2 m2, Monad3 m3) => MonadIO (StateT3 s m1 m2 m3) where
-    liftIO = trans3 . (-**) . liftIO
+    liftIO = lift3 . (-**) . liftIO
 
 evalStateT3 :: (Monad m1, Monad2 m2, Monad3 m3) => StateT3 s m1 m2 m3 a -> s -> m1 (m2 (m3 a))
 evalStateT3 m s = 
@@ -115,8 +123,7 @@ mapStateT3 f m = StateT3 $ f . runStateT3 m
 withStateT3 :: (s -> s) -> StateT3 s m1 m2 m3 a -> StateT3 s m1 m2 m3 a
 withStateT3 f m = StateT3 $ runStateT3 m . f
 
-
-
-
-
+instance MonadTransFold3 (StateT s) (StateT3 s) where
+    transfold3 (StateT3 x) = StateT $ x <$| trans2
+    untransfold3 (StateT x) = StateT3 $ x <$| untrans2
 

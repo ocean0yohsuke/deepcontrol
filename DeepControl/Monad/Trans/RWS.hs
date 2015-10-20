@@ -69,11 +69,11 @@ instance (Monoid w, Monad m1, Monad2 m2) => MonadState s (RWST2 r w s m1 m2) whe
     put s = RWST2 $ \_ _ -> (**:) ((), s, mempty)
 
 instance (Monoid w) => MonadTrans2 (RWST2 r w s) where
-    trans2 m = RWST2 $ \r s -> 
+    lift2 m = RWST2 $ \r s -> 
         m >>== \a ->
         (**:) (a, s, mempty)
 instance (Monoid w, MonadIO m1, Monad m1, Monad2 m2) => MonadIO (RWST2 r w s m1 m2) where
-    liftIO = trans2 . (-*) . liftIO
+    liftIO = lift2 . (-*) . liftIO
 
 rwsT2 :: (Monad m1, Monad2 m2) => (r -> s -> (a, s, w)) -> RWST2 r w s m1 m2 a
 rwsT2 = RWST2 . ((**:)|$>>)
@@ -90,6 +90,10 @@ mapRWST2 :: (m1 (m2 (a, s, w)) -> n1 (n2 (b, s, w'))) -> RWST2 r w s m1 m2 a -> 
 mapRWST2 f m = RWST2 $ \r s -> f (runRWST2 m r s)
 withRWST2 :: (r' -> s -> (r, s)) -> RWST2 r w s m1 m2 a -> RWST2 r' w s m1 m2 a
 withRWST2 f m = RWST2 $ \r s -> uncurry (runRWST2 m) (f r s)
+
+instance (Monoid w) => MonadTransFold2 (RWST r w s) (RWST2 r w s) where
+    transfold2 (RWST2 x) = RWST $ trans |$>> x
+    untransfold2 (RWST x) = RWST2 $ untrans |$>> x
 
 ----------------------------------------------------------------------
 -- Level-3
@@ -125,11 +129,11 @@ instance (Monoid w, Monad m1, Monad2 m2, Monad3 m3) => MonadState s (RWST3 r w s
     put s = RWST3 $ \_ _ -> (***:) ((), s, mempty)
 
 instance (Monoid w) => MonadTrans3 (RWST3 r w s) where
-    trans3 m = RWST3 $ \r s -> 
+    lift3 m = RWST3 $ \r s -> 
         m >>>== \a ->
         (***:) (a, s, mempty)
 instance (Monoid w, MonadIO m1, Monad m1, Monad2 m2, Monad3 m3) => MonadIO (RWST3 r w s m1 m2 m3) where
-    liftIO = trans3 . (-**) . liftIO
+    liftIO = lift3 . (-**) . liftIO
 
 rwsT3 :: (Monad m1, Monad2 m2, Monad3 m3) => (r -> s -> (a, s, w)) -> RWST3 r w s m1 m2 m3 a
 rwsT3 = RWST3 . ((***:)|$>>)
@@ -146,4 +150,8 @@ mapRWST3 :: (m1 (m2 (m3 (a, s, w))) -> n1 (n2 (n3 (b, s, w')))) -> RWST3 r w s m
 mapRWST3 f m = RWST3 $ \r s -> f (runRWST3 m r s)
 withRWST3 :: (r' -> s -> (r, s)) -> RWST3 r w s m1 m2 m3 a -> RWST3 r' w s m1 m2 m3 a
 withRWST3 f m = RWST3 $ \r s -> uncurry (runRWST3 m) (f r s)
+
+instance (Monoid w) => MonadTransFold3 (RWST r w s) (RWST3 r w s) where
+    transfold3 (RWST3 x) = RWST $ trans2 |$>> x
+    untransfold3 (RWST x) = RWST3 $ untrans2 |$>> x
 

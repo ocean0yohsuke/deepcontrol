@@ -17,8 +17,11 @@ main = do
         , TestList tLevel3
         ]
     runTestTT tests_Level0
+    putStrLn "" >> print "----------------"
     runTestTT tests_Level2
+    putStrLn "" >> print "----------------"
     runTestTT tests_Level3
+    putStrLn "" >> print "----------------"
     return ()
 
 tLevel0 = ("Level0" ~:) |$>
@@ -117,11 +120,10 @@ tests_Level2 = test [
     , "Maybe-Writer" ~: "(-*)" ~: do
         let factorial :: Int -> Maybe (Writer [Int] Int)
             factorial n | n < 0  = (-*) Nothing
-            factorial n | n == 0 = (*:) $ tell [0] >> return 1
-            factorial n | n > 0  = 
-                factorial (n-1) >>== \v ->
-                tell [v] ->~
-                (**:) (n * v)
+                        | n == 0 = (*:) $ tell [0] >> return 1
+                        | n > 0  = factorial (n-1) >>== \v ->
+                                   tell [v] ->~
+                                   (**:) (n * v)
         (runWriter |$> factorial 5) @?= Just (120,[0,1,1,2,6,24])
 
     ]
@@ -131,11 +133,11 @@ tests_Level3 = test [
       "IO-Maybe-Writer" ~: "(>>>==), (-->~), (*-*)" ~: do
         let factorial :: Int -> IO (Maybe (Writer [Int] Int))
             factorial n | n < 0  = (*-*) Nothing
-            factorial n | n == 0 = (**:) $ tell [0] >> return 1
-            factorial n | n > 0  = 
-                factorial (n-1) >>>== \v ->
-                tell [v] -->~
-                (***:) (n * v)
+                        | n == 0 = (**:) $ tell [0] >> return 1
+                        | n > 0  = factorial (n-1) >>>== \v ->
+                                   print v >--~
+                                   tell [v] -->~
+                                   (***:) (n * v)
         actual <- factorial 5
         (runWriter |$> actual) @?= Just (120,[0,1,1,2,6,24])
     ]
