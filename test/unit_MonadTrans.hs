@@ -1,6 +1,8 @@
 import Test.HUnit hiding (State)
 
-import DeepControl.Monad.Morph
+import DeepControl.Applicative ((|$>))
+import DeepControl.Monad (Monad2)
+import DeepControl.Monad.Trans (lift, (|*|), (|-*|), (|*-|))
 import DeepControl.Monad.Trans.State
 import DeepControl.Monad.Trans.Writer
 
@@ -9,27 +11,26 @@ tick = modify (+1)
 
 tock                        ::                   StateT Int IO ()
 tock = do
-    generalize |>| tick     :: (Monad      m) => StateT Int m  ()
+    (|*|) tick              :: (Monad      m) => StateT Int m  ()
     lift $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
 
 -- λ> runStateT tock 0
 -- Tock!
 -- ((),1)
 
--- i.e. :: StateT Int (WriterT [Int] Identity) ()
-save    :: StateT Int (Writer  [Int]) ()
+save    :: StateT Int (Writer [Int]) ()
 save = do
     n <- get
     lift $ tell [n]
 
-program ::                   StateT Int (WriterT [Int] IO) ()
+program ::                   StateT2 Int IO (Writer [Int]) ()
 program = replicateM_ 4 $ do
-    lift |>| tock
-        :: (MonadTrans t) => StateT Int (t             IO) ()
-    generalize |>>| save
-        :: (Monad      m) => StateT Int (WriterT [Int] m ) ()
+    (|-*|) tock
+        :: (Monad2     m) => StateT2 Int IO m              ()
+    (|*-|) save
+        :: (Monad      m) => StateT2 Int m  (Writer [Int]) ()
 
--- λ> execWriterT (runStateT program 0)
+-- λ> execWriter |$> runStateT2 program 0
 -- Tock!
 -- Tock!
 -- Tock!
@@ -52,7 +53,7 @@ tests_ = test [
         actual @?= ((),1)
 
     , "program" ~: do
-        actual <- execWriterT (runStateT program 0)
+        actual <- execWriter |$> runStateT2 program 0
         actual @?= [1,2,3,4]
     ]
 

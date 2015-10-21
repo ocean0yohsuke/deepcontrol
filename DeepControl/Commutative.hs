@@ -31,14 +31,14 @@ import DeepControl.Applicative
 -- | 
 -- 
 class (Functor c) => Commutative c where
-  -- | This method is the same for @'Data.Traversable.sequenceA'@ just except the name.
+  -- | This method is equivalent for @'Data.Traversable.sequenceA'@ just except the name.
   --   The only difference is the name "commute", that is to say from which no action kind of concepts smell.
   commute :: Applicative f => c (f a) -> f (c a)
 
--- | Do @fmap f@ then commute, the same for @'Data.Traversable.traverse'@.
+-- | Do @fmap f@ then commute, equivalent for @'Data.Traversable.traverse'@.
 cmap :: (Applicative f, Commutative c) => (a -> f b) -> c a -> f (c b)
 cmap f = commute . (f |$>)
--- | The auguments-flipped function for @'cmap'@, the same for @'Data.Traversable.for'@.
+-- | The auguments-flipped function for @'cmap'@, equivalent for @'Data.Traversable.for'@.
 cfor :: (Applicative f, Commutative c) => c a -> (a -> f b) -> f (c b)
 cfor = flip cmap
 

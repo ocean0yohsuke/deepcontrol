@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Monad.Morph
-Description : 
+Description : Extension for mmorph's Contrl.Monad.Morph.
 Copyright   : 2013 Gabriel Gonzalez,
               (C) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
@@ -8,9 +8,14 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module extended mmorph package's Control.Monad.Morph module.
+This module enables you to program in Monad-Morphic style for more __deeper__ level than the usual @Control.Monad.Morph@ module expresses.
+You would realize exactly what __/more deeper level/__ means by reading the example codes, which are attached on the page bottom.
+Note: many instances for Level-4 and Level-5 haven't been written yet.
 -}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 module DeepControl.Monad.Morph (
     module Control.Monad.Morph,
 
@@ -35,19 +40,18 @@ module DeepControl.Monad.Morph (
     ) where 
 
 import DeepControl.Applicative
-import DeepControl.Monad.Trans
 
 import Control.Monad.Morph
 
 -------------------------------------------------------------------------------
 -- Level-1 functions
 
-infixl 4  |>|
+infixl 2  |>|
 -- | Alias for @'hoist'@.
 (|>|) :: (Monad m, MFunctor t) => (forall a . m a -> n a) -> t m b -> t n b
 (|>|) = hoist
 
-infixr 4  |<|
+infixr 2  |<|
 -- | Equivalent to (|>|) with the arguments flipped.
 (|<|) :: (Monad m, MFunctor t) => t m b -> (forall a . m a -> n a) -> t n b
 (|<|) l r = hoist r l
@@ -55,12 +59,12 @@ infixr 4  |<|
 -------------------------------------------------------------------------------
 -- Level-2 functions
 
-infixl 4  |>>|
+infixl 2  |>>|
 (|>>|) :: (Monad m, Monad (t2 m), MFunctor t1, MFunctor t2) => 
           (forall a . m a -> n a) -> t1 (t2 m) b -> t1 (t2 n) b
 (|>>|) f g = (f |>|) |>| g
 
-infixr 4  |<<|
+infixr 2  |<<|
 (|<<|) :: (Monad m, Monad (t2 m), MFunctor t1, MFunctor t2) => 
            t1 (t2 m) b -> (forall a . m a -> n a) -> t1 (t2 n) b
 (|<<|) f g = (g |>|) |>| f
@@ -68,12 +72,12 @@ infixr 4  |<<|
 -------------------------------------------------------------------------------
 -- Level-3 functions
 
-infixl 4  |>>>|
+infixl 2  |>>>|
 (|>>>|) :: (Monad m, Monad (t3 m), Monad (t2 (t3 m)), MFunctor t1, MFunctor t2, MFunctor t3) => 
            (forall a . m a -> n a) -> t1 (t2 (t3 m)) b -> t1 (t2 (t3 n)) b
 (|>>>|) f g = (f |>|) |>>| g
 
-infixr 4  |<<<|
+infixr 2  |<<<|
 (|<<<|) :: (Monad m, Monad (t3 m), Monad (t2 (t3 m)), MFunctor t1, MFunctor t2, MFunctor t3) => 
            t1 (t2 (t3 m)) b -> (forall a . m a -> n a) -> t1 (t2 (t3 n)) b
 (|<<<|) f g = (g |>|) |>>| f
@@ -81,12 +85,12 @@ infixr 4  |<<<|
 -------------------------------------------------------------------------------
 -- Level-4 functions
 
-infixl 4  |>>>>|
+infixl 2  |>>>>|
 (|>>>>|) :: (Monad m, Monad (t4 m), Monad (t3 (t4 m)), Monad (t2 (t3 (t4 m))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4) => 
             (forall a . m a -> n a) -> t1 (t2 (t3 (t4 m))) b -> t1 (t2 (t3 (t4 n))) b
 (|>>>>|) f g = (f |>|) |>>>| g
 
-infixr 4  |<<<<|
+infixr 2  |<<<<|
 (|<<<<|) :: (Monad m, Monad (t4 m), Monad (t3 (t4 m)), Monad (t2 (t3 (t4 m))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4) => 
             t1 (t2 (t3 (t4 m))) b -> (forall a . m a -> n a) -> t1 (t2 (t3 (t4 n))) b
 (|<<<<|) f g = (g |>|) |>>>| f
@@ -94,12 +98,12 @@ infixr 4  |<<<<|
 -------------------------------------------------------------------------------
 -- Level-5 functions
 
-infixl 4  |>>>>>|
+infixl 2  |>>>>>|
 (|>>>>>|) :: (Monad m, Monad (t5 m), Monad (t4 (t5 m)), Monad (t3 (t4 (t5 m))), Monad (t2 (t3 (t4 (t5 m)))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4, MFunctor t5) => 
              (forall a . m a -> n a) -> t1 (t2 (t3 (t4 (t5 m)))) b -> t1 (t2 (t3 (t4 (t5 n)))) b
 (|>>>>>|) f g = (f |>|) |>>>>| g
 
-infixr 4  |<<<<<|
+infixr 2  |<<<<<|
 (|<<<<<|) :: (Monad m, Monad (t5 m), Monad (t4 (t5 m)), Monad (t3 (t4 (t5 m))), Monad (t2 (t3 (t4 (t5 m)))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4, MFunctor t5) => 
              t1 (t2 (t3 (t4 (t5 m)))) b -> (forall a . m a -> n a) -> t1 (t2 (t3 (t4 (t5 n)))) b
 (|<<<<<|) f g = (g |>|) |>>>>| f

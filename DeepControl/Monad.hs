@@ -216,7 +216,7 @@ infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 -- ("b",2)
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 --
-class (Monad m3) => Monad3 m3 where
+class (Monad2 m3) => Monad3 m3 where
   (>>>==) :: (Monad m1, Monad2 m2) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 
 (>===>) :: (Monad m1, Monad2 m2, Monad3 m3) => (a -> m1 (m2 (m3 b))) -> (b -> m1 (m2 (m3 c))) -> a -> m1 (m2 (m3 c))
@@ -274,7 +274,7 @@ infixr 1  >====>
 infixr 1  >>>>~, >>>>==
 -- TODO: >>>>~
 
-class (Monad m4) => Monad4 m4 where
+class (Monad3 m4) => Monad4 m4 where
   (>>>>==) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m2 (m3 (m4 a))) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 
 (>====>) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => (a -> m1 (m2 (m3 (m4 b)))) -> (b -> m1 (m2 (m3 (m4 c)))) -> a -> m1 (m2 (m3 (m4 c)))
@@ -308,7 +308,7 @@ infixr 1  >=====>
 infixr 1  >>>>>~, >>>>>== 
 -- TODO: >>>>>~
 
-class (Monad m5) => Monad5 m5 where
+class (Monad4 m5) => Monad5 m5 where
   (>>>>>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m3 (m4 (m5 a)))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 
 (>=====>) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => (a -> m1 (m2 (m3 (m4 (m5 b))))) -> (b -> m1 (m2 (m3 (m4 (m5 c))))) -> a -> m1 (m2 (m3 (m4 (m5 c))))

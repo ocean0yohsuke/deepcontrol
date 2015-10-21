@@ -5,9 +5,10 @@ import DeepControl.Monad ((>-))
 import DeepControl.Commutative (cmap)
 import DeepControl.Monad.Trans
 import DeepControl.Monad.Trans.State
+import DeepControl.Monad.Trans.Except
 
 import Control.Monad.Trans.Maybe
-import Control.Monad.Except
+import Control.Monad.Identity
 
 -----------------------------------------------
 -- State
@@ -319,24 +320,25 @@ poland_calcSME xs = (cmap polandSME xs >> popSME) >- \x -> runStateT x []
                                                   >- runExceptT
 
 -----------------------------------------------
--- StateT3-IO-Either-Maybe Monad
+-- StateT3-IO-Except-Maybe Monad
 
-pushS3 :: a -> StateT3 [a] IO (Either ()) Maybe a
+pushS3 :: a -> StateT3 [a] IO (Except ()) Maybe a
 pushS3 x = do 
     xs <- get
     put (x:xs)
     return x
-popS3 :: StateT3 [a] IO (Either ()) Maybe a
+popS3 :: StateT3 [a] IO (Except ()) Maybe a
 popS3 = do 
     xs <- get
     put (tail xs)
     return (head xs)
 
-polandS3 :: String -> StateT3 [Double] IO (Either ()) Maybe Double
+polandS3 :: String -> StateT3 [Double] IO (Except ()) Maybe Double
 polandS3 s = untransfold3 $ polandSME s
 
 poland_calcS3 :: [String] -> IO (Either () (Maybe (Double, [Double])))
 poland_calcS3 xs = (cmap polandS3 xs >> popS3) >- \x -> runStateT3 x []
+                                               >- (runExcept |$>) 
 
 ----------------------------------------------------------------
 -- unit test

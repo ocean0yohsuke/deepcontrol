@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Monad.Trans.State
-Description : 
+Description : Extension for mtl's Contrl.Monad.Writer.
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology, 2001,
               (C) 2015 KONISHI Yohsuke,
@@ -11,8 +11,9 @@ Portability : ---
 
 This module extended Writer Monad in mtl(monad-transformer-library).
 -}
-{-# LANGUAGE MultiParamTypeClasses, 
-             FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 module DeepControl.Monad.Trans.Writer (
     module Control.Monad.Writer,
 
@@ -56,9 +57,15 @@ instance (Monoid w) => Monad5 (Writer w) where
         f a <<<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
                           WriterT $ Identity (b, w <> w'))
 
-instance (Monoid w) => MonadTrans_ (Writer w) (WriterT w) where
+instance (Monoid w) => MonadTrans_ (WriterT w) where
     untrans x = (WriterT . Identity) |$> runWriterT x
     trans x   = WriterT ((runIdentity . runWriterT) |$> x)
+
+instance (Monoid w) => MonadTransDown (WriterT w) where
+    type TransDown (WriterT w) = Writer w
+
+instance (Monoid w) => MonadTransCover (WriterT w) where
+    (|*|) = WriterT . (*:) . runWriter
 
 ----------------------------------------------------------------------
 -- Level-2
@@ -101,9 +108,16 @@ execWriterT2 m =
 mapWriterT2 :: (m1 (m2 (a, w)) -> n1 (n2 (b, w'))) -> WriterT2 w m1 m2 a -> WriterT2 w' n1 n2 b
 mapWriterT2 f m = WriterT2 $ f (runWriterT2 m)
 
-instance (Monoid w) => MonadTransFold2 (WriterT w) (WriterT2 w) where
+instance (Monoid w) => MonadTrans2Down (WriterT2 w) where
+    type Trans2Down (WriterT2 w) = WriterT w
+
+instance (Monoid w) => MonadTransFold2 (WriterT2 w) where
     transfold2 (WriterT2 x) = WriterT $ trans x
     untransfold2 (WriterT x) = WriterT2 $ untrans x
+
+instance (Monoid w) => MonadTransCover2 (WriterT2 w) where
+    (|-*|) = WriterT2 . (-*) . runWriterT
+    (|*-|) = WriterT2 . (*-) . runWriterT
 
 ----------------------------------------------------------------------
 -- Level-3
@@ -146,8 +160,15 @@ execWriterT3 m =
 mapWriterT3 :: (m1 (m2 (m3 (a, w))) -> n1 (n2 (n3 (b, w')))) -> WriterT3 w m1 m2 m3 a -> WriterT3 w' n1 n2 n3 b
 mapWriterT3 f m = WriterT3 $ f (runWriterT3 m)
 
-instance (Monoid w) => MonadTransFold3 (WriterT w) (WriterT3 w) where
+instance (Monoid w) => MonadTrans3Down (WriterT3 w) where
+    type Trans3Down (WriterT3 w) = WriterT2 w
+
+instance (Monoid w) => MonadTransFold3 (WriterT3 w) where
     transfold3 (WriterT3 x) = WriterT $ trans2 x 
     untransfold3 (WriterT x) = WriterT3 $ untrans2 x 
 
+instance (Monoid w) => MonadTransCover3 (WriterT3 w) where
+    (|--*|) = WriterT3 . (--*) . runWriterT2
+    (|-*-|) = WriterT3 . (-*-) . runWriterT2
+    (|*--|) = WriterT3 . (*--) . runWriterT2
 

@@ -62,13 +62,13 @@ Please follow the message direction.
 ### Fetch from [Hackage](https://hackage.haskell.org/package/deepcontrol)
 
 Ok, I(you) got `deepcontrol` isn't in Stackage. Then let's fetch `deepcontrol` from Hackage.
-Add `deepcontrol-0.3.0.0` to your extra-deps field in stack.yaml too:
+Add `deepcontrol-0.3.2.0` to your extra-deps field in stack.yaml too:
 
 stack.yaml:
 
     extra-deps:
     ...
-    - deepcontrol-0.3.0.0
+    - deepcontrol-0.3.2.0
 
 And type as below:
 
@@ -77,7 +77,7 @@ And type as below:
 Stack must fetch and install `deepcontrol` automatically.
 
     ../yourproject$ stack build
-    deepcontrol-0.3.0.0: configure
+    deepcontrol-0.3.2.0: configure
     ...
 
 Now start ghci and see if it works well.
@@ -119,7 +119,7 @@ Now start ghci and see if it works well.
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -258,7 +258,7 @@ Work well likewise.
 
 Not completely written up yet.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -319,7 +319,7 @@ factorial n | n < 0  = (*-*) Nothing
 -- 24
 -- Just (120,[0,1,1,2,6,24])
 ```
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -362,30 +362,98 @@ ackermann' :: Int -> Int ->
               ReaderT TimeLimit (MaybeT IO) Int     -- ReaderT-MaybeT-IO monad
 ackermann' x y = transfold2 $ ackermann x y         -- You can get usual ReaderT-MaybeT-IO function from ReaderT2-IO-Maybe function
 
-calc_ackermann' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
-calc_ackermann' timelimit x y = ackermann' x y >- \r -> runReaderT r timelimit
-                                               >- runMaybeT
-
--- λ> commute $ calc_ackermann' 1000 |$> [0..4] |* 4
--- [Just 5,Just 6,Just 11,Just 125,Nothing]
-
 ackermann'' :: Int -> Int -> 
-               ReaderT2 TimeLimit IO Maybe Int       -- ReaderT2-IO-Maybe monad
-ackermann'' x y = untransfold2 $ ackermann' x y      -- You can get ReaderT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
-
-calc_ackermann'' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
-calc_ackermann'' timelimit x y = ackermann'' x y >- \r -> runReaderT2 r timelimit
-
--- λ> commute $ calc_ackermann'' 1000 |$> [0..4] |* 4
--- [Just 5,Just 6,Just 11,Just 125,Nothing]
+               ReaderT2 TimeLimit IO Maybe Int      -- ReaderT2-IO-Maybe monad
+ackermann'' x y = untransfold2 $ ackermann' x y     -- You can get ReaderT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 ```
 
+Here is a monad transformer example showing that the Monad Morphic programming is usable.
+
+```haskell
+import DeepControl.Applicative ((|$>))
+import DeepControl.Monad (Monad2)
+import DeepControl.Monad.Trans (lift, (|*|), (|-*|), (|*-|))
+import DeepControl.Monad.Trans.State
+import DeepControl.Monad.Trans.Writer
+
+tick :: State Int ()
+tick = modify (+1)
+
+tock                        ::                   StateT Int IO ()
+tock = do
+    (|*|) tick              :: (Monad      m) => StateT Int m  ()
+    lift $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
+
+-- λ> runStateT tock 0
+-- Tock!
+-- ((),1)
+
+save    :: StateT Int (Writer [Int]) ()
+save = do
+    n <- get
+    lift $ tell [n]
+
+program ::                   StateT2 Int IO (Writer [Int]) ()
+program = replicateM_ 4 $ do
+    (|-*|) tock
+        :: (Monad2     m) => StateT2 Int IO m              ()
+    (|*-|) save
+        :: (Monad      m) => StateT2 Int m  (Writer [Int]) ()
+
+-- λ> execWriter |$> runStateT2 program 0
+-- Tock!
+-- Tock!
+-- Tock!
+-- Tock!
+-- [1,2,3,4]
+```
 #### Level-3
 
 Work well likewise.
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Monad-Morph.html)
 
-### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Commutative.html)
+Here is a monad-morph example, a level-2 monad-morph.
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.3.0.0/docs/DeepControl-Arrow.html)
+```haskell
+import DeepControl.Monad.Morph
+import DeepControl.Monad.Trans.State
+import DeepControl.Monad.Trans.Writer
+
+-- i.e. :: StateT Int Identity ()
+tick    :: State Int ()
+tick = modify (+1)
+
+tock                        ::                   StateT Int IO ()
+tock = do
+    generalize |>| tick     :: (Monad      m) => StateT Int m  ()
+    lift $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
+
+-- λ> runStateT tock 0
+-- Tock!
+-- ((),1)
+
+-- i.e. :: StateT Int (WriterT [Int] Identity) ()
+save    :: StateT Int (Writer  [Int]) ()
+save = do
+    n <- get
+    lift $ tell [n]
+
+program ::                   StateT Int (WriterT [Int] IO) ()
+program = replicateM_ 4 $ do
+    lift |>| tock
+        :: (MonadTrans t) => StateT Int (t             IO) ()
+    generalize |>>| save
+        :: (Monad      m) => StateT Int (WriterT [Int] m ) ()
+
+-- λ> execWriterT (runStateT program 0)
+-- Tock!
+-- Tock!
+-- Tock!
+-- Tock!
+-- [1,2,3,4]
+```
+
+### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Commutative.html)
+
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Arrow.html)

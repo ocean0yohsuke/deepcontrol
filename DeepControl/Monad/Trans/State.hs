@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-|
 Module      : DeepControl.Monad.Trans.State
-Description : 
+Description : Extension for mtl's Contrl.Monad.State.
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology, 2001,
               (C) 2015 KONISHI Yohsuke,
@@ -12,9 +12,9 @@ Portability : ---
 
 This module extended State Monad in mtl(monad-transformer-library).
 -}
-{-# LANGUAGE MultiParamTypeClasses,
-             FlexibleInstances,
-             UndecidableInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 module DeepControl.Monad.Trans.State (
     module Control.Monad.State,
 
@@ -34,6 +34,12 @@ import Control.Monad.Signatures
 
 ----------------------------------------------------------------------
 -- Level-1
+
+instance MonadTransDown (StateT s) where
+    type TransDown (StateT s) = State s
+
+instance MonadTransCover (StateT s) where
+    (|*|) = StateT . ((*:)|$>) . runState
 
 ----------------------------------------------------------------------
 -- Level-2
@@ -77,9 +83,16 @@ mapStateT2 f m = StateT2 $ f . runStateT2 m
 withStateT2 :: (s -> s) -> StateT2 s m1 m2 a -> StateT2 s m1 m2 a
 withStateT2 f m = StateT2 $ runStateT2 m . f
 
-instance MonadTransFold2 (StateT s) (StateT2 s) where
+instance MonadTrans2Down (StateT2 s) where
+    type Trans2Down (StateT2 s) = StateT s
+
+instance MonadTransFold2 (StateT2 s) where
     transfold2 (StateT2 x) = StateT $ x <$| trans
     untransfold2 (StateT x) = StateT2 $ x <$| untrans
+
+instance MonadTransCover2 (StateT2 w) where
+    (|-*|) = StateT2 . ((-*)|$>) . runStateT
+    (|*-|) = StateT2 . ((*-)|$>) . runStateT
 
 ----------------------------------------------------------------------
 -- Level-3
@@ -123,7 +136,15 @@ mapStateT3 f m = StateT3 $ f . runStateT3 m
 withStateT3 :: (s -> s) -> StateT3 s m1 m2 m3 a -> StateT3 s m1 m2 m3 a
 withStateT3 f m = StateT3 $ runStateT3 m . f
 
-instance MonadTransFold3 (StateT s) (StateT3 s) where
+instance MonadTrans3Down (StateT3 s) where
+    type Trans3Down (StateT3 s) = StateT2 s
+
+instance MonadTransFold3 (StateT3 s) where
     transfold3 (StateT3 x) = StateT $ x <$| trans2
     untransfold3 (StateT x) = StateT3 $ x <$| untrans2
+
+instance MonadTransCover3 (StateT3 s) where
+    (|--*|) = StateT3 . ((--*)|$>) . runStateT2
+    (|-*-|) = StateT3 . ((-*-)|$>) . runStateT2
+    (|*--|) = StateT3 . ((*--)|$>) . runStateT2
 

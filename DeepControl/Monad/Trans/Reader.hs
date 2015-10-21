@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Monad.Trans.Reader
-Description : 
+Description : Extension for mtl's Contrl.Monad.Reader.
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology 2001,
               (c) Jeff Newbern 2003-2007,
@@ -13,8 +13,9 @@ Portability : ---
 
 This module extended Reader Monad in mtl(monad-transformer-library).
 -}
-{-# LANGUAGE MultiParamTypeClasses, 
-             FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 module DeepControl.Monad.Trans.Reader (
     module Control.Monad.Reader,
 
@@ -31,6 +32,15 @@ import DeepControl.Monad.Trans
 
 import Control.Monad.Reader 
 import Control.Monad.Signatures
+
+----------------------------------------------------------------------
+-- Level-1
+
+instance MonadTransDown (ReaderT r) where
+    type TransDown (ReaderT r) = Reader r
+
+instance MonadTransCover (ReaderT s) where
+    (|*|) = ReaderT . ((*:)|$>) . runReader
 
 ----------------------------------------------------------------------
 -- Level-2
@@ -62,9 +72,16 @@ instance (MonadIO m1, Monad m1, Monad2 m2) => MonadIO (ReaderT2 r m1 m2) where
 mapReaderT2 :: (m1 (m2 a) -> n1 (n2 b)) -> ReaderT2 r m1 m2 a -> ReaderT2 r n1 n2 b
 mapReaderT2 f m = ReaderT2 $ f . runReaderT2 m
 
-instance MonadTransFold2 (ReaderT r) (ReaderT2 r) where
+instance MonadTrans2Down (ReaderT2 r) where
+    type Trans2Down (ReaderT2 r) = ReaderT r
+
+instance MonadTransFold2 (ReaderT2 r) where
     transfold2 (ReaderT2 x) = ReaderT $ x <$| trans
     untransfold2 (ReaderT x) = ReaderT2 $ x <$| untrans
+
+instance MonadTransCover2 (ReaderT2 r) where
+    (|-*|) = ReaderT2 . ((-*)|$>) . runReaderT
+    (|*-|) = ReaderT2 . ((*-)|$>) . runReaderT
 
 ----------------------------------------------------------------------
 -- Level-3
@@ -96,7 +113,15 @@ instance (MonadIO m1, Monad m1, Monad2 m2, Monad3 m3) => MonadIO (ReaderT3 r m1 
 mapReaderT3 :: (m1 (m2 (m3 a)) -> n1 (n2 (n3 b))) -> ReaderT3 r m1 m2 m3 a -> ReaderT3 r n1 n2 n3 b
 mapReaderT3 f m = ReaderT3 $ f . runReaderT3 m
 
-instance MonadTransFold3 (ReaderT r) (ReaderT3 r) where
+instance MonadTrans3Down (ReaderT3 r) where
+    type Trans3Down (ReaderT3 r) = ReaderT2 r
+
+instance MonadTransFold3 (ReaderT3 r) where
     transfold3 (ReaderT3 x) = ReaderT $ x <$| trans2
     untransfold3 (ReaderT x) = ReaderT3 $ x <$| untrans2
+
+instance MonadTransCover3 (ReaderT3 r) where
+    (|--*|) = ReaderT3 . ((--*)|$>) . runReaderT2
+    (|-*-|) = ReaderT3 . ((-*-)|$>) . runReaderT2
+    (|*--|) = ReaderT3 . ((*--)|$>) . runReaderT2
 
