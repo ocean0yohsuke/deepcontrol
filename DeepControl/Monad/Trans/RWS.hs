@@ -14,26 +14,32 @@ This module extended RWS Monad in mtl(monad-transformer-library).
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DeriveFunctor #-}
 module DeepControl.Monad.Trans.RWS (
     module Control.Monad.RWS,
     MonadReader(..), MonadWriter(..), MonadState(..),
 
     -- * Level-2
     RWST2(..), rwsT2, evalRWST2, execRWST2, mapRWST2, withRWST2, 
+    -- ** lift function
+    liftCatch2,
+
     -- * Level-3
     RWST3(..), rwsT3, evalRWST3, execRWST3, mapRWST3, withRWST3, 
+    -- ** lift function
+    liftCatch3,
 
     ) where 
 
 import DeepControl.Applicative
 import DeepControl.Monad
+import DeepControl.Monad.Signatures
 import DeepControl.Monad.Trans
 
 import Control.Monad.Reader (MonadReader(..))
 import Control.Monad.Writer (MonadWriter(..))
 import Control.Monad.State (MonadState(..))
 import Control.Monad.RWS
-import Control.Monad.Signatures
 import Data.Monoid
 
 ----------------------------------------------------------------------
@@ -49,10 +55,12 @@ instance (Monoid w) => MonadTransCover (RWST r w s) where
 -- Level-2
 
 newtype RWST2 r w s m1 m2 a = RWST2 { runRWST2 :: r -> s -> m1 (m2 (a, s, w)) }
-
+    deriving (Functor)
+{-
 instance (Functor m1, Functor m2) => Functor (RWST2 r w s m1 m2) where
     fmap f m = RWST2 $ \r s ->
         (\(a, s', w) -> (f a, s', w)) |$>> runRWST2 m r s
+-}
 instance (Monoid w, Monad m1, Monad2 m2) => Applicative (RWST2 r w s m1 m2) where
     pure a = RWST2 $ \_ s -> (**:) (a, s, mempty)
     (<*>)  = ap
@@ -85,6 +93,17 @@ instance (Monoid w) => MonadTrans2 (RWST2 r w s) where
 instance (Monoid w, MonadIO m1, Monad m1, Monad2 m2) => MonadIO (RWST2 r w s m1 m2) where
     liftIO = lift2 . (-*) . liftIO
 
+instance (Monoid w) => MonadTrans2Down (RWST2 r w s) where
+    type Trans2Down (RWST2 r w s) = RWST r w s
+
+instance (Monoid w) => MonadTransFold2 (RWST2 r w s) where
+    transfold2 (RWST2 x) = RWST $ trans |$>> x
+    untransfold2 (RWST x) = RWST2 $ untrans |$>> x
+
+instance (Monoid w) => MonadTransCover2 (RWST2 r w s) where
+    (|-*|) = RWST2 . ((-*)|$>>) . runRWST
+    (|*-|) = RWST2 . ((*-)|$>>) . runRWST
+
 rwsT2 :: (Monad m1, Monad2 m2) => (r -> s -> (a, s, w)) -> RWST2 r w s m1 m2 a
 rwsT2 = RWST2 . ((**:)|$>>)
 evalRWST2 :: (Monad m1, Monad2 m2) => RWST2 r w s m1 m2 a -> r -> s -> m1 (m2 (a, w))
@@ -101,25 +120,19 @@ mapRWST2 f m = RWST2 $ \r s -> f (runRWST2 m r s)
 withRWST2 :: (r' -> s -> (r, s)) -> RWST2 r w s m1 m2 a -> RWST2 r' w s m1 m2 a
 withRWST2 f m = RWST2 $ \r s -> uncurry (runRWST2 m) (f r s)
 
-instance (Monoid w) => MonadTrans2Down (RWST2 r w s) where
-    type Trans2Down (RWST2 r w s) = RWST r w s
-
-instance (Monoid w) => MonadTransFold2 (RWST2 r w s) where
-    transfold2 (RWST2 x) = RWST $ trans |$>> x
-    untransfold2 (RWST x) = RWST2 $ untrans |$>> x
-
-instance (Monoid w) => MonadTransCover2 (RWST2 r w s) where
-    (|-*|) = RWST2 . ((-*)|$>>) . runRWST
-    (|*-|) = RWST2 . ((*-)|$>>) . runRWST
+liftCatch2 :: Catch2 e m1 m2 (a,s,w) -> Catch e (RWST2 r w s m1 m2) a
+liftCatch2 catch m h = RWST2 $ \r s -> runRWST2 m r s `catch` \e -> runRWST2 (h e) r s
 
 ----------------------------------------------------------------------
 -- Level-3
 
 newtype RWST3 r w s m1 m2 m3 a = RWST3 { runRWST3 :: r -> s -> m1 (m2 (m3 (a, s, w))) }
-
+    deriving (Functor)
+{-
 instance (Functor m1, Functor m2, Functor m3) => Functor (RWST3 r w s m1 m2 m3) where
     fmap f m = RWST3 $ \r s ->
         (\(a, s', w) -> (f a, s', w)) |$>>> runRWST3 m r s
+-}
 instance (Monoid w, Monad m1, Monad2 m2, Monad3 m3) => Applicative (RWST3 r w s m1 m2 m3) where
     pure a = RWST3 $ \_ s -> (***:) (a, s, mempty)
     (<*>)  = ap
@@ -152,6 +165,18 @@ instance (Monoid w) => MonadTrans3 (RWST3 r w s) where
 instance (Monoid w, MonadIO m1, Monad m1, Monad2 m2, Monad3 m3) => MonadIO (RWST3 r w s m1 m2 m3) where
     liftIO = lift3 . (-**) . liftIO
 
+instance (Monoid w) => MonadTrans3Down (RWST3 r w s) where
+    type Trans3Down (RWST3 r w s) = RWST2 r w s
+
+instance (Monoid w) => MonadTransFold3 (RWST3 r w s) where
+    transfold3 (RWST3 x) = RWST $ trans2 |$>> x
+    untransfold3 (RWST x) = RWST3 $ untrans2 |$>> x
+
+instance (Monoid w) => MonadTransCover3 (RWST3 r w s) where
+    (|--*|) = RWST3 . ((--*)|$>>) . runRWST2
+    (|-*-|) = RWST3 . ((-*-)|$>>) . runRWST2
+    (|*--|) = RWST3 . ((*--)|$>>) . runRWST2
+
 rwsT3 :: (Monad m1, Monad2 m2, Monad3 m3) => (r -> s -> (a, s, w)) -> RWST3 r w s m1 m2 m3 a
 rwsT3 = RWST3 . ((***:)|$>>)
 evalRWST3 :: (Monad m1, Monad2 m2, Monad3 m3) => RWST3 r w s m1 m2 m3 a -> r -> s -> m1 (m2 (m3 (a, w)))
@@ -168,15 +193,6 @@ mapRWST3 f m = RWST3 $ \r s -> f (runRWST3 m r s)
 withRWST3 :: (r' -> s -> (r, s)) -> RWST3 r w s m1 m2 m3 a -> RWST3 r' w s m1 m2 m3 a
 withRWST3 f m = RWST3 $ \r s -> uncurry (runRWST3 m) (f r s)
 
-instance (Monoid w) => MonadTrans3Down (RWST3 r w s) where
-    type Trans3Down (RWST3 r w s) = RWST2 r w s
-
-instance (Monoid w) => MonadTransFold3 (RWST3 r w s) where
-    transfold3 (RWST3 x) = RWST $ trans2 |$>> x
-    untransfold3 (RWST x) = RWST3 $ untrans2 |$>> x
-
-instance (Monoid w) => MonadTransCover3 (RWST3 r w s) where
-    (|--*|) = RWST3 . ((--*)|$>>) . runRWST2
-    (|-*-|) = RWST3 . ((-*-)|$>>) . runRWST2
-    (|*--|) = RWST3 . ((*--)|$>>) . runRWST2
+liftCatch3 :: Catch3 e m1 m2 m3 (a,s,w) -> Catch e (RWST3 r w s m1 m2 m3) a
+liftCatch3 catch m h = RWST3 $ \r s -> runRWST3 m r s `catch` \e -> runRWST3 (h e) r s
 

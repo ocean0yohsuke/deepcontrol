@@ -1,6 +1,6 @@
 name:                deepcontrol
-version:             0.3.2.0
-synopsis:            Enable more deeper level style of programming than the usual Control.xxx modules express
+version:             0.3.3.0
+synopsis:            Provide more deeper level style of programming than the usual Control.xxx modules express
 description:         This module enables more deeper level style of programming than the usual Control.xxx modules express, especially for Applicative and Monad.
 license:             BSD3
 license-file:        LICENSE
@@ -26,6 +26,7 @@ library
                      , DeepControl.Commutative
                      , DeepControl.Monad
                      , DeepControl.Monad.Morph
+                     , DeepControl.Monad.Signatures
                      , DeepControl.Monad.Trans
                      , DeepControl.Monad.Trans.Except
                      , DeepControl.Monad.Trans.RWS
@@ -40,6 +41,8 @@ library
                      , GeneralizedNewtypeDeriving
                      , FunctionalDependencies
                      , TypeSynonymInstances
+                     , TypeFamilies
+                     , FlexibleContexts
   build-depends:       base >=4.8 && <5
                      , mtl >=2.2
                      , mmorph >= 1.0

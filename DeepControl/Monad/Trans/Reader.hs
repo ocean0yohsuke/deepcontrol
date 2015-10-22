@@ -11,27 +11,34 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module extended Reader Monad in mtl(monad-transformer-library).
+This module extended Reader Monad of mtl(monad-transformer-library).
 -}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE DeriveFunctor #-}
 module DeepControl.Monad.Trans.Reader (
     module Control.Monad.Reader,
 
     -- * Level-2
-    ReaderT2(..), mapReaderT2,
+    ReaderT2(..), mapReaderT2, 
+    -- ** lift function
+    liftCatch2,
+
     -- * Level-3
-    ReaderT3(..), mapReaderT3,
+    ReaderT3(..), mapReaderT3, 
+    -- ** lift function
+    liftCatch3,
     
     ) where 
 
 import DeepControl.Applicative
 import DeepControl.Monad
+import DeepControl.Monad.Signatures
 import DeepControl.Monad.Trans
 
 import Control.Monad.Reader 
-import Control.Monad.Signatures
 
 ----------------------------------------------------------------------
 -- Level-1
@@ -46,10 +53,12 @@ instance MonadTransCover (ReaderT s) where
 -- Level-2
 
 newtype ReaderT2 r m1 m2 a = ReaderT2 { runReaderT2 :: r -> m1 (m2 a) }
-
+    deriving (Functor)
+{-
 instance (Functor m1, Functor m2) => Functor (ReaderT2 r m1 m2) where
     fmap f m = ReaderT2 $ \r ->
         f |$>> runReaderT2 m r
+-}
 instance (Monad m1, Monad2 m2) => Applicative (ReaderT2 s m1 m2) where
     pure a = ReaderT2 $ \_ -> (**:) a
     (<*>)  = ap
@@ -69,9 +78,6 @@ instance MonadTrans2 (ReaderT2 r) where
 instance (MonadIO m1, Monad m1, Monad2 m2) => MonadIO (ReaderT2 r m1 m2) where
     liftIO = lift2 . (-*) . liftIO
 
-mapReaderT2 :: (m1 (m2 a) -> n1 (n2 b)) -> ReaderT2 r m1 m2 a -> ReaderT2 r n1 n2 b
-mapReaderT2 f m = ReaderT2 $ f . runReaderT2 m
-
 instance MonadTrans2Down (ReaderT2 r) where
     type Trans2Down (ReaderT2 r) = ReaderT r
 
@@ -83,14 +89,22 @@ instance MonadTransCover2 (ReaderT2 r) where
     (|-*|) = ReaderT2 . ((-*)|$>) . runReaderT
     (|*-|) = ReaderT2 . ((*-)|$>) . runReaderT
 
+mapReaderT2 :: (m1 (m2 a) -> n1 (n2 b)) -> ReaderT2 r m1 m2 a -> ReaderT2 r n1 n2 b
+mapReaderT2 f m = ReaderT2 $ f . runReaderT2 m
+
+liftCatch2 :: Catch2 e m1 m2 a -> Catch e (ReaderT2 r m1 m2) a
+liftCatch2 catch m h = ReaderT2 $ \r -> (runReaderT2 m r) `catch` (\e -> runReaderT2 (h e) r)
+
 ----------------------------------------------------------------------
 -- Level-3
 
 newtype ReaderT3 r m1 m2 m3 a = ReaderT3 { runReaderT3 :: r -> m1 (m2 (m3 a)) }
-
+    deriving (Functor)
+{-
 instance (Functor m1, Functor m2, Functor m3) => Functor (ReaderT3 r m1 m2 m3) where
     fmap f m = ReaderT3 $ \r ->
         f |$>>> runReaderT3 m r
+-}
 instance (Monad m1, Monad2 m2, Monad3 m3) => Applicative (ReaderT3 s m1 m2 m3) where
     pure a = ReaderT3 $ \_ -> (***:) a
     (<*>)  = ap
@@ -110,9 +124,6 @@ instance MonadTrans3 (ReaderT3 r) where
 instance (MonadIO m1, Monad m1, Monad2 m2, Monad3 m3) => MonadIO (ReaderT3 r m1 m2 m3) where
     liftIO = lift3 . (-**) . liftIO
 
-mapReaderT3 :: (m1 (m2 (m3 a)) -> n1 (n2 (n3 b))) -> ReaderT3 r m1 m2 m3 a -> ReaderT3 r n1 n2 n3 b
-mapReaderT3 f m = ReaderT3 $ f . runReaderT3 m
-
 instance MonadTrans3Down (ReaderT3 r) where
     type Trans3Down (ReaderT3 r) = ReaderT2 r
 
@@ -124,4 +135,10 @@ instance MonadTransCover3 (ReaderT3 r) where
     (|--*|) = ReaderT3 . ((--*)|$>) . runReaderT2
     (|-*-|) = ReaderT3 . ((-*-)|$>) . runReaderT2
     (|*--|) = ReaderT3 . ((*--)|$>) . runReaderT2
+
+mapReaderT3 :: (m1 (m2 (m3 a)) -> n1 (n2 (n3 b))) -> ReaderT3 r m1 m2 m3 a -> ReaderT3 r n1 n2 n3 b
+mapReaderT3 f m = ReaderT3 $ f . runReaderT3 m
+
+liftCatch3 :: Catch3 e m1 m2 m3 a -> Catch e (ReaderT3 r m1 m2 m3) a
+liftCatch3 catch m h = ReaderT3 $ \r -> (runReaderT3 m r) `catch` (\e -> runReaderT3 (h e) r)
 

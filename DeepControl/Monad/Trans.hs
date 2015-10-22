@@ -17,10 +17,8 @@ Note: many instances for Level-4 and Level-5 haven't been written yet.
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
-
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-
 module DeepControl.Monad.Trans (
     -- * MonadIO
     MonadIO(..),
@@ -29,7 +27,7 @@ module DeepControl.Monad.Trans (
     -- ** Level-1
     MonadTrans(..), 
     MonadTransDown(..), M,
-    -- *** cover functions 
+    -- *** cover  
     MonadTransCover(..),
     -- *** other  
     MonadTrans_(..), 
@@ -37,9 +35,9 @@ module DeepControl.Monad.Trans (
     -- ** Level-2
     MonadTrans2(..), 
     MonadTrans2Down(..), M_, T_, 
-    -- *** fold functions
+    -- *** fold 
     MonadTransFold2(..), 
-    -- *** cover functions 
+    -- *** cover  
     MonadTransCover2(..),
     (|**|),
     -- *** other  
@@ -48,9 +46,9 @@ module DeepControl.Monad.Trans (
     -- ** Level-3
     MonadTrans3(..), 
     MonadTrans3Down(..), M__, T__, 
-    -- *** fold functions
+    -- *** fold 
     MonadTransFold3(..), 
-    -- *** cover functions
+    -- *** cover 
     MonadTransCover3(..),
     (|***|), (|-**|), (|*-*|), (|**-|),
     -- *** other  
