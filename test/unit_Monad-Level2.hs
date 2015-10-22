@@ -1,14 +1,15 @@
 import Test.HUnit hiding (State)
 
 import DeepControl.Applicative 
-import DeepControl.Monad ((>-))
 import DeepControl.Commutative (cmap)
+import DeepControl.Monad ((>-))
+import DeepControl.Monad.Morph
 import DeepControl.Monad.Trans
-import DeepControl.Monad.Trans.State
 import DeepControl.Monad.Trans.Except
+import DeepControl.Monad.Trans.Identity
+import DeepControl.Monad.Trans.State
 
 import Control.Monad.Trans.Maybe
-import Control.Monad.Identity
 
 -----------------------------------------------
 -- State
@@ -208,72 +209,61 @@ poland_calcSM xs = (cmap polandSM xs >> popSM) >- \x -> runStateT x []
                                                >- runMaybeT
 
 -----------------------------------------------
--- StateT2-IO-Maybe
+-- StateT-Identity2-IO-Maybe Monad
 
-polandS2' :: String -> StateT2 [Double] IO Maybe Double
-polandS2' s = untransfold2 $ polandSM s
-
-poland_calcS2' :: [String] -> IO (Maybe (Double, [Double]))
-poland_calcS2' xs = (cmap polandS2' xs >> popS2) >- \x -> runStateT2 x []
-
------------------------------------------------
--- StateT2-IO-Maybe
-
-pushS2 :: a -> StateT2 [a] IO Maybe a
-pushS2 x = do 
+pushSI2 :: a -> StateT [a] (IdentityT2 IO Maybe) a
+pushSI2 x = do 
     xs <- get
     put (x:xs)
     return x
-popS2 :: StateT2 [a] IO Maybe a
-popS2 = do 
+popSI2 :: StateT [a] (IdentityT2 IO Maybe) a
+popSI2 = do 
     xs <- get
     put (tail xs)
     return (head xs)
 
-polandS2 :: String -> StateT2 [Double] IO Maybe Double
-polandS2 "+" = do 
-    x <- popS2
-    y <- popS2
+polandSI2 :: String -> StateT [Double] (IdentityT2 IO Maybe) Double
+polandSI2 "+" = do 
+    x <- popSI2
+    y <- popSI2
     liftIO $ putStrLn (show y ++" + "++ show x ++" = "++ show (y + x))
-    pushS2 (y + x)
-polandS2 "-" = do 
-    x <- popS2
-    y <- popS2
+    pushSI2 (y + x)
+polandSI2 "-" = do 
+    x <- popSI2
+    y <- popSI2
     liftIO $ putStrLn (show y ++" - "++ show x ++" = "++ show (y - x))
-    pushS2 (y - x)
-polandS2 "*" = do
-    x <- popS2
-    y <- popS2
+    pushSI2 (y - x)
+polandSI2 "*" = do
+    x <- popSI2
+    y <- popSI2
     liftIO $ putStrLn (show y ++" * "++ show x ++" = "++ show (y * x))
-    pushS2 (y * x)
-polandS2 "/" = do
-    x <- popS2
-    y <- popS2
+    pushSI2 (y * x)
+polandSI2 "/" = do
+    x <- popSI2
+    y <- popSI2
     liftIO $ putStr (show y ++" / "++ show x ++" = ")
-    lift2 $ (*:) $ guard (x /= 0)
+    lift . lift2 . (*:) $ guard (x /= 0)
     liftIO $ putStr (show (y / x) ++"\n")
-    pushS2 (y / x)
-polandS2 x = pushS2 (read x :: Double)
+    pushSI2 (y / x)
+polandSI2 x = pushSI2 (read x :: Double)
 
-poland_calcS2 :: [String] -> IO (Maybe (Double, [Double]))
-poland_calcS2 xs = (cmap polandS2 xs >> popS2) >- \x -> runStateT2 x []
+poland_calcSI2 :: [String] -> IO (Maybe (Double, [Double]))
+poland_calcSI2 xs = (cmap polandSI2 xs >> popSI2) >- \x -> runStateT x []
+                                                  >- runIdentityT2
 
--- > poland_calcS2 ["1","2","*"]
--- 1.0 * 2.0 = 2.0
--- Just (2.0, [])
--- > poland_calcS2 ["1","2","+","3","*"]
--- 1.0 + 2.0 = 3.0
--- 3.0 * 3.0 = 9.0
--- Just (9.0, [])
--- > poland_calcS2 ["1","2","+","3","*","3","/"]
--- 1.0 + 2.0 = 3.0
--- 3.0 * 3.0 = 9.0
--- 9.0 / 3.0 = 3.0
--- Just (3.0, [])
--- > poland_calcS2 ["1","2","+","3","*","0","/"]
--- 1.0 + 2.0 = 3.0
--- 3.0 * 3.0 = 9.0
--- 9.0 / 0.0 = Nothing
+-----------------------------------------------
+-- StateT-IdentityT-MaybeT-IO
+
+popSIM :: StateT [a] (IdentityT (MaybeT IO)) a
+popSIM = transfold2 |>| popSI2
+
+polandSIM :: String -> StateT [Double] (IdentityT (MaybeT IO)) Double
+polandSIM s = transfold2 |>| polandSI2 s
+
+poland_calcSIM :: [String] -> IO (Maybe (Double, [Double]))
+poland_calcSIM xs = (cmap polandSIM xs >> popSIM) >- \x -> runStateT x []
+                                                  >- runIdentityT
+                                                  >- runMaybeT
 
 -----------------------------------------------
 -- StateT-MaybeT-ExceptT-IO Monad
@@ -320,25 +310,35 @@ poland_calcSME xs = (cmap polandSME xs >> popSME) >- \x -> runStateT x []
                                                   >- runExceptT
 
 -----------------------------------------------
--- StateT3-IO-Except-Maybe Monad
+-- StateT-IdentityT-MaybeT-ExceptT-IO
 
-pushS3 :: a -> StateT3 [a] IO (Except ()) Maybe a
-pushS3 x = do 
-    xs <- get
-    put (x:xs)
-    return x
-popS3 :: StateT3 [a] IO (Except ()) Maybe a
-popS3 = do 
-    xs <- get
-    put (tail xs)
-    return (head xs)
+pushSIME :: a -> StateT [a] (IdentityT (MaybeT (ExceptT () IO))) a
+pushSIME x = lift |>| pushSME x
+popSIME :: StateT [a] (IdentityT (MaybeT (ExceptT () IO))) a
+popSIME = lift |>| popSME
+polandSIME :: String -> StateT [Double] (IdentityT (MaybeT (ExceptT () IO))) Double
+polandSIME x = lift |>| polandSME x
 
-polandS3 :: String -> StateT3 [Double] IO (Except ()) Maybe Double
-polandS3 s = untransfold3 $ polandSME s
+poland_calcSIME :: [String] -> IO (Either () (Maybe (Double, [Double])))
+poland_calcSIME xs = (cmap polandSIME xs >> popSIME) >- \x -> runStateT x []
+                                                     >- runIdentityT
+                                                     >- runMaybeT
+                                                     >- runExceptT
 
-poland_calcS3 :: [String] -> IO (Either () (Maybe (Double, [Double])))
-poland_calcS3 xs = (cmap polandS3 xs >> popS3) >- \x -> runStateT3 x []
-                                               >- (runExcept |$>) 
+-----------------------------------------------
+-- StateT-IdentityT3-IO-Except-Maybe
+
+pushSI3 :: a -> StateT [a] (IdentityT3 IO (Except ()) Maybe) a
+pushSI3 x = untransfold3 |>| pushSIME x
+popSI3 :: StateT [a] (IdentityT3 IO (Except ()) Maybe) a
+popSI3 = untransfold3 |>| popSIME
+polandSI3 :: String -> StateT [Double] (IdentityT3 IO (Except ()) Maybe) Double
+polandSI3 x = untransfold3 |>| polandSIME x
+
+poland_calcSI3 :: [String] -> IO (Either () (Maybe (Double, [Double])))
+poland_calcSI3 xs = (cmap polandSI3 xs >> popSI3) >- \x -> runStateT x []
+                                                  >- runIdentityT3
+                                                  >- (runExcept|$>)
 
 ----------------------------------------------------------------
 -- unit test
@@ -346,26 +346,31 @@ poland_calcS3 xs = (cmap polandS3 xs >> popS3) >- \x -> runStateT3 x []
 
 main :: IO ()
 main = do
-    runTestTT tests_Level0
-    putStrLn "" >> print "---------------------"
-    runTestTT tests_Level1
-    putStrLn "" >> print "---------------------"
-    runTestTT tests_Level1_2
-    putStrLn "" >> print "---------------------"
-    runTestTT tests_Level1_3
-    putStrLn "" >> print "---------------------"
-    runTestTT tests_Level2
-    putStrLn "" >> print "---------------------"
-    runTestTT tests_Level2_2
-    putStrLn "" >> print "---------------------"
-    runTestTT tests_Level3
-    putStrLn "" >> print "---------------------"
-    runTestTT tests_Level3_2
+    runTestTT tests_
+    putStrLn "" >> print "---------- S -----------"
+    runTestTT tests_S
+
+    putStrLn "" >> print "---------- MS -----------"
+    runTestTT tests_MS
+
+    putStrLn "" >> print "---------- SM -----------"
+    runTestTT tests_SM
+
+    putStrLn "" >> print "---------- SI2 -----------"
+    runTestTT tests_SI2
+    putStrLn "" >> print "---------- SIM -----------"
+    runTestTT tests_SIM
+    putStrLn "" >> print "---------- SIME -----------"
+    runTestTT tests_SIME
+    putStrLn "" >> print "---------- SI3 -----------"
+    runTestTT tests_SI3
+
+
     putStrLn "" >> print "---------------------"
     return ()
 
-tests_Level0 :: Test
-tests_Level0 = test [ 
+tests_ :: Test
+tests_ = test [ 
       "poland" ~: do
         let actual = poland_calc ["1","2","*"]
         actual @?= (2.0, [])
@@ -376,9 +381,8 @@ tests_Level0 = test [
         --actual <- poland_calc ["1","2","+","3","*","0","/"]
         --actual @?= Infinity
     ]
-
-tests_Level1 :: Test
-tests_Level1 = test [ 
+tests_S :: Test
+tests_S = test [ 
       "polandT" ~: do
         let actual = poland_calcS ["1","2","*"]
         actual @?= Just (2.0, [])
@@ -389,9 +393,8 @@ tests_Level1 = test [
         let actual = poland_calcS ["1","2","+","3","*","0","/"]
         actual @?= Nothing
     ]
-
-tests_Level1_2 :: Test
-tests_Level1_2 = test [ 
+tests_MS :: Test
+tests_MS = test [ 
       "polandMS" ~: do
         actual <- poland_calcMS ["1","2","*"]
         actual @?= (Just 2.0, [])
@@ -402,9 +405,8 @@ tests_Level1_2 = test [
         actual <- poland_calcMS ["1","2","+","3","*","0","/"]
         actual @?= (Nothing, [])
     ]
-
-tests_Level1_3 :: Test
-tests_Level1_3 = test [ 
+tests_SM :: Test
+tests_SM = test [ 
       "polandSM" ~: do
         actual <- poland_calcSM ["1","2","*"]
         actual @?= Just (2.0, [])
@@ -415,44 +417,53 @@ tests_Level1_3 = test [
         actual <- poland_calcSM ["1","2","+","3","*","0","/"]
         actual @?= Nothing
     ]
-
-tests_Level2 :: Test
-tests_Level2 = test [ 
-      "polandS2" ~: do
-        actual <- poland_calcS2 ["1","2","*"]
+tests_SI2 :: Test
+tests_SI2 = test [ 
+      "polandSI2" ~: do
+        actual <- poland_calcSI2 ["1","2","*"]
         actual @?= Just (2.0, [])
 
-        actual <- poland_calcS2 ["1","2","+","3","*","0","/"]
+        actual <- poland_calcSI2 ["1","2","+","3","*","3","/"]
+        actual @?= Just (3.0, [])
+
+        actual <- poland_calcSI2 ["1","2","+","3","*","0","/"]
         actual @?= Nothing
     ]
-
-tests_Level2_2 :: Test
-tests_Level2_2 = test [ 
-      "polandS2'" ~: do
-        actual <- poland_calcS2' ["1","2","*"]
+tests_SIM :: Test
+tests_SIM = test [ 
+      "polandSIM" ~: do
+        actual <- poland_calcSIM ["1","2","*"]
         actual @?= Just (2.0, [])
 
-        actual <- poland_calcS2' ["1","2","+","3","*","0","/"]
+        actual <- poland_calcSIM ["1","2","+","3","*","3","/"]
+        actual @?= Just (3.0, [])
+
+        actual <- poland_calcSIM ["1","2","+","3","*","0","/"]
         actual @?= Nothing
     ]
-
-tests_Level3 :: Test
-tests_Level3 = test [ 
-      "polandSME'" ~: do
-        actual <- poland_calcSME ["1","2","*"]
+tests_SIME :: Test
+tests_SIME = test [ 
+      "polandSIME" ~: do
+        actual <- poland_calcSIME ["1","2","*"]
         actual @?= Right (Just (2.0, []))
 
-        actual <- poland_calcSME ["1","2","+","3","*","0","/"]
+        actual <- poland_calcSIME ["1","2","+","3","*","3","/"]
+        actual @?= Right (Just (3.0, []))
+
+        actual <- poland_calcSIME ["1","2","+","3","*","0","/"]
+        actual @?= Right Nothing
+    ]
+tests_SI3 :: Test
+tests_SI3 = test [ 
+      "polandSI3" ~: do
+        actual <- poland_calcSI3 ["1","2","*"]
+        actual @?= Right (Just (2.0, []))
+
+        actual <- poland_calcSI3 ["1","2","+","3","*","3","/"]
+        actual @?= Right (Just (3.0, []))
+
+        actual <- poland_calcSI3 ["1","2","+","3","*","0","/"]
         actual @?= Right Nothing
     ]
 
-tests_Level3_2 :: Test
-tests_Level3_2 = test [ 
-      "polandS3" ~: do
-        actual <- poland_calcS3 ["1","2","*"]
-        actual @?= Right (Just (2.0, []))
-
-        actual <- poland_calcS3 ["1","2","+","3","*","0","/"]
-        actual @?= Right Nothing
-    ]
 

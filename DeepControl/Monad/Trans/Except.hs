@@ -1,5 +1,5 @@
 {-|
-Module      : DeepControl.Monad.Except
+Module      : DeepControl.Monad.Trans.Except
 Description : Extension for mtl's Contrl.Monad.Except.
 Copyright   : (C) 2013 Ross Paterson,
               (C) 2015 KONISHI Yohsuke 
@@ -8,7 +8,7 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module extended RWS Monad of mtl(monad-transformer-library).
+This module extended Except monad of mtl(monad-transformer-library).
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}
@@ -45,7 +45,7 @@ import Control.Monad.Identity
 -- Level-1
 
 instance Commutative (Except e) where
-    commute x = ExceptT . Identity |$> commute (runExcept $ x)
+    commute x = ExceptT . Identity |$> commute (runExcept x)
 
 instance Monad2 (Except e) where
     m >>== f = (ExceptT . Identity |$>) $ (runExcept |$> m) >>== runExcept |$>> f
