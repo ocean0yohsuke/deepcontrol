@@ -323,7 +323,7 @@ factorial n | n < 0  = (*-*) Nothing
 
 #### Level-2
 
-Here is a monad transformer example how to implement Ackermann function, improved to stop within a certain limit of time, with ReaderT2-IO-Maybe monad, a level-2 monad-transformation.
+Here is a monad transformer example how to implement Ackermann function, improved to stop within a certain limit of time, with ReaderT-IdentityT2-IO-Maybe monad, a level-2 monad-transformation.
 
 ```haskell
 import DeepControl.Applicative
@@ -370,7 +370,7 @@ ackermann'' :: Int -> Int ->
 ackermann'' x y = untransfold2 |>| ackermann' x y          -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-Identity-MaybeT-IO function
 ```
 
-Here is a monad transformer example showing that the Monad Morphic programming is usable.
+Here is a monad transformer example showing that the monad morph is usable.
 
 ```haskell
 import DeepControl.Applicative ((|$>))
