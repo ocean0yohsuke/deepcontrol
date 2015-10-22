@@ -375,9 +375,11 @@ Here is a monad transformer example showing that the Monad Morphic programming i
 ```haskell
 import DeepControl.Applicative ((|$>))
 import DeepControl.Monad (Monad2)
+import DeepControl.Monad.Morph ((|>|))
 import DeepControl.Monad.Trans (lift, (|*|), (|-*|), (|*-|))
-import DeepControl.Monad.Trans.State
 import DeepControl.Monad.Trans.Writer
+import DeepControl.Monad.Trans.Identity
+import DeepControl.Monad.Trans.State
 
 tick :: State Int ()
 tick = modify (+1)
@@ -391,17 +393,17 @@ tock = do
 -- Tock!
 -- ((),1)
 
-save :: StateT Int (Writer [Int]) ()
+save    :: StateT Int (Writer [Int]) ()
 save = do
     n <- get
     lift $ tell [n]
 
-program ::               StateT2 Int IO (Writer [Int]) ()
+program ::               StateT Int (IdentityT2 IO (Writer [Int])) ()
 program = replicateM_ 4 $ do
-    (|-*|) tock
-        :: (Monad2 m) => StateT2 Int IO m              ()
-    (|*-|) save
-        :: (Monad  m) => StateT2 Int m  (Writer [Int]) ()
+    ((|-*|).lift) |>| tock
+        :: (Monad2 m) => StateT Int (IdentityT2 IO m             ) ()
+    ((|*-|).lift) |>| save
+        :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 
 -- λ> execWriter |$> runStateT2 program 0
 -- Tock!

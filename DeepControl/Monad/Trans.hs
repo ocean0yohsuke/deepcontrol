@@ -246,16 +246,18 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >import DeepControl.Applicative
 >import DeepControl.Commutative (commute)
 >import DeepControl.Monad ((>-))
+>import DeepControl.Monad.Morph ((|>|))
 >import DeepControl.Monad.Trans (lift2, transfold2, untransfold2)
 >import DeepControl.Monad.Trans.Reader
+>import DeepControl.Monad.Trans.Identity
 >import Control.Monad.Trans.Maybe
 >
 >import System.Timeout (timeout)
 >
 >type TimeLimit = Int
 >
->ackermannTimeLimit :: TimeLimit -> Int -> Int
->                      -> IO (Maybe Int)             -- IO-Maybe Monad
+>ackermannTimeLimit :: TimeLimit -> Int -> Int -> 
+>                      IO (Maybe Int)                     -- IO-Maybe Monad
 >ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
 >  where
 >    ackermannIO :: Int -> Int -> IO Int
@@ -264,24 +266,25 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >                    | m > 0 && n > 0  = ackermannIO m (n-1) >>= ackermannIO (m-1)
 > 
 >ackermann :: Int -> Int -> 
->               ReaderT2 TimeLimit IO Maybe Int      -- ReaderT2-IO-Maybe monad
+>             ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT2-IO-Maybe monad
 >ackermann x y = do
 >    timelimit <- ask
->    lift2 $ ackermannTimeLimit timelimit x y        -- lift IO-Maybe function to ReaderT2-IO-Maybe function
+>    lift . lift2 $ ackermannTimeLimit timelimit x y      -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
 >
 >calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
->calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT2 r timelimit
+>calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
+>                                             >- runIdentityT2
 >
 >-- λ> commute $ calc_ackermann 1000 |$> [0..4] |* 4
 >-- [Just 5,Just 6,Just 11,Just 125,Nothing]
 >
 >ackermann' :: Int -> Int -> 
->              ReaderT TimeLimit (MaybeT IO) Int     -- ReaderT-MaybeT-IO monad
->ackermann' x y = transfold2 $ ackermann x y         -- You can get usual ReaderT-MaybeT-IO function from ReaderT2-IO-Maybe function
+>              ReaderT TimeLimit (IdentityT (MaybeT IO)) Int -- ReaderT-IdentityT-MaybeT-IO monad
+>ackermann' x y = transfold2 |>| ackermann x y               -- You can get usual ReaderT-IdentityT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
 >
 >ackermann'' :: Int -> Int -> 
->               ReaderT2 TimeLimit IO Maybe Int      -- ReaderT2-IO-Maybe monad
->ackermann'' x y = untransfold2 $ ackermann' x y     -- You can get ReaderT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+>               ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
+>ackermann'' x y = untransfold2 |>| ackermann' x y          -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-Identity-MaybeT-IO function
 -}
 
 {- $Example_Level2_cover
@@ -289,9 +292,11 @@ Here is a monad transformer example showing how to use cover functions.
 
 >import DeepControl.Applicative ((|$>))
 >import DeepControl.Monad (Monad2)
+>import DeepControl.Monad.Morph ((|>|))
 >import DeepControl.Monad.Trans (lift, (|*|), (|-*|), (|*-|))
->import DeepControl.Monad.Trans.State
 >import DeepControl.Monad.Trans.Writer
+>import DeepControl.Monad.Trans.Identity
+>import DeepControl.Monad.Trans.State
 >
 >tick :: State Int ()
 >tick = modify (+1)
@@ -305,17 +310,17 @@ Here is a monad transformer example showing how to use cover functions.
 >-- Tock!
 >-- ((),1)
 >
->save :: StateT Int (Writer [Int]) ()
+>save    :: StateT Int (Writer [Int]) ()
 >save = do
 >    n <- get
 >    lift $ tell [n]
 >
->program ::               StateT2 Int IO (Writer [Int]) ()
+>program ::               StateT Int (IdentityT2 IO (Writer [Int])) ()
 >program = replicateM_ 4 $ do
->    (|-*|) tock
->        :: (Monad2 m) => StateT2 Int IO m              ()
->    (|*-|) save
->        :: (Monad  m) => StateT2 Int m  (Writer [Int]) ()
+>    ((|-*|).lift) |>| tock
+>        :: (Monad2 m) => StateT Int (IdentityT2 IO m             ) ()
+>    ((|*-|).lift) |>| save
+>        :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 >
 >-- λ> execWriter |$> runStateT2 program 0
 >-- Tock!
