@@ -349,7 +349,7 @@ ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
                     | m > 0 && n > 0  = ackermannIO m (n-1) >>= ackermannIO (m-1)
  
 ackermann :: Int -> Int -> 
-             ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT2-IO-Maybe monad
+             ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann x y = do
     timelimit <- ask
     lift . lift2 $ ackermannTimeLimit timelimit x y      -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function

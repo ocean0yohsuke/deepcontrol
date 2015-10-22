@@ -241,7 +241,7 @@ class MonadTrans5 t where
 -- Examples
 
 {- $Example_Level2
-Here is a monad transformer example how to implement Ackermann function, improved to stop within a certain limit of time, with ReaderT2-IO-Maybe monad, a level-2 monad-transformation.
+Here is a monad transformer example how to implement Ackermann function, improved to stop within a certain limit of time, with ReaderT-IdentityT2-IO-Maybe monad, a level-2 monad-transformation.
 
 >import DeepControl.Applicative
 >import DeepControl.Commutative (commute)
@@ -266,7 +266,7 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >                    | m > 0 && n > 0  = ackermannIO m (n-1) >>= ackermannIO (m-1)
 > 
 >ackermann :: Int -> Int -> 
->             ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT2-IO-Maybe monad
+>             ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
 >ackermann x y = do
 >    timelimit <- ask
 >    lift . lift2 $ ackermannTimeLimit timelimit x y      -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
