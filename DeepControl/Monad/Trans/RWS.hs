@@ -123,6 +123,13 @@ withRWST2 f m = RWST2 $ \r s -> uncurry (runRWST2 m) (f r s)
 liftCatch2 :: Catch2 e m1 m2 (a,s,w) -> Catch e (RWST2 r w s m1 m2) a
 liftCatch2 catch m h = RWST2 $ \r s -> runRWST2 m r s `catch` \e -> runRWST2 (h e) r s
 
+instance (Monoid w, MonadPlus m1, MonadPlus m2, Monad m1, Monad2 m2) => MonadPlus (RWST2 r w s m1 m2) where
+    mzero       = RWST2 $ \_ _ -> mzero
+    m `mplus` n = RWST2 $ \r s -> runRWST2 m r s <$|mplus|*> runRWST2 n r s
+instance (Monoid w, MonadPlus m1, MonadPlus m2, Monad m1, Monad2 m2) => Alternative (RWST2 r w s m1 m2) where
+    empty = mzero
+    (<|>) = mplus
+
 ----------------------------------------------------------------------
 -- Level-3
 
@@ -195,4 +202,11 @@ withRWST3 f m = RWST3 $ \r s -> uncurry (runRWST3 m) (f r s)
 
 liftCatch3 :: Catch3 e m1 m2 m3 (a,s,w) -> Catch e (RWST3 r w s m1 m2 m3) a
 liftCatch3 catch m h = RWST3 $ \r s -> runRWST3 m r s `catch` \e -> runRWST3 (h e) r s
+
+instance (Monoid w, MonadPlus m1, MonadPlus m2, MonadPlus m3, Monad m1, Monad2 m2, Monad3 m3) => MonadPlus (RWST3 r w s m1 m2 m3) where
+    mzero       = RWST3 $ \_ _ -> mzero
+    m `mplus` n = RWST3 $ \r s -> runRWST3 m r s <<$|mplus|*>> runRWST3 n r s
+instance (Monoid w, MonadPlus m1, MonadPlus m2, MonadPlus m3, Monad m1, Monad2 m2, Monad3 m3) => Alternative (RWST3 r w s m1 m2 m3) where
+    empty = mzero
+    (<|>) = mplus
 

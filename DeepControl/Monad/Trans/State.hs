@@ -113,6 +113,13 @@ liftPass2 pass m = StateT2 $ \s -> pass $
     runStateT2 m s >>== \((a, f), s') ->
     (**:) ((a, s'), f)
 
+instance (MonadPlus m1, MonadPlus m2, Monad m1, Monad2 m2) => MonadPlus (StateT2 s m1 m2) where
+    mzero       = StateT2 $ \ _ -> mzero
+    m `mplus` n = StateT2 $ \ s -> runStateT2 m s <$|mplus|*> runStateT2 n s
+instance (MonadPlus m1, MonadPlus m2, Monad m1, Monad2 m2) => Alternative (StateT2 s m1 m2) where
+    empty = mzero
+    (<|>) = mplus
+
 ----------------------------------------------------------------------
 -- Level-3
 
@@ -179,4 +186,12 @@ liftPass3 :: (Monad m1, Monad2 m2, Monad3 m3) => Pass3 w m1 m2 m3 (a,s) -> Pass 
 liftPass3 pass m = StateT3 $ \s -> pass $
     runStateT3 m s >>>== \((a, f), s') ->
     (***:) ((a, s'), f)
+
+instance (MonadPlus m1, MonadPlus m2, MonadPlus m3, Monad m1, Monad2 m2, Monad3 m3) => MonadPlus (StateT3 s m1 m2 m3) where
+    mzero       = StateT3 $ \ _ -> mzero
+    m `mplus` n = StateT3 $ \ s -> runStateT3 m s <<$|mplus|*>> runStateT3 n s
+instance (MonadPlus m1, MonadPlus m2, MonadPlus m3, Monad m1, Monad2 m2, Monad3 m3) => Alternative (StateT3 s m1 m2 m3) where
+    empty = mzero
+    (<|>) = mplus
+
 

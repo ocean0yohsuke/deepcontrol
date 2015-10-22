@@ -305,17 +305,17 @@ Here is a monad transformer example showing how to use cover functions.
 >-- Tock!
 >-- ((),1)
 >
->save    :: StateT Int (Writer [Int]) ()
+>save :: StateT Int (Writer [Int]) ()
 >save = do
 >    n <- get
 >    lift $ tell [n]
 >
->program ::                   StateT2 Int IO (Writer [Int]) ()
+>program ::               StateT2 Int IO (Writer [Int]) ()
 >program = replicateM_ 4 $ do
 >    (|-*|) tock
->        :: (Monad2     m) => StateT2 Int IO m              ()
+>        :: (Monad2 m) => StateT2 Int IO m              ()
 >    (|*-|) save
->        :: (Monad      m) => StateT2 Int m  (Writer [Int]) ()
+>        :: (Monad  m) => StateT2 Int m  (Writer [Int]) ()
 >
 >-- λ> execWriter |$> runStateT2 program 0
 >-- Tock!

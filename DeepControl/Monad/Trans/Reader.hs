@@ -95,6 +95,13 @@ mapReaderT2 f m = ReaderT2 $ f . runReaderT2 m
 liftCatch2 :: Catch2 e m1 m2 a -> Catch e (ReaderT2 r m1 m2) a
 liftCatch2 catch m h = ReaderT2 $ \r -> (runReaderT2 m r) `catch` (\e -> runReaderT2 (h e) r)
 
+instance (Alternative m1, Alternative m2, Monad m1, Monad2 m2) => Alternative (ReaderT2 r m1 m2) where
+    empty   = ReaderT2 (const empty)
+    m <|> n = ReaderT2 $ \r -> runReaderT2 m r <$|(<|>)|*> runReaderT2 n r
+instance (MonadPlus m1, MonadPlus m2, Monad m1, Monad2 m2) => MonadPlus (ReaderT2 r m1 m2) where
+    mzero       = lift2 mzero
+    m `mplus` n = ReaderT2 $ \r -> runReaderT2 m r <$|mplus|*> runReaderT2 n r
+
 ----------------------------------------------------------------------
 -- Level-3
 
@@ -141,4 +148,11 @@ mapReaderT3 f m = ReaderT3 $ f . runReaderT3 m
 
 liftCatch3 :: Catch3 e m1 m2 m3 a -> Catch e (ReaderT3 r m1 m2 m3) a
 liftCatch3 catch m h = ReaderT3 $ \r -> (runReaderT3 m r) `catch` (\e -> runReaderT3 (h e) r)
+
+instance (MonadPlus m1, MonadPlus m2, MonadPlus m3, Monad m1, Monad2 m2, Monad3 m3) => MonadPlus (ReaderT3 r m1 m2 m3) where
+    mzero       = lift3 mzero
+    m `mplus` n = ReaderT3 $ \r -> runReaderT3 m r <<$|mplus|*>> runReaderT3 n r
+instance (Alternative m1, Alternative m2, Alternative m3, Monad m1, Monad2 m2, Monad3 m3) => Alternative (ReaderT3 r m1 m2 m3) where
+    empty   = ReaderT3 (const empty)
+    m <|> n = ReaderT3 $ \r -> runReaderT3 m r <<$|(<|>)|*>> runReaderT3 n r
 

@@ -62,13 +62,13 @@ Please follow the message direction.
 ### Fetch from [Hackage](https://hackage.haskell.org/package/deepcontrol)
 
 Ok, I(you) got `deepcontrol` isn't in Stackage. Then let's fetch `deepcontrol` from Hackage.
-Add `deepcontrol-0.3.2.0` to your extra-deps field in stack.yaml too:
+Add `deepcontrol-0.3.3.0` to your extra-deps field in stack.yaml too:
 
 stack.yaml:
 
     extra-deps:
     ...
-    - deepcontrol-0.3.2.0
+    - deepcontrol-0.3.3.0
 
 And type as below:
 
@@ -77,7 +77,7 @@ And type as below:
 Stack must fetch and install `deepcontrol` automatically.
 
     ../yourproject$ stack build
-    deepcontrol-0.3.2.0: configure
+    deepcontrol-0.3.3.0: configure
     ...
 
 Now start ghci and see if it works well.
@@ -119,7 +119,7 @@ Now start ghci and see if it works well.
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.3.3.0/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -258,7 +258,7 @@ Work well likewise.
 
 Not completely written up yet.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.3.3.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -319,7 +319,7 @@ factorial n | n < 0  = (*-*) Nothing
 -- 24
 -- Just (120,[0,1,1,2,6,24])
 ```
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.3.3.0/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -388,17 +388,17 @@ tock = do
 -- Tock!
 -- ((),1)
 
-save    :: StateT Int (Writer [Int]) ()
+save :: StateT Int (Writer [Int]) ()
 save = do
     n <- get
     lift $ tell [n]
 
-program ::                   StateT2 Int IO (Writer [Int]) ()
+program ::               StateT2 Int IO (Writer [Int]) ()
 program = replicateM_ 4 $ do
     (|-*|) tock
-        :: (Monad2     m) => StateT2 Int IO m              ()
+        :: (Monad2 m) => StateT2 Int IO m              ()
     (|*-|) save
-        :: (Monad      m) => StateT2 Int m  (Writer [Int]) ()
+        :: (Monad  m) => StateT2 Int m  (Writer [Int]) ()
 
 -- λ> execWriter |$> runStateT2 program 0
 -- Tock!
@@ -411,7 +411,7 @@ program = replicateM_ 4 $ do
 
 Work well likewise.
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.3.3.0/docs/DeepControl-Monad-Morph.html)
 
 Here is a monad-morph example, a level-2 monad-morph.
 
@@ -454,6 +454,6 @@ program = replicateM_ 4 $ do
 -- [1,2,3,4]
 ```
 
-### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Commutative.html)
+### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.3.3.0/docs/DeepControl-Commutative.html)
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.3.2.0/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.3.3.0/docs/DeepControl-Arrow.html)
