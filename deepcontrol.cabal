@@ -1,5 +1,5 @@
 name:                deepcontrol
-version:             0.4.0.0
+version:             0.4.1.0
 synopsis:            Provide more deeper level style of programming than the usual Control.xxx modules express
 description:         This module enables more deeper level style of programming than the usual Control.xxx modules express, especially for Applicative and Monad.
 license:             BSD3
@@ -7,7 +7,7 @@ license-file:        LICENSE
 author:              KONISHI Yohsuke
 maintainer:          ocean0yohsuke@gmail.com
 homepage:            https://github.com/ocean0yohsuke/deepcontrol
-copyright:           KONISHI Yohsuke
+copyright:           (c) 2015 KONISHI Yohsuke
 category:            Control
 build-type:          Simple
 -- extra-source-files:  

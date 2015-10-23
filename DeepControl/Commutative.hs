@@ -9,8 +9,6 @@ Stability   : experimental
 Portability : ---
 
 This module is made of @'Data.Traversable'@, distilling most function names polluted with action kind of concepts into crystalized(static) ones.
-Another reason I put this module is for the case if GHC would parse @((->) r)@ as a data constructor someday.
-
 -}
 module DeepControl.Commutative (
     -- * Level-1

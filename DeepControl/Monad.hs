@@ -12,11 +12,10 @@ You would soon realize exactly what __/more deeper level/__ means by reading the
 
 Note: 
 
-    * Though this module substitutes for monad-transform consisted of elemental(without-lambda-expression) kind of monad, however, this module is unable to substitute for monad-transform consisted of complicated(tangled-with-lambda-expression) kind of monad at all.
-      So this module does not thoroughly make mlt(monad-transformer-library) unnessasary. 
-      The range in which this module is helpful is confined to the range that single Monad or Monad with Monadx series (namely Monad2, Monad3, etc) defines.
+    * This module never make mlt(monad-transformer-library) unnessasary. 
+      The range in which this module is helpful is regrettably confined to the range that the instances of deep Monads (namely Monad2, Monad3, etc) define.
     
-    * In my opinion the above problem is hard-wired with the ability of the compiler, that is to say GHC doesn't parse @(r->)@ or @((->) r)@ as a data constructor; 
+    * In my opinion this bad confinement is hard-wired with the ability of the compiler, that is to say GHC doesn't parse @(r->)@ or @((->) r)@ as a data constructor; 
       thus some fundamental expressions such as @(r->)|$>@ or @fmap (r->)@ are useless.
       Theoretically it might be impossible though.
 
@@ -164,13 +163,13 @@ m >>~ k = m >>== \_ -> k
 m >-== k = (-*) m >>== k
 -- | Bind-cover function made of bind @'>>=='@ and cover @'*-'@, defined as @m >-== k = (*-) m >>== k@.
 (->==) :: (Monad m1, Monad2 m2) => m2 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
-m ->== k = (*-) m >>== k
+m ->== k = (*:) m >>== k
 -- | Sequence-cover function made of sequence @'>>~'@ and cover @'-*'@, defined as @m >-~ k = (-*) m >>~ k@.
 (>-~) :: (Monad m1, Monad2 m2) => m1 a -> m1 (m2 b) -> m1 (m2 b)
 m >-~ k = (-*) m >>~ k
 -- | Sequence-cover function made of sequence @'>>~'@ and cover @'*-'@, defined as @m >-~ k = (*-) m >>~ k@.
 (->~) :: (Monad m1, Monad2 m2) => m2 a -> m1 (m2 b) -> m1 (m2 b)
-m ->~ k = (*-) m >>~ k
+m ->~ k = (*:) m >>~ k
 
 instance Monad2 Maybe where
     mmv >>== f = 
@@ -228,25 +227,25 @@ m >--== k = (-**) m >>>== k
 (->-==) :: (Monad m1, Monad2 m2, Monad3 m3) => m2 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m ->-== k = (*-*) m >>>== k
 (-->==) :: (Monad m1, Monad2 m2, Monad3 m3) => m3 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
-m -->== k = (**-) m >>>== k
+m -->== k = (**:) m >>>== k
 (>>-==) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m2 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m >>-== k = (--*) m >>>== k
 (->>==) :: (Monad m1, Monad2 m2, Monad3 m3) => m2 (m3 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
-m ->>== k = (*--) m >>>== k
+m ->>== k = (*:) m >>>== k
 (>->==) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m3 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
-m >->== k = (-*-) m >>>== k
+m >->== k = (-*) m >>>== k
 (>--~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m >--~ k = (-**) m >>>~ k
 (->-~) :: (Monad m1, Monad2 m2, Monad3 m3) => m2 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m ->-~ k = (*-*) m >>>~ k
 (-->~) :: (Monad m1, Monad2 m2, Monad3 m3) => m3 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
-m -->~ k = (**-) m >>>~ k
+m -->~ k = (**:) m >>>~ k
 (>>-~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m2 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m >>-~ k = (--*) m >>>~ k
 (->>~) :: (Monad m1, Monad2 m2, Monad3 m3) => m2 (m3 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
-m ->>~ k = (*--) m >>>~ k
+m ->>~ k = (*:) m >>>~ k
 (>->~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m3 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
-m >->~ k = (-*-) m >>>~ k
+m >->~ k = (-*) m >>>~ k
 
 instance Monad3 Maybe where
     mmmv >>>== f = 
