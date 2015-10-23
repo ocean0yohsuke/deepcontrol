@@ -365,17 +365,9 @@ ackermann' :: Int -> Int ->
               ReaderT TimeLimit (MaybeT IO) Int                -- ReaderT-MaybeT-IO monad
 ackermann' x y = (runIdentityT . transfold2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
 
-calc_ackermann' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
-calc_ackermann' timelimit x y = ackermann' x y >- \r -> runReaderT r timelimit
-                                               >- runMaybeT
-
 ackermann'' :: Int -> Int -> 
                ReaderT TimeLimit (IdentityT2 IO Maybe) Int      -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann'' x y = (untransfold2 . IdentityT) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
-
-calc_ackermann'' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
-calc_ackermann'' timelimit x y = ackermann'' x y >- \r -> runReaderT r timelimit
-                                                 >- runIdentityT2
 ```
 
 Here is a monad transformer example showing that the monad morph is usable.
