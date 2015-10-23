@@ -26,7 +26,7 @@ ackermann :: Int -> Int ->
              ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann x y = do
     timelimit <- ask
-    liftTT2 $ ackermannTimeLimit timelimit x y      -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
+    liftTT2 $ ackermannTimeLimit timelimit x y           -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
 
 calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
@@ -36,27 +36,20 @@ calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
 -- [Just 5,Just 6,Just 11,Just 125,Nothing]
 
 ackermann' :: Int -> Int -> 
-              ReaderT TimeLimit (IdentityT (MaybeT IO)) Int -- ReaderT-IdentityT-MaybeT-IO monad
-ackermann' x y = transfold2 |>| ackermann x y               -- You can get usual ReaderT-IdentityT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
+              ReaderT TimeLimit (MaybeT IO) Int                -- ReaderT-MaybeT-IO monad
+ackermann' x y = (runIdentityT . transfold2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
 
 calc_ackermann' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann' timelimit x y = ackermann' x y >- \r -> runReaderT r timelimit
-                                               >- runIdentityT
                                                >- runMaybeT
 
--- λ> commute $ calc_ackermann' 1000 |$> [0..4] |* 4
--- [Just 5,Just 6,Just 11,Just 125,Nothing]
-
 ackermann'' :: Int -> Int -> 
-               ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
-ackermann'' x y = untransfold2 |>| ackermann' x y          -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-Identity-MaybeT-IO function
+               ReaderT TimeLimit (IdentityT2 IO Maybe) Int      -- ReaderT-IdentityT2-IO-Maybe monad
+ackermann'' x y = (untransfold2 . IdentityT) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 
 calc_ackermann'' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann'' timelimit x y = ackermann'' x y >- \r -> runReaderT r timelimit
                                                  >- runIdentityT2
-
--- λ> commute $ calc_ackermann'' 1000 |$> [0..4] |* 4
--- [Just 5,Just 6,Just 11,Just 125,Nothing]
 
 ----------------------------------------------------------------
 -- unit test
