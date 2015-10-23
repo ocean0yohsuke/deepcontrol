@@ -14,6 +14,7 @@ Portability : ---
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 module DeepControl.Monad.Trans.Identity (
+    -- * Level-1
     module Data.Functor.Identity,
     module Control.Monad.Trans.Identity,
 
