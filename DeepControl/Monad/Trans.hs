@@ -322,7 +322,7 @@ Here is a monad transformer example showing how to use cover functions.
 >    ((|*-|).lift) |>| save
 >        :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 >
->-- λ> execWriter |$> runStateT2 program 0
+>-- λ> execWriter |$> (runIdentityT2 $ runStateT program 0)
 >-- Tock!
 >-- Tock!
 >-- Tock!

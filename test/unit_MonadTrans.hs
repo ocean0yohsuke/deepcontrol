@@ -32,7 +32,7 @@ program = replicateM_ 4 $ do
     ((|*-|).lift) |>| save
         :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 
--- λ> execWriter |$> runStateT2 program 0
+-- λ> execWriter |$> runIdentityT2 (runStateT program 0)
 -- Tock!
 -- Tock!
 -- Tock!
