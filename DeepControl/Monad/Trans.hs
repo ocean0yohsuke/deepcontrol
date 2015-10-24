@@ -19,9 +19,6 @@ You would realize exactly what __/more deeper level/__ means by reading the exam
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 module DeepControl.Monad.Trans (
-    -- * MonadIO
-    MonadIO(..),
-
     -- * MonadTrans
     -- ** Level-1
     -- *** trans-lift
@@ -49,7 +46,7 @@ module DeepControl.Monad.Trans (
     trans2, untrans2, 
 
     -- ** Level-3
-    -- *** translift
+    -- *** trans-lift
     MonadTrans3(..), 
     liftTT3, liftTTT3, liftTTTT3, liftTTTTT3,
     -- *** trans-down
@@ -92,6 +89,9 @@ module DeepControl.Monad.Trans (
     (|-****|), (|*-***|), (|**-**|), (|***-*|), (|****-|),
     -- *** other  
     trans5, untrans5, 
+
+    -- * MonadIO
+    MonadIO(..),
 
     -- * Level-2 example
     -- $Example_Level2
@@ -596,7 +596,7 @@ Here is a monad transformer example how to implement Ackermann function, improve
 -}
 
 {- $Example_Level2_cover
-Here is a monad transformer example showing how to use cover functions.
+Here is a monad transformer example showing how to use trans-cover functions.
 
 >import DeepControl.Applicative ((|$>))
 >import DeepControl.Monad (Monad2)

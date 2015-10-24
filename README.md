@@ -293,7 +293,7 @@ ackermann'' :: Int -> Int ->
 ackermann'' x y = (untransfold2 . IdentityT) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 ```
 
-Here is a monad transformer example showing that the monad morph is usable.
+Here is a monad transformer example showing how to use trans-cover functions.
 
 ```haskell
 import DeepControl.Applicative ((|$>))
