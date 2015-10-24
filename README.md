@@ -237,7 +237,6 @@ factorial n | n < 0  = (*-*) Nothing
 -- 24
 -- Just (120,[0,1,1,2,6,24])
 ```
-
 #### Level-3, Level-4 and Level-5
 
 Work well likewise.
@@ -381,5 +380,9 @@ program = replicateM_ 4 $ do
 -- Tock!
 -- [1,2,3,4]
 ```
+
+#### Level-3, Level-4 and Level-5
+
+Work well likewise.
 
 ### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Arrow.html)

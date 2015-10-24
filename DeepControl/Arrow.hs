@@ -2,7 +2,7 @@
 Module      : DeepControl.Arrow
 Description : Enable deep level Arrow programming.
 Copyright   : (c) Ross Paterson 2002,
-              (C) 2015 KONISHI Yohsuke 
+              (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental

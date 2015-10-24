@@ -3,7 +3,7 @@ Module      : DeepControl.Monad.Trans
 Description : Enable deep level Monad-Transform programming.
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology, 2001,
-              (C) 2015 KONISHI Yohsuke
+              (c) 2015 KONISHI Yohsuke
 License     : BSD-style (see the file LICENSE)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
@@ -19,75 +19,74 @@ You would realize exactly what __/more deeper level/__ means by reading the exam
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 module DeepControl.Monad.Trans (
-    -- * MonadTrans
-    -- ** Level-1
-    -- *** trans-lift
+    -- * Level-1
+    -- ** trans-lift
     MonadTrans(..), 
     liftT, liftTT, liftTTT, liftTTTT, liftTTTTT,
-    -- *** trans-down
+    -- ** trans-down
     MonadTransDown(..), M,
-    -- *** trans-cover  
+    -- ** trans-cover  
     MonadTransCover(..),
-    -- *** other  
+    -- ** other  
     MonadTrans_(..), 
 
-    -- ** Level-2
-    -- *** trans-lift
+    -- * Level-2
+    -- ** trans-lift
     MonadTrans2(..), 
     liftTT2, liftTTT2, liftTTTT2, liftTTTTT2,
-    -- *** trans-down
+    -- ** trans-down
     MonadTrans2Down(..), M_, T_, 
-    -- *** trans-fold 
+    -- ** trans-fold 
     MonadTransFold2(..), 
-    -- *** trans-cover  
+    -- ** trans-cover  
     MonadTransCover2(..),
     (|**|),
-    -- *** other  
+    -- ** other  
     trans2, untrans2, 
 
-    -- ** Level-3
-    -- *** trans-lift
+    -- * Level-3
+    -- ** trans-lift
     MonadTrans3(..), 
     liftTT3, liftTTT3, liftTTTT3, liftTTTTT3,
-    -- *** trans-down
+    -- ** trans-down
     MonadTrans3Down(..), M__, T__, 
-    -- *** trans-fold 
+    -- ** trans-fold 
     MonadTransFold3(..), 
-    -- *** trans-cover 
+    -- ** trans-cover 
     MonadTransCover3(..),
     (|***|), 
     (|-**|), (|*-*|), (|**-|),
-    -- *** other  
+    -- ** other  
     trans3, untrans3, 
 
-    -- ** Level-4
-    -- *** trans-lift
+    -- * Level-4
+    -- ** trans-lift
     MonadTrans4(..),
-    -- *** trans-down
+    -- ** trans-down
     MonadTrans4Down(..), M___, T___, T2__,
-    -- *** trans-fold 
+    -- ** trans-fold 
     MonadTransFold4(..), 
-    -- *** trans-cover 
+    -- ** trans-cover 
     MonadTransCover4(..),
     (|****|), 
     (|--**|), (|-*-*|), (|-**-|), (|*-*-|), (|**--|), (|*--*|),
     (|-***|), (|*-**|), (|**-*|), (|***-|), 
-    -- *** other  
+    -- ** other  
     trans4, untrans4, 
 
-    -- ** Level-5
-    -- *** trans-lift
+    -- * Level-5
+    -- ** trans-lift
     MonadTrans5(..),
-    -- *** trans-down
+    -- ** trans-down
     MonadTrans5Down(..), M____, T____, T2___, T3___,
-    -- *** trans-fold 
+    -- ** trans-fold 
     MonadTransFold5(..), 
-    -- *** trans-cover 
+    -- ** trans-cover 
     MonadTransCover5(..),
     (|---**|), (|--*-*|), (|-*--*|), (|*---*|), (|*--*-|), (|*-*--|), (|**---|),
     (|--***|), (|-*-**|), (|*--**|), (|*-*-*|), (|**--*|), (|**-*-|), (|***--|),
     (|-****|), (|*-***|), (|**-**|), (|***-*|), (|****-|),
-    -- *** other  
+    -- ** other  
     trans5, untrans5, 
 
     -- * MonadIO
