@@ -618,7 +618,7 @@ Here is a monad transformer example showing how to use cover functions.
 >-- Tock!
 >-- ((),1)
 >
->save    :: StateT Int (Writer [Int]) ()
+>save :: StateT Int (Writer [Int]) ()
 >save = do
 >    n <- get
 >    liftT $ tell [n]
