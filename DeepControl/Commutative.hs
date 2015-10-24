@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Commutative
-Description : Commutative Functor.
+Description : ---
 Copyright   : Conor McBride and Ross Paterson 2005,
               (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
