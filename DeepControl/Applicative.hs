@@ -9,7 +9,6 @@ Portability : portable
 
 This module enables you to program in applicative style for more __deeper__ level than the usual 'Control.Applicative' module expresses.
 You would soon realize exactly what __/more deeper level/__ means by reading the example codes in order, which are attached on the functions below.
-Note: all the braket-cover notation for Level-4 and Level-5 haven't been written yet.
 -}
 module DeepControl.Applicative (
     module Control.Applicative,
@@ -122,7 +121,7 @@ import Control.Applicative
 
 infixl 4  |>, <|
 
--- | Alias for @'$'@. 
+-- | Alias to @'$'@. 
 -- 
 -- >>> (1+) |> 2
 -- 3

@@ -11,7 +11,6 @@ Portability : ---
 
 This module enables you to program in Monad-Transformer style for more __deeper__ level than the usual @Control.Monad.Trans@ module expresses.
 You would realize exactly what __/more deeper level/__ means by reading the example codes, which are attached on the page bottom.
-Note: many instances for Level-4 and Level-5 haven't been written yet.
 -}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -25,39 +24,39 @@ module DeepControl.Monad.Trans (
 
     -- * MonadTrans
     -- ** Level-1
-    -- *** lift
+    -- *** trans-lift
     MonadTrans(..), 
     liftT, liftTT, liftTTT, liftTTTT, liftTTTTT,
-    -- *** transdown
+    -- *** trans-down
     MonadTransDown(..), M,
-    -- *** cover  
+    -- *** trans-cover  
     MonadTransCover(..),
     -- *** other  
     MonadTrans_(..), 
 
     -- ** Level-2
-    -- *** lift
+    -- *** trans-lift
     MonadTrans2(..), 
     liftTT2, liftTTT2, liftTTTT2, liftTTTTT2,
-    -- *** transdown
+    -- *** trans-down
     MonadTrans2Down(..), M_, T_, 
-    -- *** fold 
+    -- *** trans-fold 
     MonadTransFold2(..), 
-    -- *** cover  
+    -- *** trans-cover  
     MonadTransCover2(..),
     (|**|),
     -- *** other  
     trans2, untrans2, 
 
     -- ** Level-3
-    -- *** lift
+    -- *** translift
     MonadTrans3(..), 
     liftTT3, liftTTT3, liftTTTT3, liftTTTTT3,
-    -- *** transdown
+    -- *** trans-down
     MonadTrans3Down(..), M__, T__, 
-    -- *** fold 
+    -- *** trans-fold 
     MonadTransFold3(..), 
-    -- *** cover 
+    -- *** trans-cover 
     MonadTransCover3(..),
     (|***|), 
     (|-**|), (|*-*|), (|**-|),
@@ -65,13 +64,13 @@ module DeepControl.Monad.Trans (
     trans3, untrans3, 
 
     -- ** Level-4
-    -- *** lift
+    -- *** trans-lift
     MonadTrans4(..),
-    -- *** transdown
+    -- *** trans-down
     MonadTrans4Down(..), M___, T___, T2__,
-    -- *** fold 
+    -- *** trans-fold 
     MonadTransFold4(..), 
-    -- *** cover 
+    -- *** trans-cover 
     MonadTransCover4(..),
     (|****|), 
     (|--**|), (|-*-*|), (|-**-|), (|*-*-|), (|**--|), (|*--*|),
@@ -80,13 +79,13 @@ module DeepControl.Monad.Trans (
     trans4, untrans4, 
 
     -- ** Level-5
-    -- *** lift
+    -- *** trans-lift
     MonadTrans5(..),
-    -- *** transdown
+    -- *** trans-down
     MonadTrans5Down(..), M____, T____, T2___, T3___,
-    -- *** fold 
+    -- *** trans-fold 
     MonadTransFold5(..), 
-    -- *** cover 
+    -- *** trans-cover 
     MonadTransCover5(..),
     (|---**|), (|--*-*|), (|-*--*|), (|*---*|), (|*--*-|), (|*-*--|), (|**---|),
     (|--***|), (|-*-**|), (|*--**|), (|*-*-*|), (|**--*|), (|**-*-|), (|***--|),
@@ -118,7 +117,7 @@ import Control.Monad.State (State, StateT(..), runState)
 ----------------------------------------------------------------------
 -- Level-1
 
--- | Alias for @'lift'@
+-- | Alias to @'lift'@
 liftT :: (Monad m, MonadTrans t) => m a -> t m a 
 liftT = lift
 
@@ -612,8 +611,8 @@ Here is a monad transformer example showing how to use cover functions.
 >
 >tock                         ::                   StateT Int IO ()
 >tock = do
->    (|*|) tick               :: (Monad      m) => StateT Int m  ()
->    liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
+>    (|*|) tick               :: (Monad      m) => StateT Int m  ()  -- (|*|) is the level-1 trans-cover function, analogous for (*:)
+>    liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- 'liftT' is the level-1 trans-lift function, alias to 'lift'
 >
 >-- λ> runStateT tock 0
 >-- Tock!
@@ -624,11 +623,11 @@ Here is a monad transformer example showing how to use cover functions.
 >    n <- get
 >    liftT $ tell [n]
 >
->program ::               StateT Int (IdentityT2 IO (Writer [Int])) ()
+>program ::               StateT Int (IdentityT2 IO (Writer [Int])) ()  -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
 >program = replicateM_ 4 $ do
->    ((|-*|).liftT) |>| tock
+>    ((|-*|).liftT) |>| tock                                            -- (|-*|) is a level-2 trans-cover function, analogous for (-*)
 >        :: (Monad2 m) => StateT Int (IdentityT2 IO m             ) ()
->    ((|*-|).liftT) |>| save
+>    ((|*-|).liftT) |>| save                                            -- (|*-|) is a level-2 trans-cover function, analogous for (*-)
 >        :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 >
 >-- λ> execWriter |$> runIdentityT2 (runStateT program 0)

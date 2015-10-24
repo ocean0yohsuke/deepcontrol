@@ -10,7 +10,6 @@ Portability : ---
 
 This module enables you to program in Monad-Morphic style for more __deeper__ level than the usual @Control.Monad.Morph@ module expresses.
 You would realize exactly what __/more deeper level/__ means by reading the example codes, which are attached on the page bottom.
-Note: many instances for Level-4 and Level-5 haven't been written yet.
 -}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -20,18 +19,23 @@ module DeepControl.Monad.Morph (
     module Control.Monad.Morph,
 
     -- * Level-1
+    -- ** trans-map
     (|>|), (|<|), 
 
     -- * Level-2
+    -- ** trans-map
     (|>>|), (|<<|),
 
     -- * Level-3
+    -- ** trans-map
     (|>>>|), (|<<<|),
 
     -- * Level-4
+    -- ** trans-map
     (|>>>>|), (|<<<<|),
 
     -- * Level-5
+    -- ** trans-map
     (|>>>>>|), (|<<<<<|),
 
     -- * Level-2 example
@@ -47,7 +51,7 @@ import Control.Monad.Morph
 -- Level-1 functions
 
 infixl 2  |>|
--- | Alias for @'hoist'@.
+-- | Alias to @'hoist'@.
 (|>|) :: (Monad m, MFunctor t) => (forall a . m a -> n a) -> t m b -> t n b
 (|>|) = hoist
 
@@ -142,7 +146,7 @@ Here is a monad-morph example, a level-2 monad-morph.
 >
 >tock                        ::                   StateT Int IO ()
 >tock = do
->    generalize |>| tick     :: (Monad      m) => StateT Int m  ()
+>    generalize |>| tick     :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous for (|$>) 
 >    lift $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
 >
 >-- λ> runStateT tock 0
@@ -159,7 +163,7 @@ Here is a monad-morph example, a level-2 monad-morph.
 >program = replicateM_ 4 $ do
 >    lift |>| tock
 >        :: (MonadTrans t) => StateT Int (t             IO) ()
->    generalize |>>| save
+>    generalize |>>| save                                         -- (|>>|) is the level-2 trans-map function, analogous for (|$>>)
 >        :: (Monad      m) => StateT Int (WriterT [Int] m ) ()
 >
 >-- λ> execWriterT (runStateT program 0)

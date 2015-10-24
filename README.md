@@ -147,7 +147,7 @@ Work well likewise.
 
 ### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Commutative.html)
 
-[], Maybe, Either, Except and Writer are all commutative each other.
+[], Maybe, Either, Except and Writer monads are all commutative each other.
 
     > commute $ Just [1]
     [Just 1]
@@ -309,8 +309,8 @@ tick = modify (+1)
 
 tock                         ::                   StateT Int IO ()
 tock = do
-    (|*|) tick               :: (Monad      m) => StateT Int m  ()
-    liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
+    (|*|) tick               :: (Monad      m) => StateT Int m  ()  -- (|*|) is the level-1 trans-cover function, analogous for (*:)
+    liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- liftT is the level-1 trans-lift function, alias to lift
 
 -- λ> runStateT tock 0
 -- Tock!
@@ -321,11 +321,11 @@ save = do
     n <- get
     liftT $ tell [n]
 
-program ::               StateT Int (IdentityT2 IO (Writer [Int])) ()
+program ::               StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
 program = replicateM_ 4 $ do
-    ((|-*|).liftT) |>| tock
+    ((|-*|).liftT) |>| tock                                           -- (|-*|) is a level-2 trans-cover function, analogous for (-*)
         :: (Monad2 m) => StateT Int (IdentityT2 IO m             ) ()
-    ((|*-|).liftT) |>| save
+    ((|*-|).liftT) |>| save                                           -- (|*-|) is a level-2 trans-cover function, analogous for (*-)
         :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 
 -- λ> execWriter |$> runIdentityT2 (runStateT program 0)
@@ -354,7 +354,7 @@ tick = modify (+1)
 
 tock                        ::                   StateT Int IO ()
 tock = do
-    generalize |>| tick     :: (Monad      m) => StateT Int m  ()
+    generalize |>| tick     :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous for (|$>)
     lift $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
 
 -- λ> runStateT tock 0
@@ -371,7 +371,7 @@ program ::                   StateT Int (WriterT [Int] IO) ()
 program = replicateM_ 4 $ do
     lift |>| tock
         :: (MonadTrans t) => StateT Int (t             IO) ()
-    generalize |>>| save
+    generalize |>>| save                                        -- (|>>|) is the level-2 trans-map function, analogous for (|$>>)
         :: (Monad      m) => StateT Int (WriterT [Int] m ) ()
 
 -- λ> execWriterT (runStateT program 0)
