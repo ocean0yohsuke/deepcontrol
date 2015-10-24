@@ -1,8 +1,8 @@
 import Test.HUnit hiding (State)
 
 import DeepControl.Monad.Morph
-import DeepControl.Monad.Trans.State
-import DeepControl.Monad.Trans.Writer
+import Control.Monad.Writer
+import Control.Monad.State
 
 -- i.e. :: StateT Int Identity ()
 tick    :: State Int ()

@@ -6,7 +6,7 @@ import DeepControl.Monad ((>-))
 import DeepControl.Monad.Morph ((|>|))
 import DeepControl.Monad.Trans (liftTT2, transfold2, untransfold2)
 import DeepControl.Monad.Trans.Identity
-import DeepControl.Monad.Trans.Reader
+import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
 
 import System.Timeout (timeout)

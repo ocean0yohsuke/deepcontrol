@@ -3,7 +3,7 @@ Module      : DeepControl.Monad.Trans.Writer
 Description : Extension for mtl's Contrl.Monad.Writer.
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology, 2001,
-              (C) 2015 KONISHI Yohsuke,
+              (c) 2015 KONISHI Yohsuke,
 License     : BSD-style (see the file LICENSE)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
@@ -20,9 +20,9 @@ module DeepControl.Monad.Trans.Writer (
     -- * Level-3
     listen3, pass3,
     -- * Level-4
-    --listen4, pass4,
+    listen4, pass4,
     -- * Level-5
-    --listen5, pass5,
+    listen5, pass5,
 
     ) where 
 
@@ -35,14 +35,6 @@ import DeepControl.Monad.Trans
 import Control.Monad.Writer
 import Control.Monad.Identity
 import Data.Monoid
-
-----------------------------------------------------------------------
--- Level-1
-
-instance (Monoid w) => Commutative (Writer w) where
-    commute x = 
-        let (a, b) = runWriter x
-        in  (WriterT . Identity) |$> (a <$|(,)|* b)
 
 ----------------------------------------------------------------------
 -- Level-2
@@ -81,6 +73,11 @@ instance (Monoid w) => Monad4 (Writer w) where
         f a <<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
                          WriterT $ Identity (b, w <> w'))
 
+listen4 :: (MonadWriter w m4, Applicative m1, Applicative m2, Applicative m3) => m1 (m2 (m3 (m4 a))) -> m1 (m2 (m3 (m4 (a, w))))
+listen4 m = listen3 |$> m
+pass4 :: (MonadWriter w m4, Applicative m1, Applicative m2, Applicative m3) => m1 (m2 (m3 (m4 (a, w -> w)))) -> m1 (m2 (m3 (m4 a)))
+pass4 m = pass3 |$> m
+
 ----------------------------------------------------------------------
 -- Level-5
 
@@ -89,4 +86,9 @@ instance (Monoid w) => Monad5 (Writer w) where
         mv >>>>== \x -> runWriterT x >- \(Identity (a, w)) ->
         f a <<<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
                           WriterT $ Identity (b, w <> w'))
+
+listen5 :: (MonadWriter w m5, Applicative m1, Applicative m2, Applicative m3, Applicative m4) => m1 (m2 (m3 (m4 (m5 a)))) -> m1 (m2 (m3 (m4 (m5 (a, w)))))
+listen5 m = listen4 |$> m
+pass5 :: (MonadWriter w m5, Applicative m1, Applicative m2, Applicative m3, Applicative m4) => m1 (m2 (m3 (m4 (m5 (a, w -> w))))) -> m1 (m2 (m3 (m4 (m5 a))))
+pass5 m = pass4 |$> m
 

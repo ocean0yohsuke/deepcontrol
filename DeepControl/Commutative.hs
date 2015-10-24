@@ -10,6 +10,8 @@ Portability : ---
 
 This module is made of @'Data.Traversable'@, distilling most function names polluted with action kind of concepts into crystalized(static) ones.
 -}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 module DeepControl.Commutative (
     -- * Level-1
     -- ** The 'Commutative' class
@@ -36,17 +38,32 @@ module DeepControl.Commutative (
     ) where 
 
 import DeepControl.Applicative
-
 import Data.Monoid
+
+import Control.Monad.Identity (Identity(..))
+import Control.Monad.Except (Except, ExceptT(..), runExcept)
+import Control.Monad.Writer (Writer, WriterT(..), runWriter)
 
 ------------------------------------------------------------------------------
 -- Level-1
 
--- | 
+-- | [], Maybe, Either, Except and Writer are all commutative each other.
+--   So these monads can be deepened to Monad2, Monad3, Monad4 and Monad5.
 -- 
 class (Applicative c) => Commutative c where
-  -- | This method is equivalent for @'Data.Traversable.sequenceA'@ just except the name.
+  -- | This method is equivalent for @'Data.Traversable.sequenceA'@ except the name.
   --   The only difference is the name "commute", that is to say from which no action kind of concepts smell.
+  --
+  -- >>> commute $ Just [1]
+  -- [Just 1]
+  -- >>> commute $ [Just 1]
+  -- Just [1]
+  --
+  -- >>> commute $ Right (Just 1)
+  -- Just (Right 1)
+  -- >>> commute $ Just (Right 1)
+  -- Right (Just 1)
+  --
   commute :: Applicative f => c (f a) -> f (c a)
 
 -- | Do @fmap f@ then commute, equivalent for @'Data.Traversable.traverse'@.
@@ -63,9 +80,21 @@ instance Commutative Maybe where
 instance Commutative [] where
     commute = foldr (\x acc -> x <$|(:)|*> acc) ((*:) [])
   
+instance (Monoid w) => Commutative (Writer w) where
+    commute x = 
+        let (a, b) = runWriter x
+        in  (WriterT . Identity) |$> (a <$|(,)|* b)
+
 instance Commutative (Either a) where
     commute (Right x) = Right |$> x
     commute (Left x)  = (*:) $ Left x
+instance Commutative (Except e) where
+    commute x = ExceptT . Identity |$> commute (runExcept x)
+
+{-
+instance Commutative (Const m) where
+    commute (Const m) = (*:) $ Const m
+-}
 
 {-
 instance Commutative ((->) r) where
@@ -95,10 +124,20 @@ instance Applicative Id where
 ------------------------------------------------------------------------------
 -- Level-2
 
+-- | sink2 = (commute|$>) . commute
+--
+-- >>> sink2 $ Right (Just [1])
+-- Just [Right 1]
+--
 sink2 :: (Commutative m1, Commutative m2, Applicative m3) => 
          m1 (m2 (m3 a)) -> m2 (m3 (m1 a))
 sink2 = (commute|$>) . commute
 
+-- | float2 = commute . (commute|$>)
+--
+-- >>> float2 $ Just [Right 1]
+-- Right (Just [1])
+--
 float2 :: (Applicative m1, Commutative m2, Commutative m3) => 
           m2 (m3 (m1 a)) -> m1 (m2 (m3 a))
 float2 = commute . (commute|$>)
@@ -106,10 +145,20 @@ float2 = commute . (commute|$>)
 ------------------------------------------------------------------------------
 -- Level-3
 
+-- | sink3 = (sink2|$>) . commute
+--
+-- >>> sink3 $ Right [Just [1]]
+-- [Just [Right 1]]
+--
 sink3 :: (Commutative m1, Commutative m2, Commutative m3, Applicative m4) => 
          m1 (m2 (m3 (m4 a))) -> m2 (m3 (m4 (m1 a)))
 sink3 = (sink2|$>) . commute
 
+-- | float3 = commute . (float2|$>)
+--
+-- >>> float3 $ [Just [Right 1]]
+-- Right [Just [1]]
+--
 float3 :: (Applicative m1, Commutative m2, Commutative m3, Commutative m4) => 
           m2 (m3 (m4 (m1 a))) -> m1 (m2 (m3 (m4 a)))
 float3 = commute . (float2|$>)

@@ -1,5 +1,5 @@
 name:                deepcontrol
-version:             0.4.1.1
+version:             0.4.2.0
 synopsis:            Provide more deeper level style of programming than the usual Control.xxx modules express
 description:         This module enables more deeper level style of programming than the usual Control.xxx modules express, especially for Applicative and Monad.
 license:             BSD3
@@ -31,9 +31,6 @@ library
                      , DeepControl.Monad.Trans.Identity
                      , DeepControl.Monad.Trans.Except
                      , DeepControl.Monad.Trans.Writer
-                     , DeepControl.Monad.Trans.Reader
-                     , DeepControl.Monad.Trans.State
-                     , DeepControl.Monad.Trans.RWS
   -- other-modules:       
   other-extensions:    MultiParamTypeClasses
                      , FlexibleInstances

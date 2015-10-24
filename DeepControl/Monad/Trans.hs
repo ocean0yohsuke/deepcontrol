@@ -111,6 +111,9 @@ import qualified Control.Monad.List          as L
 import qualified Control.Monad.Trans.Maybe   as M
 import qualified Control.Monad.Except        as E
 import Control.Monad.Identity
+import Control.Monad.RWS (RWS, RWST(..), runRWS)
+import Control.Monad.Reader (Reader, ReaderT(..), runReader)
+import Control.Monad.State (State, StateT(..), runState)
 
 ----------------------------------------------------------------------
 -- Level-1
@@ -153,9 +156,14 @@ instance MonadTransDown M.MaybeT where
     type TransDown M.MaybeT = Maybe
 instance MonadTransDown (E.ExceptT e) where
     type TransDown (E.ExceptT e) = E.Except e
+instance (Monoid w) => MonadTransDown (RWST r w s) where
+    type TransDown (RWST r w s) = RWS r w s
+instance MonadTransDown (ReaderT r) where
+    type TransDown (ReaderT r) = Reader r
+instance MonadTransDown (StateT s) where
+    type TransDown (StateT s) = State s
 
 infixl 3  |*|
-
 class (MonadTransDown t1) => MonadTransCover t1 where
     (|*|) :: Monad m1 => (TransDown t1) a -> t1 m1 a
 
@@ -165,6 +173,12 @@ instance MonadTransCover M.MaybeT where
     (|*|) = M.MaybeT . (*:)
 instance MonadTransCover (E.ExceptT e) where
     (|*|) = E.ExceptT . (*:) . E.runExcept
+instance (Monoid w) => MonadTransCover (RWST r w s) where
+    (|*|) = RWST . ((*:)|$>>) . runRWS
+instance MonadTransCover (ReaderT s) where
+    (|*|) = ReaderT . ((*:)|$>) . runReader
+instance MonadTransCover (StateT s) where
+    (|*|) = StateT . ((*:)|$>) . runState
 
 -- | Required only for @'MonadTransFold2'@ and @'MonadTransFold3'@ 
 class MonadTrans_ t where
@@ -544,7 +558,7 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >import DeepControl.Monad.Morph ((|>|))
 >import DeepControl.Monad.Trans (liftTT2, transfold2, untransfold2)
 >import DeepControl.Monad.Trans.Identity
->import DeepControl.Monad.Trans.Reader
+>import Control.Monad.Reader
 >import Control.Monad.Trans.Maybe
 >
 >import System.Timeout (timeout)
@@ -591,7 +605,7 @@ Here is a monad transformer example showing how to use cover functions.
 >import DeepControl.Monad.Trans (liftT, (|*|), (|-*|), (|*-|))
 >import DeepControl.Monad.Trans.Writer
 >import DeepControl.Monad.Trans.Identity
->import DeepControl.Monad.Trans.State
+>import Control.Monad.State
 >
 >tick :: State Int ()
 >tick = modify (+1)

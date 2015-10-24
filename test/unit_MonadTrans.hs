@@ -4,9 +4,9 @@ import DeepControl.Applicative ((|$>))
 import DeepControl.Monad (Monad2)
 import DeepControl.Monad.Morph ((|>|))
 import DeepControl.Monad.Trans (liftT, (|*|), (|-*|), (|*-|))
-import DeepControl.Monad.Trans.Writer
 import DeepControl.Monad.Trans.Identity
-import DeepControl.Monad.Trans.State
+import DeepControl.Monad.Trans.Writer
+import Control.Monad.State
 
 tick :: State Int ()
 tick = modify (+1)

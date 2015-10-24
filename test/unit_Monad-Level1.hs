@@ -3,9 +3,9 @@ import Test.HUnit
 
 import DeepControl.Applicative ((|$>))
 import DeepControl.Monad ((>-))
-import DeepControl.Monad.Trans.RWS
 import DeepControl.Monad.Trans.Except
 
+import Control.Monad.RWS
 import qualified Data.Map as M
 
 ------------------------------------------------

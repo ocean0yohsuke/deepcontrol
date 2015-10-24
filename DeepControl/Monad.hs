@@ -1,7 +1,7 @@
 {-|
 Module      : DeepControl.Monad
 Description : Enable deep level Monad programming.
-Copyright   : (C) 2015 KONISHI Yohsuke 
+Copyright   : (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
@@ -24,42 +24,67 @@ module DeepControl.Monad (
     module Control.Monad,
 
     -- * Level-0
-    -- ** bind function
+    -- ** bind 
     (-<), (>-), 
-    -- ** composite function
+    -- ** composite 
     (>->), (<-<),
 
-    -- * Level-1
-    -- ** bind-sequence function
-    (<<),
-
     -- * Level-2
+    -- ** bind
     Monad2(..),
-    -- ** bind-sequence function
-    (>>~), (>-==), (->==), (>-~), (->~),
-    -- ** composite function
+    -- ** sequence
+    (>>~), 
+    -- ** bind-cover
+    (>-==), (->==), 
+    -- ** sequence-cover
+    (>-~), (->~),
+    -- ** composite 
     (>==>), 
 
     -- * Level-3
-    Monad3(..),
-    -- ** bind-sequence function
+    -- ** bind
+    Monad3(..),  
+    -- ** sequence
+    (>>>~),
+    -- ** bind-cover 
     (>>-==), (->>==), (>->==) ,(>--==),(->-==), (-->==), 
-    (>>>~), (->-~), (-->~), (>>-~), (->>~), (>->~), (>--~),
-    -- ** composite function
+    -- ** sequence-cover 
+    (>--~), (->-~), (-->~), (>>-~), (->>~), (>->~), 
+    -- ** composite 
     (>===>),
 
     -- * Level-4
-    Monad4(..),
-    -- ** bind-sequence function
+    -- ** bind
+    Monad4(..), 
+    -- ** sequence
     (>>>>~), 
-    -- ** composite function
+    -- ** bind-cover 
+    (--->==), (-->-==), (->--==), (>---==),
+    (-->>==), (->->==), (>-->==), (>->-==), (->>-==), (>>--==),
+    (->>>==), (>->>==), (>>->==), (>>>-==),
+    -- ** sequence-cover 
+    (--->~), (-->-~), (->--~), (>---~),
+    (-->>~), (->->~), (>-->~), (>->-~), (->>-~), (>>--~),
+    (->>>~), (>->>~), (>>->~), (>>>-~),
+    -- ** composite 
     (>====>), 
 
     -- * Level-5
-    Monad5(..),
-    -- ** bind-sequence function
+    -- ** bind
+    Monad5(..), 
+    -- ** sequence
     (>>>>>~), 
-    -- ** composite function
+    -- ** bind-cover 
+    (---->==), (--->-==), (-->--==), (->---==), (>----==),
+    (--->>==), (-->->==), (->-->==), (>--->==), (>-->-==), (->->-==), (-->>-==), (->>--==), (>->--==), (>>---==),
+    (-->>>==), (->->>==), (>-->>==), (>->->==), (->>->==), (>>-->==), (>>->-==), (>->>-==), (->>>-==), (>>>--==),
+    (->>>>==), (>->>>==), (>>->>==), (>>>->==), (>>>>-==),
+    -- ** sequence-cover 
+    (---->~), (--->-~), (-->--~), (->---~), (>----~),
+    (--->>~), (-->->~), (->-->~), (>--->~), (>-->-~), (->->-~), (-->>-~), (->>--~), (>->--~), (>>---~),
+    (-->>>~), (->->>~), (>-->>~), (>->->~), (->>->~), (>>-->~), (>>->-~), (>->>-~), (->>>-~), (>>>--~),
+    (->>>>~), (>->>>~), (>>->>~), (>>>->~), (>>>>-~),
+    -- ** composite 
     (>=====>), 
     
     ) where 
@@ -67,11 +92,11 @@ module DeepControl.Monad (
 import DeepControl.Applicative
 import Control.Monad
 
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-0 functions
 
 infixl 1  -<, >-
--- | Alias for @'$'@.
+-- | Anologous for @'$'@; (-<) is left associative.
 --
 -- >>> Just -< 3
 -- Just 3
@@ -85,7 +110,7 @@ infixl 1  -<, >-
 -- >>> :{
 -- let plus :: Int -> Int -> Int
 --     plus x y = 
---         x >- \a ->
+--         x >- \a ->  -- (>-) is the level-0 bind function, analogous for (>>=)
 --         y >- \b ->
 --         a + b
 -- in plus 3 4
@@ -96,7 +121,7 @@ infixl 1  -<, >-
 (>-) = flip (-<)
 
 infixr 1  <-<, >->
--- | Alias for @'.'@. 
+-- | Anologous for @'.'@. 
 --
 -- >>> ((3+) <-< (2*) <-< (1+)) -< 1
 -- 7
@@ -109,39 +134,34 @@ infixr 1  <-<, >->
 (>->) :: (a -> b) -> (b -> c) -> a -> c
 (>->) = flip (<-<)
 
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-1 functions
 
-infixr 1  <<
--- | The auguments-flipped function for @'>>'@. 
-(<<) :: Monad m => m b -> m a -> m b 
-(<<) = flip (>>)
-
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-2 functions
 
 infixr 1  >==>
-infixr 1  >>~, >>==
+infixr 1  >>==, >>~
 infixr 1  ->==, >-==
 infixr 1  ->~, >-~
 
--- | The 'Monad2' class defines the Monad functions for level-2 types @m1 (m2 a)@; such as [[a]], Maybe [a], Either () (Maybe a), a -> [b], IO [a], etc.
+-- | The 'Monad2' class defines the Monad function for level-2 types @m1 (m2 a)@; such as [[a]], Maybe [a], Either () (Maybe a), a -> [b], IO [a], etc.
 -- 
 -- >>> :{
---  -- List-List Monad
---  [["a","b"]] >>== \x -> 
+--  -- List-List monad
+--  [["a","b"]] >>== \x ->   -- (>>==) is the level-2 bind function, analogous for (>>=)
 --  [[0],[1,2]] >>== \y -> 
 --  (**:) (x ++ show y)
 -- :}
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 --
 -- >>> :{
---  let lengthM :: [Int] -> Maybe Int   -- ((->) [Int])-Maybe Monad
+--  let lengthM :: [Int] -> Maybe Int      -- (->)-Maybe monad
 --      lengthM [] = Nothing
 --      lengthM xs = Just (length xs) 
---      averageM :: [Int] -> Maybe Double
+--      averageM :: [Int] -> Maybe Double  -- (->)-Maybe monad
 --      averageM = 
---          sum >-== \s ->      -- sum :: [Int] -> Int -- ((->) [Int]) Monad
+--          (-*) sum >>== \s ->
 --          lengthM >>== \l ->
 --          (**:) (fromIntegral s / fromIntegral l)
 --  in [averageM [10, 25, 70], averageM []]
@@ -149,25 +169,19 @@ infixr 1  ->~, >-~
 -- [Just 35.0,Nothing]
 -- 
 class (Monad m2) => Monad2 m2 where
-  -- | Bind function of level-2.
+  -- | The level-2 bind function.
   (>>==) :: (Monad m1) => m1 (m2 a) -> (a -> m1 (m2 b)) -> m1 (m2 b)
 
--- | Composite function of level-2.
 (>==>) :: (Monad m1, Monad2 m2) => (a -> m1 (m2 b)) -> (b -> m1 (m2 c)) -> a -> m1 (m2 c)
 f >==> g = \x -> f x >>== g
--- | Sequence function of level-2.
 (>>~) :: (Monad m1, Monad2 m2) => m1 (m2 a) -> m1 (m2 b) -> m1 (m2 b)
 m >>~ k = m >>== \_ -> k
--- | Bind-cover function made of bind @'>>=='@ and cover @'-*'@, defined as @m >-== k = (-*) m >>== k@.
 (>-==) :: (Monad m1, Monad2 m2) => m1 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
 m >-== k = (-*) m >>== k
--- | Bind-cover function made of bind @'>>=='@ and cover @'*-'@, defined as @m >-== k = (*-) m >>== k@.
 (->==) :: (Monad m1, Monad2 m2) => m2 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
 m ->== k = (*:) m >>== k
--- | Sequence-cover function made of sequence @'>>~'@ and cover @'-*'@, defined as @m >-~ k = (-*) m >>~ k@.
 (>-~) :: (Monad m1, Monad2 m2) => m1 a -> m1 (m2 b) -> m1 (m2 b)
 m >-~ k = (-*) m >>~ k
--- | Sequence-cover function made of sequence @'>>~'@ and cover @'*-'@, defined as @m >-~ k = (*-) m >>~ k@.
 (->~) :: (Monad m1, Monad2 m2) => m2 a -> m1 (m2 b) -> m1 (m2 b)
 m ->~ k = (*:) m >>~ k
 
@@ -190,21 +204,38 @@ instance Monad2 (Either e) where
             Left l  -> (*:) (Left l)
             Right r -> f r
 
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-3 functions
 
 infixr 1  >===>
-infixr 1  >>>~, >>>==
+infixr 1  >>>==, >>>~
 infixr 1  >--==, ->-==, -->==, >>-==, >->==, ->>==
 infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 
--- | The 'Monad3' class defines the Monad functions for level-3 types @m1 (m2 (m3 a)@.
+-- | The 'Monad3' class defines the Monad function for level-3 types @m1 (m2 (m3 a)@.
 -- 
 -- >>> :{
---  -- IO-List-List Monad
---  [["a","b"]] ->>== \x ->
+--  -- IO-List-List monad
+--  (*:) [["a","b"]] >>>== \x ->   -- (>>>==) is the level-3 bind-cover function, analogous for (>>=)
+--  (*:) [[0],[1,2]] >>>== \y ->
+--  (-**) (print (x,y)) >>>~       -- (>>>~) is the level-3 sequence function, analogous for (>>)
+--  (***:) (x ++ show y)
+-- :}
+-- ("a",0)
+-- ("a",1)
+-- ("a",2)
+-- ("b",0)
+-- ("b",1)
+-- ("b",2)
+-- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
+--
+-- This messy code above can be neatly rewritten to the code below.
+--
+-- >>> :{
+--  -- IO-List-List monad
+--  [["a","b"]] ->>== \x ->   -- (->>==) is a level-3 bind-cover function, analogous for (>>=)
 --  [[0],[1,2]] ->>== \y ->
---  print (x,y) >--~
+--  print (x,y) >--~          -- (>--~) is a level-3 bind-cover function, analogous for (>>)
 --  (***:) (x ++ show y)
 -- :}
 -- ("a",0)
@@ -222,6 +253,7 @@ class (Monad2 m3) => Monad3 m3 where
 f >===> g = \x -> f x >>>== g
 (>>>~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m2 (m3 a)) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m >>>~ k = m >>>== \_ -> k
+
 (>--==) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m >--== k = (-**) m >>>== k
 (->-==) :: (Monad m1, Monad2 m2, Monad3 m3) => m2 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
@@ -234,18 +266,18 @@ m >>-== k = (--*) m >>>== k
 m ->>== k = (*:) m >>>== k
 (>->==) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m3 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m >->== k = (-*) m >>>== k
-(>--~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
-m >--~ k = (-**) m >>>~ k
-(->-~) :: (Monad m1, Monad2 m2, Monad3 m3) => m2 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
-m ->-~ k = (*-*) m >>>~ k
 (-->~) :: (Monad m1, Monad2 m2, Monad3 m3) => m3 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m -->~ k = (**:) m >>>~ k
-(>>-~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m2 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
-m >>-~ k = (--*) m >>>~ k
+(->-~) :: (Monad m1, Monad2 m2, Monad3 m3) => m2 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+m ->-~ k = (*-*) m >>>~ k
+(>--~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+m >--~ k = (-**) m >>>~ k
 (->>~) :: (Monad m1, Monad2 m2, Monad3 m3) => m2 (m3 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m ->>~ k = (*:) m >>>~ k
 (>->~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m3 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m >->~ k = (-*) m >>>~ k
+(>>-~) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m2 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+m >>-~ k = (--*) m >>>~ k
 
 instance Monad3 Maybe where
     mmmv >>>== f = 
@@ -266,12 +298,17 @@ instance Monad3 (Either e) where
             Left l  -> (**:) (Left l)
             Right r -> f r
 
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-4 functions
 
 infixr 1  >====>
-infixr 1  >>>>~, >>>>==
--- TODO: >>>>~
+infixr 1  >>>>==, >>>>~
+infixr 1  --->==, -->-==, ->--==, >---==
+infixr 1  -->>==, ->->==, >-->==, >->-==, ->>-==, >>--==
+infixr 1  ->>>==, >->>==, >>->==, >>>-==
+infixr 1  --->~, -->-~, ->--~, >---~
+infixr 1  -->>~, ->->~, >-->~, >->-~, ->>-~, >>--~
+infixr 1  ->>>~, >->>~, >>->~, >>>-~
 
 class (Monad3 m4) => Monad4 m4 where
   (>>>>==) :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m2 (m3 (m4 a))) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
@@ -280,6 +317,68 @@ class (Monad3 m4) => Monad4 m4 where
 f >====> g = \x -> f x >>>>== g
 (>>>>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m3 (m4 a))) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >>>>~ k = m >>>>== \_ -> k
+
+(--->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m4 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m --->== k = (***:) m >>>>== k 
+(-->-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m3 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m -->-== k = (**-*) m >>>>== k 
+(->--==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m2 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m ->--== k = (*-**) m >>>>== k 
+(>---==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m >---== k = (-***) m >>>>== k
+
+(-->>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m3 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m -->>== k = (**:) m >>>>== k 
+(->->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m2 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m ->->== k = (*-*) m >>>>== k 
+(>-->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m >-->== k = (-**) m >>>>== k 
+(>->-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m3 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m >->-== k = (-*-*) m >>>>== k 
+(->>-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m2 (m3 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m ->>-== k = (*--*) m >>>>== k 
+(>>--==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m >>--== k = (--**) m >>>>== k 
+
+(->>>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m2 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m ->>>== k = (*:) m >>>>== k 
+(>->>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m >->>== k = (-*) m >>>>== k 
+(>>->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m >>->== k = (--*) m >>>>== k 
+(>>>-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+m >>>-== k = (---*) m >>>>== k 
+
+(--->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m4 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m --->~ k = (***:) m >>>>~ k
+(-->-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m3 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m -->-~ k = (**-*) m >>>>~ k
+(->--~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m2 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m ->--~ k = (*-**) m >>>>~ k
+(>---~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m >---~ k = (-***) m >>>>~ k
+
+(-->>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m3 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m -->>~ k = (**:) m >>>>~ k
+(->->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m2 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m ->->~ k = (*-*) m >>>>~ k
+(>-->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m >-->~ k = (-**) m >>>>~ k
+(>->-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m3 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m >->-~ k = (-*-*) m >>>>~ k
+(->>-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m2 (m3 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m ->>-~ k = (*--*) m >>>>~ k
+(>>--~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m >>--~ k = (--**) m >>>>~ k
+
+(->>>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m2 (m3 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m ->>>~ k = (*:) m >>>>~ k
+(>->>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m3 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m >->>~ k = (-*) m >>>>~ k
+(>>->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m >>->~ k = (--*) m >>>>~ k
+(>>>-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m3 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+m >>>-~ k = (---*) m >>>>~ k
 
 instance Monad4 Maybe where
     mmmmv >>>>== f = 
@@ -300,12 +399,20 @@ instance Monad4 (Either e) where
             Left l  -> (***:) (Left l)
             Right r -> f r
 
--- -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Level-5 functions
 
 infixr 1  >=====>
-infixr 1  >>>>>~, >>>>>== 
--- TODO: >>>>>~
+infixr 1  >>>>>~, >>>>>==
+infixr 1  ---->==, --->-==, -->--==, ->---==, >----==
+infixr 1  --->>==, -->->==, ->-->==, >--->==, >-->-==, ->->-==, -->>-==, ->>--==, >->--==, >>---==
+infixr 1  -->>>==, ->->>==, >-->>==, >->->==, ->>->==, >>-->==, >>->-==, >->>-==, ->>>-==, >>>--==
+infixr 1  ->>>>==, >->>>==, >>->>==, >>>->==, >>>>-==
+
+infixr 1  ---->~, --->-~, -->--~, ->---~, >----~
+infixr 1  --->>~, -->->~, ->-->~, >--->~, >-->-~, ->->-~, -->>-~, ->>--~, >->--~, >>---~
+infixr 1  -->>>~, ->->>~, >-->>~, >->->~, ->>->~, >>-->~, >>->-~, >->>-~, ->>>-~, >>>--~
+infixr 1  ->>>>~, >->>>~, >>->>~, >>>->~, >>>>-~
 
 class (Monad4 m5) => Monad5 m5 where
   (>>>>>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m3 (m4 (m5 a)))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
@@ -314,6 +421,136 @@ class (Monad4 m5) => Monad5 m5 where
 f >=====> g = \x -> f x >>>>>== g
 (>>>>>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m3 (m4 (m5 a)))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>>>~ k = m >>>>>== \_ -> k
+
+(---->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m5 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ---->== k = (****:) m >>>>>== k 
+(--->-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m4 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m --->-== k = (***-*) m >>>>>== k 
+(-->--==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m -->--== k = (**-**) m >>>>>== k 
+(->---==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->---== k = (*-***) m >>>>>== k 
+(>----==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >----== k = (-****) m >>>>>== k 
+
+(--->>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m4 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m --->>== k = (***:) m >>>>>== k 
+(-->->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m -->->== k = (**-*) m >>>>>== k 
+(->-->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->-->== k = (*-**) m >>>>>== k 
+(>--->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >--->== k = (-***) m >>>>>== k 
+(>-->-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >-->-== k = (-**-*) m >>>>>== k 
+(->->-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->->-== k = (*-*-*) m >>>>>== k 
+(-->>-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m -->>-== k = (**--*) m >>>>>== k 
+(->>--==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m3 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->>--== k = (*--**) m >>>>>== k 
+(>->--==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m3 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >->--== k = (-*-**) m >>>>>== k 
+(>>---==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>---== k = (--***) m >>>>>== k 
+
+(-->>>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m -->>>== k = (**:) m >>>>>== k 
+(->->>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->->>== k = (*-*) m >>>>>== k 
+(>-->>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >-->>== k = (-**) m >>>>>== k 
+(>->->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m3 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >->->== k = (-*-*) m >>>>>== k 
+(->>->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m3 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->>->== k = (*--*) m >>>>>== k 
+(>>-->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>-->== k = (--**) m >>>>>== k 
+(>>->-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>->-== k = (--*-*) m >>>>>== k 
+(>->>-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >->>-== k = (-*--*) m >>>>>== k 
+(->>>-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->>>-== k = (*---*) m >>>>>== k 
+(>>>--==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>>--== k = (---**) m >>>>>== k 
+
+(->>>>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m3 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->>>>== k = (*:) m >>>>>== k 
+(>->>>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m3 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >->>>== k = (-*) m >>>>>== k 
+(>>->>==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>->>== k = (--*) m >>>>>== k 
+(>>>->==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m3 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>>->== k = (---*) m >>>>>== k 
+(>>>>-==) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m3 (m4 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>>>-== k = (----*) m >>>>>== k 
+
+
+(---->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m5 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ---->~ k = (****:) m >>>>>~ k 
+(--->-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m4 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m --->-~ k = (***-*) m >>>>>~ k 
+(-->--~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m -->--~ k = (**-**) m >>>>>~ k 
+(->---~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->---~ k = (*-***) m >>>>>~ k 
+(>----~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >----~ k = (-****) m >>>>>~ k 
+
+
+(--->>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m4 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m --->>~ k = (***:) m >>>>>~ k 
+(-->->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m -->->~ k = (**-*) m >>>>>~ k 
+(->-->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->-->~ k = (*-**) m >>>>>~ k 
+(>--->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >--->~ k = (-***) m >>>>>~ k 
+(>-->-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >-->-~ k = (-**-*) m >>>>>~ k 
+(->->-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->->-~ k = (*-*-*) m >>>>>~ k 
+(-->>-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m -->>-~ k = (**--*) m >>>>>~ k 
+(->>--~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m3 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->>--~ k = (*--**) m >>>>>~ k 
+(>->--~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m3 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >->--~ k = (-*-**) m >>>>>~ k 
+(>>---~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>---~ k = (--***) m >>>>>~ k 
+
+(-->>>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m -->>>~ k = (**:) m >>>>>~ k 
+(->->>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->->>~ k = (*-*) m >>>>>~ k 
+(>-->>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >-->>~ k = (-**) m >>>>>~ k 
+(>->->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m3 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >->->~ k = (-*-*) m >>>>>~ k 
+(->>->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m3 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->>->~ k = (*--*) m >>>>>~ k 
+(>>-->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>-->~ k = (--**) m >>>>>~ k 
+(>>->-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>->-~ k = (--*-*) m >>>>>~ k 
+(>->>-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m3 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >->>-~ k = (-*--*) m >>>>>~ k 
+(->>>-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m3 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->>>-~ k = (*---*) m >>>>>~ k 
+(>>>--~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m3 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>>--~ k = (---**) m >>>>>~ k 
+
+(->>>>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m2 (m3 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m ->>>>~ k = (*:) m >>>>>~ k 
+(>->>>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m3 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >->>>~ k = (-*) m >>>>>~ k 
+(>>->>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>->>~ k = (--*) m >>>>>~ k 
+(>>>->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m3 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>>->~ k = (---*) m >>>>>~ k 
+(>>>>-~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m3 (m4 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+m >>>>-~ k = (----*) m >>>>>~ k 
 
 instance Monad5 Maybe where
     mmmmmv >>>>>== f = 

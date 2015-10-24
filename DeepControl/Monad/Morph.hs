@@ -2,7 +2,7 @@
 Module      : DeepControl.Monad.Morph
 Description : Extension for mmorph's Contrl.Monad.Morph.
 Copyright   : 2013 Gabriel Gonzalez,
-              (C) 2015 KONISHI Yohsuke 
+              (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental

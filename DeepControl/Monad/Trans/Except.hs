@@ -2,7 +2,7 @@
 Module      : DeepControl.Monad.Trans.Except
 Description : Extension for mtl's Contrl.Monad.Except.
 Copyright   : (C) 2013 Ross Paterson,
-              (C) 2015 KONISHI Yohsuke 
+              (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the file LICENSE)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
@@ -41,12 +41,6 @@ import DeepControl.Monad.Signatures
 
 import Control.Monad.Except
 import Control.Monad.Identity
-
-----------------------------------------------------------------
--- 
-
-instance Commutative (Except e) where
-    commute x = ExceptT . Identity |$> commute (runExcept x)
 
 ----------------------------------------------------------------
 -- Level-2

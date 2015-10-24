@@ -4,7 +4,7 @@ A Haskell library that enables more deeper level style programming than the usua
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.4.1.1/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -59,17 +59,23 @@ bra-ket notation:
     > filter (even <$|(&&)|*> (10 >) <$|(&&)|*> (5 <)) [1..100]
     [6,8]
 
-braket-cover notation
+braket-cover notation:
 
     > [(1+)] |* 2
     [3]
     > [1] <$|(+)|* 2
     [3]
-    > [1] <$|(+)|* 2 <$|(*)|* 3
-    [9]
 
-    > Just 1 <$|(,)|* 2
-    Just (1,2)
+    > (,) |$> ["a1","a2"] |* 'b'
+    [("a1",'b'),("a2",'b')]
+
+    > (,,) 'a' |$> ["b1","b2"] |* 'c'
+    [('a',"b1",'c'),('a',"b2",'c')]
+
+    > (,,,) 'a' |$> ["b1","b2"] |* 'c' |* 'd'
+    [('a',"b1",'c','d'),('a',"b2",'c','d')]
+    > (,,,) 'a' |$> ["b1","b2"] |* 'c' |*> ["d1","d2"]
+    [('a',"b1",'c',"d1"),('a',"b1",'c',"d2"),('a',"b2",'c',"d1"),('a',"b2",'c',"d2")]
 
     > 1 *| [(+2)]
     [3]
@@ -135,18 +141,45 @@ braket-cover notation:
     >    [0,1]  -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
     [Just 2,Just 3,Just (-2),Just (-1),Just 0,Just 2,Nothing,Nothing]
 
-#### Level-3
+#### Level-3, Level-4 and Level-5
 
 Work well likewise.
 
-#### Level-4, Level-5
+### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Commutative.html)
 
-Not completely written up yet.
+[], Maybe, Either, Except and Writer are all commutative each other.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.4.1.1/docs/DeepControl-Monad.html)
+    > commute $ Just [1]
+    [Just 1]
+    > commute $ [Just 1]
+    Just [1]
+
+    > commute $ Right (Just 1)
+    Just (Right 1)
+    > commute $ Just (Right 1)
+    Right (Just 1)
+
+So these monads can be deepened to Monad2, Monad3, Monad4 and Monad5.
+
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
+
+### Level-0
+
+```haskell
+import DeepControl.Monad ((>-))
+
+plus :: Int -> Int -> Int
+plus x y = 
+    x >- \a ->   -- (>-) is the level-0 bind function, analogous for (>>=)
+    y >- \b ->
+    a + b
+
+-- > plus 3 4
+-- 7
+```
 
 #### Level-2
 
@@ -154,8 +187,8 @@ You would soon realize exactly what more deeper level means by reading the examp
 import DeepControl.Applicative ((**:))
 import DeepControl.Monad
 
-listlist :: [[String]]             -- List-List Monad
-listlist = [["a","b"]] >>== \x ->
+listlist :: [[String]]             -- List-List monad
+listlist = [["a","b"]] >>== \x ->  -- (>>==) is the level-2 bind function, analogous for (>>=)
            [[0],[1,2]] >>== \y ->
            (**:) $ x ++ show y
 
@@ -169,11 +202,11 @@ import DeepControl.Monad
 import DeepControl.Monad.Trans.Writer
 
 factorial :: Int ->
-             Maybe (Writer [Int] Int)  -- Maybe-Writer Monad
+             Maybe (Writer [Int] Int)               -- Maybe-Writer Monad
 factorial n | n < 0  = (-*) Nothing
             | n == 0 = (*:) $ tell [0] >> return 1
-            | n > 0  = factorial (n-1) >>== \v ->
-                       tell [v] ->~
+            | n > 0  = factorial (n-1) >>== \v ->   
+                       tell [v] ->~                 -- (->~) is a level-2 bind-cover function, analogous for (>>)
                        (**:) (n * v)
 
 -- > runWriter |$> factorial 5
@@ -188,12 +221,12 @@ import DeepControl.Monad
 import DeepControl.Monad.Trans.Writer
 
 factorial :: Int ->
-             IO (Maybe (Writer [Int] Int))    -- IO-Maybe-Writer Monad
+             IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer Monad
 factorial n | n < 0  = (*-*) Nothing
             | n == 0 = (**:) $ tell [0] >> return 1
-            | n > 0  = factorial (n-1) >>>== \v ->
-                       print v >--~
-                       tell [v] -->~
+            | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous for (>>=)
+                       print v >--~                   -- (>--~) is a level-3 bind-cover function, analogous for (>>)
+                       tell [v] -->~                  -- (-->~) is a level-3 bind-cover function too, analogous for (>>)
                        (***:) (n * v)
 
 -- > runWriter |$>> factorial 5
@@ -204,7 +237,12 @@ factorial n | n < 0  = (*-*) Nothing
 -- 24
 -- Just (120,[0,1,1,2,6,24])
 ```
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.4.1.1/docs/DeepControl-Monad-Trans.html)
+
+#### Level-3, Level-4 and Level-5
+
+Work well likewise.
+
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -217,7 +255,7 @@ import DeepControl.Monad ((>-))
 import DeepControl.Monad.Morph ((|>|))
 import DeepControl.Monad.Trans (liftTT2, transfold2, untransfold2)
 import DeepControl.Monad.Trans.Identity
-import DeepControl.Monad.Trans.Reader
+import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
 
 import System.Timeout (timeout)
@@ -262,9 +300,9 @@ import DeepControl.Applicative ((|$>))
 import DeepControl.Monad (Monad2)
 import DeepControl.Monad.Morph ((|>|))
 import DeepControl.Monad.Trans (liftT, (|*|), (|-*|), (|*-|))
-import DeepControl.Monad.Trans.Writer
 import DeepControl.Monad.Trans.Identity
-import DeepControl.Monad.Trans.State
+import DeepControl.Monad.Trans.Writer
+import Control.Monad.State
 
 tick :: State Int ()
 tick = modify (+1)
@@ -301,14 +339,14 @@ program = replicateM_ 4 $ do
 
 Work well likewise.
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.4.1.1/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Monad-Morph.html)
 
 Here is a monad-morph example, a level-2 monad-morph.
 
 ```haskell
 import DeepControl.Monad.Morph
-import DeepControl.Monad.Trans.State
 import DeepControl.Monad.Trans.Writer
+import Control.Trans.State
 
 -- i.e. :: StateT Int Identity ()
 tick    :: State Int ()
@@ -344,6 +382,4 @@ program = replicateM_ 4 $ do
 -- [1,2,3,4]
 ```
 
-### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.1.1/docs/DeepControl-Commutative.html)
-
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.4.1.1/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Arrow.html)

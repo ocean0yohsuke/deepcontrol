@@ -58,13 +58,13 @@ Please follow the message direction.
 ### Fetch from [Hackage](https://hackage.haskell.org/package/deepcontrol)
 
 Ok, I(you) got `deepcontrol` isn't in Stackage. Then let's fetch `deepcontrol` from Hackage.
-Add `deepcontrol-0.4.1.1` to your extra-deps field in stack.yaml too:
+Add `deepcontrol-0.4.2.0` to your extra-deps field in stack.yaml too:
 
 stack.yaml:
 
     extra-deps:
     ...
-    - deepcontrol-0.4.1.1
+    - deepcontrol-0.4.2.0
 
 And type as below:
 
@@ -73,7 +73,7 @@ And type as below:
 Stack must fetch and install `deepcontrol` automatically.
 
     ../yourproject$ stack build
-    deepcontrol-0.4.1.1: configure
+    deepcontrol-0.4.2.0: configure
     ...
 
 Now start ghci and see if it works well.

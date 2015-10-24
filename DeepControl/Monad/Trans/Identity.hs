@@ -1,14 +1,14 @@
 {-|
 Module      : DeepControl.Monad.Trans.Identity
-Description : ---
+Description : Enables dealing with deep monads in monad-transformer
 Copyright   : (c) 2007 Magnus Therning,
-              (C) 2015 KONISHI Yohsuke
+              (c) 2015 KONISHI Yohsuke
 License     : BSD-style (see the file LICENSE)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-
+This module enables dealing with deep monads in monad-transformer. 
 -}
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}

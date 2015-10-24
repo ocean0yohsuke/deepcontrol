@@ -3,9 +3,8 @@ import Test.HUnit
 import DeepControl.Applicative
 import DeepControl.Monad
 import DeepControl.Monad.Trans.Writer
-import DeepControl.Monad.Trans.Reader
 import DeepControl.Monad.Trans.Identity
-
+import Control.Monad.Reader
 import Safe
 
 main :: IO ()

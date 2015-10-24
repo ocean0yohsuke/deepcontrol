@@ -7,8 +7,8 @@ import DeepControl.Monad.Morph
 import DeepControl.Monad.Trans
 import DeepControl.Monad.Trans.Except
 import DeepControl.Monad.Trans.Identity
-import DeepControl.Monad.Trans.State
 
+import Control.Monad.State
 import Control.Monad.Trans.Maybe
 
 -----------------------------------------------
