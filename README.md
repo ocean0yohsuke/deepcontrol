@@ -310,7 +310,7 @@ tick = modify (+1)
 tock                         ::                   StateT Int IO ()
 tock = do
     (|*|) tick               :: (Monad      m) => StateT Int m  ()  -- (|*|) is the level-1 trans-cover function, analogous for (*:)
-    liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- liftT is the level-1 trans-lift function, alias to lift
+    liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- 'liftT' is the level-1 trans-lift function, alias to 'lift'
 
 -- λ> runStateT tock 0
 -- Tock!
