@@ -13,7 +13,6 @@ This module extended Except monad of mtl(monad-transformer-library).
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}
 module DeepControl.Monad.Trans.Except (
-    -- * Level-1
     module Control.Monad.Except,
 
     -- * Level-2
