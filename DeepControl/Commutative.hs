@@ -13,26 +13,23 @@ This module is made of @'Data.Traversable'@, distilling most function names poll
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 module DeepControl.Commutative (
-    -- * Level-1
-    -- ** The 'Commutative' class
+    -- * The 'Commutative' class
     Commutative(..),
-    -- ** Utility functions
+    -- * Utility functions
     cmap,
     cfor,
-    -- ** General definitions for superclass methods
+    -- * General definitions for superclass methods
     fmapDefault,
     foldMapDefault,
 
-    -- * Level-2
+    -- * Utility functions 2
+    -- ** Level-2
     sink2, float2,
-
-    -- * Level-3
+    -- ** Level-3
     sink3, float3,
-
-    -- * Level-4
+    -- ** Level-4
     sink4, float4,
-
-    -- * Level-5
+    -- ** Level-5
     sink5, float5,
 
     ) where 
