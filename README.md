@@ -59,6 +59,18 @@ bra-ket notation:
     > filter (even <$|(&&)|*> (10 >) <$|(&&)|*> (5 <)) [1..100]
     [6,8]
 
+cover notation:
+
+    > :t (*:)
+    (*:) :: Applicative f => a -> f a
+
+    > (*:) 1 :: Maybe Int
+    Just 1
+    > (*:) 1 :: [Int]
+    [1]
+    > (*:) 1 :: Either () Int
+    Right 1
+
 braket-cover notation:
 
     > [(1+)] |* 2
@@ -111,7 +123,24 @@ bra-ket notation:
     > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right Nothing, Left ()]
     Left ()
 
+cover notation:
+
+    > :t (**:)
+    (**:) :: (Applicative f1, Applicative f2) => a -> f1 (f2 a)
+    > :t (-*)
+    (-*) :: (Applicative f1, Applicative f2) => f1 a -> f1 (f2 a)
+
+    > (**:) 1 :: Maybe [Int]
+    Just [1]
+    > (-*) (Just 1) :: Maybe [Int]
+    Just [1]
+    > (*:) [1] :: Maybe [Int]
+    Just [1]
+
 braket-cover notation:
+
+    > :t (|**)
+    (|**) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> a -> f1 (f2 b)
 
     > [Just 1] <<$|(+)|** 2
     [Just 3]
@@ -121,6 +150,11 @@ braket-cover notation:
     [Just 3]
     > 1 **|[Just (+), Just (-), Just (*), Nothing]|** 2
     [Just 3,Just (-1),Just 2,Nothing]
+
+    > :t (|-*)
+    (|-*) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 a -> f1 (f2 b)
+    > :t (|*-)
+    (|*-) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f2 a -> f1 (f2 b)
 
     > [Just 1] <<$|(+)|-* [2]
     [Just 3]
@@ -147,7 +181,12 @@ Work well likewise.
 
 ### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Commutative.html)
 
+    Prelude> :m DeepControl.Commutative
+
 [], Maybe, Either, Except and Writer monads are all commutative each other.
+
+    > :t commute
+    commute :: (Applicative f, Commutative c) => c (f a) -> f (c a)
 
     > commute $ Just [1]
     [Just 1]
@@ -166,7 +205,7 @@ So these monads can be deepened to Monad2, Monad3, Monad4 and Monad5.
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
 
-### Level-0
+#### Level-0
 
 ```haskell
 import DeepControl.Monad ((>-))
@@ -185,7 +224,7 @@ plus x y =
 
 ```haskell
 import DeepControl.Applicative ((**:))
-import DeepControl.Monad
+import DeepControl.Monad ((>>==))
 
 listlist :: [[String]]             -- List-List monad
 listlist = [["a","b"]] >>== \x ->  -- (>>==) is the level-2 bind function, analogous for (>>=)
@@ -197,14 +236,14 @@ listlist = [["a","b"]] >>== \x ->  -- (>>==) is the level-2 bind function, analo
 ```
 
 ```haskell
-import DeepControl.Applicative
-import DeepControl.Monad
-import DeepControl.Monad.Trans.Writer
+import DeepControl.Applicative ((|$>), (-*), (*:), (**:))
+import DeepControl.Monad ((>>), (>>==), (->~))
+import Control.Monad.Writer
 
 factorial :: Int ->
-             Maybe (Writer [Int] Int)               -- Maybe-Writer Monad
+             Maybe (Writer [Int] Int)               -- Maybe-Writer monad
 factorial n | n < 0  = (-*) Nothing
-            | n == 0 = (*:) $ tell [0] >> return 1
+            | n == 0 = (*:) $ tell [0] >> (*:) 1
             | n > 0  = factorial (n-1) >>== \v ->   
                        tell [v] ->~                 -- (->~) is a level-2 bind-cover function, analogous for (>>)
                        (**:) (n * v)
@@ -216,14 +255,14 @@ factorial n | n < 0  = (-*) Nothing
 #### Level-3
 
 ```haskell
-import DeepControl.Applicative
-import DeepControl.Monad
-import DeepControl.Monad.Trans.Writer
+import DeepControl.Applicative ((|$>>), (*-*), (*:), (**:), (***:))
+import DeepControl.Monad ((>>), (>>>==), (>--~), (-->~))
+import Control.Monad.Writer
 
 factorial :: Int ->
-             IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer Monad
-factorial n | n < 0  = (*-*) Nothing
-            | n == 0 = (**:) $ tell [0] >> return 1
+             IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer monad
+factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cover function
+            | n == 0 = (**:) $ tell [0] >> (*:) 1
             | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous for (>>=)
                        print v >--~                   -- (>--~) is a level-3 bind-cover function, analogous for (>>)
                        tell [v] -->~                  -- (-->~) is a level-3 bind-cover function too, analogous for (>>)
@@ -237,7 +276,7 @@ factorial n | n < 0  = (*-*) Nothing
 -- 24
 -- Just (120,[0,1,1,2,6,24])
 ```
-#### Level-3, Level-4 and Level-5
+#### Level-4 and Level-5
 
 Work well likewise.
 
@@ -262,7 +301,7 @@ import System.Timeout (timeout)
 type TimeLimit = Int
 
 ackermannTimeLimit :: TimeLimit -> Int -> Int -> 
-                      IO (Maybe Int)                     -- IO-Maybe Monad
+                      IO (Maybe Int)                     -- IO-Maybe monad
 ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
   where
     ackermannIO :: Int -> Int -> IO Int
@@ -300,7 +339,7 @@ import DeepControl.Monad (Monad2)
 import DeepControl.Monad.Morph ((|>|))
 import DeepControl.Monad.Trans (liftT, (|*|), (|-*|), (|*-|))
 import DeepControl.Monad.Trans.Identity
-import DeepControl.Monad.Trans.Writer
+import Control.Monad.Writer
 import Control.Monad.State
 
 tick :: State Int ()
@@ -324,7 +363,7 @@ program ::               StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-
 program = replicateM_ 4 $ do
     ((|-*|).liftT) |>| tock                                           -- (|-*|) is a level-2 trans-cover function, analogous for (-*)
         :: (Monad2 m) => StateT Int (IdentityT2 IO m             ) ()
-    ((|*-|).liftT) |>| save                                           -- (|*-|) is a level-2 trans-cover function, analogous for (*-)
+    ((|*-|).liftT) |>| save                                           -- (|*-|) is a level-2 trans-cover function, analogous for (*:)
         :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 
 -- λ> execWriter |$> runIdentityT2 (runStateT program 0)
@@ -344,8 +383,8 @@ Here is a monad-morph example, a level-2 monad-morph.
 
 ```haskell
 import DeepControl.Monad.Morph
-import DeepControl.Monad.Trans.Writer
-import Control.Trans.State
+import Control.Monad.Writer
+import Control.Monad.State
 
 -- i.e. :: StateT Int Identity ()
 tick    :: State Int ()

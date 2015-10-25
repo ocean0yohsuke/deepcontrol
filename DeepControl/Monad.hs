@@ -20,6 +20,8 @@ Note:
       Theoretically it might be impossible though.
 
 -}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 module DeepControl.Monad (
     module Control.Monad,
 
@@ -90,7 +92,12 @@ module DeepControl.Monad (
     ) where 
 
 import DeepControl.Applicative
+
 import Control.Monad
+import Control.Monad.Writer (Writer, WriterT(..), runWriter)
+import Control.Monad.Except (Except, ExceptT(..), runExcept)
+import Data.Functor.Identity
+import Data.Monoid (Monoid, (<>))
 
 -------------------------------------------------------------------------------
 -- Level-0 functions
@@ -186,23 +193,33 @@ m >-~ k = (-*) m >>~ k
 m ->~ k = (*:) m >>~ k
 
 instance Monad2 Maybe where
-    mmv >>== f = 
-        mmv >>= \mv ->
+    mv >>== f = 
+        mv >>= \mv ->
         case mv of 
             Nothing -> (*:) Nothing
             Just a  -> f a
 
 instance Monad2 [] where
-    mmv >>== f = 
-        mmv >>= \xs -> 
+    mv >>== f = 
+        mv >>= \xs -> 
         foldr (\x acc -> f x <$|(++)|*> acc) ((*:) []) xs
 
 instance Monad2 (Either e) where
-    mmv >>== f = 
-        mmv >>= \mv -> 
+    mv >>== f = 
+        mv >>= \mv -> 
         case mv of
             Left l  -> (*:) (Left l)
             Right r -> f r
+
+instance Monad2 (Except e) where
+    m >>== f = (ExceptT . Identity |$>) $ (runExcept |$> m) >>== runExcept |$>> f
+
+instance (Monoid w) => Monad2 (Writer w) where
+    mv >>== f = 
+        mv >>= \x -> runWriterT x >- \(Identity (a, w)) ->
+        f a <$| (\x -> runWriterT x >- \(Identity (b, w')) ->
+                       WriterT $ Identity (b, w <> w'))
+
 
 -------------------------------------------------------------------------------
 -- Level-3 functions
@@ -280,23 +297,33 @@ m >->~ k = (-*) m >>>~ k
 m >>-~ k = (--*) m >>>~ k
 
 instance Monad3 Maybe where
-    mmmv >>>== f = 
-        mmmv >>== \mv ->
+    mv >>>== f = 
+        mv >>== \mv ->
         case mv of 
             Nothing -> (**:) Nothing
             Just a  -> f a
 
 instance Monad3 [] where
-    mmmv >>>== f = 
-        mmmv >>== \xs -> 
+    mv >>>== f = 
+        mv >>== \xs -> 
         foldr (\x acc -> f x <<$|(++)|*>> acc) ((**:) []) xs 
 
 instance Monad3 (Either e) where
-    mmmv >>>== f = 
-        mmmv >>== \mv -> 
+    mv >>>== f = 
+        mv >>== \mv -> 
         case mv of
             Left l  -> (**:) (Left l)
             Right r -> f r
+
+instance Monad3 (Except e) where
+    m >>>== f = (ExceptT . Identity |$>>) $ (runExcept |$>> m) >>>== runExcept |$>>> f
+
+instance (Monoid w) => Monad3 (Writer w) where
+    mv >>>== f = 
+        mv >>== \x -> runWriterT x >- \(Identity (a, w)) ->
+        f a <<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
+                        WriterT $ Identity (b, w <> w'))
+
 
 -------------------------------------------------------------------------------
 -- Level-4 functions
@@ -381,23 +408,33 @@ m >>->~ k = (--*) m >>>>~ k
 m >>>-~ k = (---*) m >>>>~ k
 
 instance Monad4 Maybe where
-    mmmmv >>>>== f = 
-        mmmmv >>>== \mv ->
+    mv >>>>== f = 
+        mv >>>== \mv ->
         case mv of 
             Nothing -> (***:) Nothing
             Just a  -> f a
 
 instance Monad4 [] where
-    mmmmv >>>>== f = 
-        mmmmv >>>== \xs -> 
+    mv >>>>== f = 
+        mv >>>== \xs -> 
         foldr (\x acc -> f x <<<$|(++)|*>>> acc) ((***:) []) xs 
 
 instance Monad4 (Either e) where
-    mmmmv >>>>== f = 
-        mmmmv >>>== \mv -> 
+    mv >>>>== f = 
+        mv >>>== \mv -> 
         case mv of
             Left l  -> (***:) (Left l)
             Right r -> f r
+
+instance Monad4 (Except e) where
+    m >>>>== f = (ExceptT . Identity |$>>>) $ (runExcept |$>>> m) >>>>== runExcept |$>>>> f
+
+instance (Monoid w) => Monad4 (Writer w) where
+    mv >>>>== f = 
+        mv >>>== \x -> runWriterT x >- \(Identity (a, w)) ->
+        f a <<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
+                         WriterT $ Identity (b, w <> w'))
+
 
 -------------------------------------------------------------------------------
 -- Level-5 functions
@@ -498,7 +535,6 @@ m ->---~ k = (*-***) m >>>>>~ k
 (>----~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >----~ k = (-****) m >>>>>~ k 
 
-
 (--->>~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m4 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m --->>~ k = (***:) m >>>>>~ k 
 (-->->~) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m3 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
@@ -553,21 +589,31 @@ m >>>->~ k = (---*) m >>>>>~ k
 m >>>>-~ k = (----*) m >>>>>~ k 
 
 instance Monad5 Maybe where
-    mmmmmv >>>>>== f = 
-        mmmmmv >>>>== \mv ->
+    mv >>>>>== f = 
+        mv >>>>== \mv ->
         case mv of 
             Nothing -> (****:) Nothing
             Just a  -> f a
 
 instance Monad5 [] where
-    mmmmmv >>>>>== f = 
-        mmmmmv >>>>== \xs -> 
+    mv >>>>>== f = 
+        mv >>>>== \xs -> 
         foldr (\x acc -> f x <<<<$|(++)|*>>>> acc) ((****:) []) xs 
 
 instance Monad5 (Either e) where
-    mmmmmv >>>>>== f = 
-        mmmmmv >>>>== \mv -> 
+    mv >>>>>== f = 
+        mv >>>>== \mv -> 
         case mv of
             Left l  -> (****:) (Left l)
             Right r -> f r
+
+instance Monad5 (Except e) where
+    m >>>>>== f = (ExceptT . Identity |$>>>>) $ (runExcept |$>>>> m) >>>>>== runExcept |$>>>>> f
+
+instance (Monoid w) => Monad5 (Writer w) where
+    mv >>>>>== f = 
+        mv >>>>== \x -> runWriterT x >- \(Identity (a, w)) ->
+        f a <<<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
+                          WriterT $ Identity (b, w <> w'))
+
 

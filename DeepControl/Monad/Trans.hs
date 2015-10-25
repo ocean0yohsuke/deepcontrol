@@ -601,8 +601,8 @@ Here is a monad transformer example showing how to use trans-cover functions.
 >import DeepControl.Monad (Monad2)
 >import DeepControl.Monad.Morph ((|>|))
 >import DeepControl.Monad.Trans (liftT, (|*|), (|-*|), (|*-|))
->import DeepControl.Monad.Trans.Writer
 >import DeepControl.Monad.Trans.Identity
+>import Control.Monad.Writer
 >import Control.Monad.State
 >
 >tick :: State Int ()
@@ -626,7 +626,7 @@ Here is a monad transformer example showing how to use trans-cover functions.
 >program = replicateM_ 4 $ do
 >    ((|-*|).liftT) |>| tock                                            -- (|-*|) is a level-2 trans-cover function, analogous for (-*)
 >        :: (Monad2 m) => StateT Int (IdentityT2 IO m             ) ()
->    ((|*-|).liftT) |>| save                                            -- (|*-|) is a level-2 trans-cover function, analogous for (*-)
+>    ((|*-|).liftT) |>| save                                            -- (|*-|) is a level-2 trans-cover function, analogous for (*:)
 >        :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 >
 >-- λ> execWriter |$> runIdentityT2 (runStateT program 0)

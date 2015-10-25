@@ -39,13 +39,9 @@ import DeepControl.Monad
 import DeepControl.Monad.Signatures
 
 import Control.Monad.Except
-import Control.Monad.Identity
 
 ----------------------------------------------------------------
 -- Level-2
-
-instance Monad2 (Except e) where
-    m >>== f = (ExceptT . Identity |$>) $ (runExcept |$> m) >>== runExcept |$>> f
 
 throwError2 :: (MonadError e m2, Applicative m1) => e -> m1 (m2 a)
 throwError2 = (*:) |$> throwError
@@ -64,9 +60,6 @@ catchError2 = liftCatch catchError
 ----------------------------------------------------------------
 -- Level-3
 
-instance Monad3 (Except e) where
-    m >>>== f = (ExceptT . Identity |$>>) $ (runExcept |$>> m) >>>== runExcept |$>>> f
-
 throwError3 :: (MonadError e m3, Applicative m1, Applicative m2) => e -> m1 (m2 (m3 a))
 throwError3 = (**:) |$> throwError
 
@@ -84,9 +77,6 @@ catchError3 = liftCatch catchError
 ----------------------------------------------------------------
 -- Level-4
 
-instance Monad4 (Except e) where
-    m >>>>== f = (ExceptT . Identity |$>>>) $ (runExcept |$>>> m) >>>>== runExcept |$>>>> f
-
 throwError4 :: (MonadError e m4, Applicative m1, Applicative m2, Applicative m3) => e -> m1 (m2 (m3 (m4 a)))
 throwError4 = (***:) |$> throwError
 
@@ -103,9 +93,6 @@ catchError4 = liftCatch catchError
 
 ----------------------------------------------------------------
 -- Level-5
-
-instance Monad5 (Except e) where
-    m >>>>>== f = (ExceptT . Identity |$>>>>) $ (runExcept |$>>>> m) >>>>>== runExcept |$>>>>> f
 
 throwError5 :: (MonadError e m5, Applicative m1, Applicative m2, Applicative m3, Applicative m4) => e -> m1 (m2 (m3 (m4 (m5 a))))
 throwError5 = (****:) |$> throwError
