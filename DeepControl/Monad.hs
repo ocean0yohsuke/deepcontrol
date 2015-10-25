@@ -36,9 +36,9 @@ module DeepControl.Monad (
     Monad2(..),
     -- ** sequence
     (>>~), 
-    -- ** bind-cover
+    -- ** cover-bind
     (>-==), (->==), 
-    -- ** sequence-cover
+    -- ** cover-sequence
     (>-~), (->~),
     -- ** composite 
     (>==>), 
@@ -48,9 +48,9 @@ module DeepControl.Monad (
     Monad3(..),  
     -- ** sequence
     (>>>~),
-    -- ** bind-cover 
+    -- ** cover-bind 
     (>>-==), (->>==), (>->==) ,(>--==),(->-==), (-->==), 
-    -- ** sequence-cover 
+    -- ** cover-sequence 
     (>--~), (->-~), (-->~), (>>-~), (->>~), (>->~), 
     -- ** composite 
     (>===>),
@@ -60,11 +60,11 @@ module DeepControl.Monad (
     Monad4(..), 
     -- ** sequence
     (>>>>~), 
-    -- ** bind-cover 
+    -- ** cover-bind 
     (--->==), (-->-==), (->--==), (>---==),
     (-->>==), (->->==), (>-->==), (>->-==), (->>-==), (>>--==),
     (->>>==), (>->>==), (>>->==), (>>>-==),
-    -- ** sequence-cover 
+    -- ** cover-sequence 
     (--->~), (-->-~), (->--~), (>---~),
     (-->>~), (->->~), (>-->~), (>->-~), (->>-~), (>>--~),
     (->>>~), (>->>~), (>>->~), (>>>-~),
@@ -76,12 +76,12 @@ module DeepControl.Monad (
     Monad5(..), 
     -- ** sequence
     (>>>>>~), 
-    -- ** bind-cover 
+    -- ** cover-bind 
     (---->==), (--->-==), (-->--==), (->---==), (>----==),
     (--->>==), (-->->==), (->-->==), (>--->==), (>-->-==), (->->-==), (-->>-==), (->>--==), (>->--==), (>>---==),
     (-->>>==), (->->>==), (>-->>==), (>->->==), (->>->==), (>>-->==), (>>->-==), (>->>-==), (->>>-==), (>>>--==),
     (->>>>==), (>->>>==), (>>->>==), (>>>->==), (>>>>-==),
-    -- ** sequence-cover 
+    -- ** cover-sequence 
     (---->~), (--->-~), (-->--~), (->---~), (>----~),
     (--->>~), (-->->~), (->-->~), (>--->~), (>-->-~), (->->-~), (-->>-~), (->>--~), (>->--~), (>>---~),
     (-->>>~), (->->>~), (>-->>~), (>->->~), (->>->~), (>>-->~), (>>->-~), (>->>-~), (->>>-~), (>>>--~),
@@ -103,7 +103,7 @@ import Data.Monoid (Monoid, (<>))
 -- Level-0 functions
 
 infixl 1  -<, >-
--- | Anologous for @'$'@; (-<) is left associative.
+-- | Anologous for @'$'@, but (-<) is left associative.
 --
 -- >>> Just -< 3
 -- Just 3
@@ -128,7 +128,7 @@ infixl 1  -<, >-
 (>-) = flip (-<)
 
 infixr 1  <-<, >->
--- | Anologous for @'.'@. 
+-- | Anologous for @'.'@, but the infix preference is low.
 --
 -- >>> ((3+) <-< (2*) <-< (1+)) -< 1
 -- 7
@@ -152,7 +152,7 @@ infixr 1  >>==, >>~
 infixr 1  ->==, >-==
 infixr 1  ->~, >-~
 
--- | The 'Monad2' class defines the Monad function for level-2 types @m1 (m2 a)@; such as [[a]], Maybe [a], Either () (Maybe a), a -> [b], IO [a], etc.
+-- | The 'Monad2' class defines the bind function for level-2 types @m1 (m2 a)@ such as [[a]], Maybe [a], Either () (Maybe a), a -> [b], IO [a], etc.
 -- 
 -- >>> :{
 --  -- List-List monad
@@ -176,21 +176,37 @@ infixr 1  ->~, >-~
 -- [Just 35.0,Nothing]
 -- 
 class (Monad m2) => Monad2 m2 where
-  -- | The level-2 bind function.
+  -- | The level-2 bind function, analogous for @'>>='@.
   (>>==) :: (Monad m1) => m1 (m2 a) -> (a -> m1 (m2 b)) -> m1 (m2 b)
 
+-- | The level-2 composite function, analogous for @'>=>'@.
 (>==>) :: (Monad m1, Monad2 m2) => (a -> m1 (m2 b)) -> (b -> m1 (m2 c)) -> a -> m1 (m2 c)
 f >==> g = \x -> f x >>== g
+-- | The level-2 sequence function, analogous for @'>>'@.
+--
+--   Definition: @ m >>~ f = m >>== \\_ -> f @
 (>>~) :: (Monad m1, Monad2 m2) => m1 (m2 a) -> m1 (m2 b) -> m1 (m2 b)
-m >>~ k = m >>== \_ -> k
+m >>~ f = m >>== \_ -> f
+-- | A level-2 cover-bind function, analogous for @'>>='@.
+--
+--   Definition: @ m >-== f = (-*) m >>== f @
 (>-==) :: (Monad m1, Monad2 m2) => m1 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
-m >-== k = (-*) m >>== k
+m >-== f = (-*) m >>== f
+-- | A level-2 cover-bind function, analogous for @'>>='@.
+--
+--   Definition: @ m ->== f = (*:) m >>== f @
 (->==) :: (Monad m1, Monad2 m2) => m2 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
-m ->== k = (*:) m >>== k
+m ->== f = (*:) m >>== f
+-- | A level-2 cover-sequence function, analogous for @'>>'@.
+--
+--   Definition: @ m >-~ f = (-*) m >>~ f @
 (>-~) :: (Monad m1, Monad2 m2) => m1 a -> m1 (m2 b) -> m1 (m2 b)
-m >-~ k = (-*) m >>~ k
+m >-~ f = (-*) m >>~ f
+-- | A level-2 cover-sequence function, analogous for @'>>'@.
+--
+--   Definition: @ m ->~ f = (*:) m >>~ f @
 (->~) :: (Monad m1, Monad2 m2) => m2 a -> m1 (m2 b) -> m1 (m2 b)
-m ->~ k = (*:) m >>~ k
+m ->~ f = (*:) m >>~ f
 
 instance Monad2 Maybe where
     mv >>== f = 
@@ -229,11 +245,11 @@ infixr 1  >>>==, >>>~
 infixr 1  >--==, ->-==, -->==, >>-==, >->==, ->>==
 infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 
--- | The 'Monad3' class defines the Monad function for level-3 types @m1 (m2 (m3 a)@.
+-- | The 'Monad3' class defines the bind function for level-3 types @m1 (m2 (m3 a)@.
 -- 
 -- >>> :{
 --  -- IO-List-List monad
---  (*:) [["a","b"]] >>>== \x ->   -- (>>>==) is the level-3 bind-cover function, analogous for (>>=)
+--  (*:) [["a","b"]] >>>== \x ->   -- (>>>==) is the level-3 bind function, analogous for (>>=)
 --  (*:) [[0],[1,2]] >>>== \y ->
 --  (-**) (print (x,y)) >>>~       -- (>>>~) is the level-3 sequence function, analogous for (>>)
 --  (***:) (x ++ show y)
@@ -246,13 +262,13 @@ infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 -- ("b",2)
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 --
--- This messy code above can be neatly rewritten to the code below.
+-- This messy code above can be neatly rewritten to the code below with cover functions.
 --
 -- >>> :{
 --  -- IO-List-List monad
---  [["a","b"]] ->>== \x ->   -- (->>==) is a level-3 bind-cover function, analogous for (>>=)
+--  [["a","b"]] ->>== \x ->   -- (->>==) is a level-3 cover-bind function, analogous for (>>=)
 --  [[0],[1,2]] ->>== \y ->
---  print (x,y) >--~          -- (>--~) is a level-3 bind-cover function, analogous for (>>)
+--  print (x,y) >--~          -- (>--~) is a level-3 cover-sequence function, analogous for (>>)
 --  (***:) (x ++ show y)
 -- :}
 -- ("a",0)
@@ -264,6 +280,7 @@ infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 --
 class (Monad2 m3) => Monad3 m3 where
+  -- | The level-3 bind function, analogous for @'>>='@.
   (>>>==) :: (Monad m1, Monad2 m2) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 
 (>===>) :: (Monad m1, Monad2 m2, Monad3 m3) => (a -> m1 (m2 (m3 b))) -> (b -> m1 (m2 (m3 c))) -> a -> m1 (m2 (m3 c))
@@ -323,7 +340,6 @@ instance (Monoid w) => Monad3 (Writer w) where
         mv >>== \x -> runWriterT x >- \(Identity (a, w)) ->
         f a <<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
                         WriterT $ Identity (b, w <> w'))
-
 
 -------------------------------------------------------------------------------
 -- Level-4 functions
@@ -434,7 +450,6 @@ instance (Monoid w) => Monad4 (Writer w) where
         mv >>>== \x -> runWriterT x >- \(Identity (a, w)) ->
         f a <<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
                          WriterT $ Identity (b, w <> w'))
-
 
 -------------------------------------------------------------------------------
 -- Level-5 functions
@@ -615,5 +630,4 @@ instance (Monoid w) => Monad5 (Writer w) where
         mv >>>>== \x -> runWriterT x >- \(Identity (a, w)) ->
         f a <<<<$| (\x -> runWriterT x >- \(Identity (b, w')) ->
                           WriterT $ Identity (b, w <> w'))
-
 

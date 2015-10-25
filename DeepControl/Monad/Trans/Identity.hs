@@ -8,7 +8,7 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module enables dealing with deep monads in monad-transformer. 
+This module enables you to deal with deep monads in any monad-transformer.
 -}
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}

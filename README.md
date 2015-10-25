@@ -4,7 +4,7 @@ A Haskell library that enables more deeper level style programming than the usua
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -71,7 +71,7 @@ cover notation:
     > (*:) 1 :: Either () Int
     Right 1
 
-braket-cover notation:
+cover-braket notation:
 
     > :t (|*)
     (|*) :: Applicative f => f (a -> b) -> a -> f b
@@ -140,7 +140,7 @@ cover notation:
     > (*:) [1] :: Maybe [Int]
     Just [1]
 
-braket-cover notation:
+cover-braket notation:
 
     > :t (|**)
     (|**) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> a -> f1 (f2 b)
@@ -182,7 +182,7 @@ braket-cover notation:
 
 Work well likewise.
 
-### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Commutative.html)
+### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Commutative.html)
 
     Prelude> :m DeepControl.Commutative
 
@@ -203,7 +203,7 @@ Work well likewise.
 
 So these monads can be deepened to Monad2, Monad3, Monad4 and Monad5.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -248,7 +248,7 @@ factorial :: Int ->
 factorial n | n < 0  = (-*) Nothing
             | n == 0 = (*:) $ tell [0] >> (*:) 1
             | n > 0  = factorial (n-1) >>== \v ->   
-                       tell [v] ->~                 -- (->~) is a level-2 bind-cover function, analogous for (>>)
+                       tell [v] ->~                 -- (->~) is a level-2 cover-bind function, analogous for (>>)
                        (**:) (n * v)
 
 -- > runWriter |$> factorial 5
@@ -267,8 +267,8 @@ factorial :: Int ->
 factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cover function
             | n == 0 = (**:) $ tell [0] >> (*:) 1
             | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous for (>>=)
-                       print v >--~                   -- (>--~) is a level-3 bind-cover function, analogous for (>>)
-                       tell [v] -->~                  -- (-->~) is a level-3 bind-cover function too, analogous for (>>)
+                       print v >--~                   -- (>--~) is a level-3 cover-bind function, analogous for (>>)
+                       tell [v] -->~                  -- (-->~) is a level-3 cover-bind function too, analogous for (>>)
                        (***:) (n * v)
 
 -- > runWriter |$>> factorial 5
@@ -283,7 +283,7 @@ factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cove
 
 Work well likewise.
 
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -380,7 +380,7 @@ program = replicateM_ 4 $ do
 
 Work well likewise.
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Monad-Morph.html)
 
 Here is a monad-morph example, a level-2 monad-morph.
 
@@ -427,4 +427,4 @@ program = replicateM_ 4 $ do
 
 Work well likewise.
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.4.2.0/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Arrow.html)
