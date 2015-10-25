@@ -4,7 +4,7 @@ A Haskell library that enables more deeper level style programming than the usua
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -182,7 +182,7 @@ cover-braket notation:
 
 Work well likewise.
 
-### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Commutative.html)
+### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Commutative.html)
 
     Prelude> :m DeepControl.Commutative
 
@@ -203,7 +203,7 @@ Work well likewise.
 
 So these monads can be deepened freely.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -283,7 +283,7 @@ factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cove
 
 Work well likewise.
 
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -381,7 +381,7 @@ program = replicateM_ 4 $ do
 
 Work well likewise.
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Monad-Morph.html)
 
 Here is a monad-morph example, a level-2 monad-morph.
 
@@ -428,4 +428,4 @@ program = replicateM_ 4 $ do
 
 Work well likewise.
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.4.2.1/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Arrow.html)

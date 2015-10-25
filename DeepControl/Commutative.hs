@@ -47,7 +47,7 @@ import Control.Monad.Writer (Writer, WriterT(..), runWriter)
 -- | [], Maybe, Either, Except and Writer are all commutative each other.
 --   So these monads can be deepened to Monad2, Monad3, Monad4 and Monad5.
 -- 
-class (Applicative c) => Commutative c where
+class (Functor c) => Commutative c where
   -- | This method is equivalent for @'Data.Traversable.sequenceA'@ except the name.
   --   The only difference is the name "commute", that is to say from which no action kind of concepts smell.
   --
@@ -88,10 +88,8 @@ instance Commutative (Either a) where
 instance Commutative (Except e) where
     commute x = ExceptT . Identity |$> commute (runExcept x)
 
-{-
 instance Commutative (Const m) where
     commute (Const m) = (*:) $ Const m
--}
 
 {-
 instance Commutative ((->) r) where
