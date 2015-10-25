@@ -95,10 +95,6 @@ import DeepControl.Applicative
 import DeepControl.Commutative
 
 import Control.Monad
-import Control.Monad.Writer (Writer, WriterT(..), runWriter)
-import Control.Monad.Except (Except, ExceptT(..), runExcept)
-import Data.Functor.Identity
-import Data.Monoid (Monoid, (<>))
 
 -------------------------------------------------------------------------------
 -- Level-0 functions
