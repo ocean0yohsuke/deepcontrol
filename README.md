@@ -73,6 +73,9 @@ cover notation:
 
 braket-cover notation:
 
+    > :t (|*)
+    (|*) :: Applicative f => f (a -> b) -> a -> f b
+
     > [(1+)] |* 2
     [3]
     > [1] <$|(+)|* 2
