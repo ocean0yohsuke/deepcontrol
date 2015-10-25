@@ -248,7 +248,7 @@ factorial :: Int ->
 factorial n | n < 0  = (-*) Nothing
             | n == 0 = (*:) $ tell [0] >> (*:) 1
             | n > 0  = factorial (n-1) >>== \v ->   
-                       tell [v] ->~                 -- (->~) is a level-2 cover-bind function, analogous for (>>)
+                       tell [v] ->~                 -- (->~) is a level-2 cover-sequence function, analogous for (>>)
                        (**:) (n * v)
 
 -- > runWriter |$> factorial 5
@@ -267,8 +267,8 @@ factorial :: Int ->
 factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cover function
             | n == 0 = (**:) $ tell [0] >> (*:) 1
             | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous for (>>=)
-                       print v >--~                   -- (>--~) is a level-3 cover-bind function, analogous for (>>)
-                       tell [v] -->~                  -- (-->~) is a level-3 cover-bind function too, analogous for (>>)
+                       print v >--~                   -- (>--~) is a level-3 cover-sequence function, analogous for (>>)
+                       tell [v] -->~                  -- (-->~) is a level-3 cover-sequence function too, analogous for (>>)
                        (***:) (n * v)
 
 -- > runWriter |$>> factorial 5
