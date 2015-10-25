@@ -126,7 +126,7 @@ instance Applicative Id where
 -- >>> sink2 $ Right (Just [1])
 -- Just [Right 1]
 --
-sink2 :: (Commutative m1, Commutative m2, Applicative m3) => 
+sink2 :: (Commutative m1, Applicative m2, Applicative m3) => 
          m1 (m2 (m3 a)) -> m2 (m3 (m1 a))
 sink2 = (commute|$>) . commute
 
@@ -147,7 +147,7 @@ float2 = commute . (commute|$>)
 -- >>> sink3 $ Right [Just [1]]
 -- [Just [Right 1]]
 --
-sink3 :: (Commutative m1, Commutative m2, Commutative m3, Applicative m4) => 
+sink3 :: (Commutative m1, Applicative m2, Applicative m3, Applicative m4) => 
          m1 (m2 (m3 (m4 a))) -> m2 (m3 (m4 (m1 a)))
 sink3 = (sink2|$>) . commute
 
@@ -163,7 +163,7 @@ float3 = commute . (float2|$>)
 ------------------------------------------------------------------------------
 -- Level-4
 
-sink4 :: (Commutative m1, Commutative m2, Commutative m3, Commutative m4, Applicative m5) => 
+sink4 :: (Commutative m1, Applicative m2, Applicative m3, Applicative m4, Applicative m5) => 
          m1 (m2 (m3 (m4 (m5 a)))) -> m2 (m3 (m4 (m5 (m1 a))))
 sink4 = (sink3|$>) . commute
 
@@ -174,7 +174,7 @@ float4 = commute . (float3|$>)
 ------------------------------------------------------------------------------
 -- Level-5
 
-sink5 :: (Commutative m1, Commutative m2, Commutative m3, Commutative m4, Commutative m5, Applicative m6) => 
+sink5 :: (Commutative m1, Applicative m2, Applicative m3, Applicative m4, Applicative m5, Applicative m6) => 
          m1 (m2 (m3 (m4 (m5 (m6 a))))) -> m2 (m3 (m4 (m5 (m6 (m1 a)))))
 sink5 = (sink4|$>) . commute
 

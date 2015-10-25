@@ -197,31 +197,28 @@ instance MonadTrans_ (E.ExceptT e) where
 -- Level-2
 
 class MonadTrans2 t where
-    liftT2 :: (Monad m1, Monad2 m2) => m1 (m2 a) -> t m1 m2 a
+    liftT2 :: (Monad m1, Monad m2) => m1 (m2 a) -> t m1 m2 a
 
 liftTT2
-  :: (Monad m1, Monad (t2 m1 m2), Monad2 m2,
+  :: (Monad m1, Monad (t2 m1 m2), Monad m2,
       MonadTrans t1, MonadTrans2 t2) =>
      m1 (m2 a) -> t1 (t2 m1 m2) a
 liftTT2 = liftT.liftT2
 
 liftTTT2
-  :: (Monad m1, Monad (t1 (t2 m1 m2)), Monad (t2 m1 m2), 
-      Monad2 m2, 
+  :: (Monad m1, Monad (t1 (t2 m1 m2)), Monad (t2 m1 m2), Monad m2, 
       MonadTrans t, MonadTrans t1, MonadTrans2 t2) =>
      m1 (m2 a) -> t (t1 (t2 m1 m2)) a
 liftTTT2 = liftT.liftT.liftT2
 
 liftTTTT2
-  :: (Monad m1, Monad (t1 (t1' (t2 m1 m2))), Monad (t1' (t2 m1 m2)), Monad (t2 m1 m2), 
-      Monad2 m2, 
+  :: (Monad m1, Monad (t1 (t1' (t2 m1 m2))), Monad (t1' (t2 m1 m2)), Monad (t2 m1 m2), Monad m2, 
       MonadTrans t, MonadTrans t1, MonadTrans t1', MonadTrans2 t2) =>
      m1 (m2 a) -> t (t1 (t1' (t2 m1 m2))) a
 liftTTTT2 = liftT.liftT.liftT.liftT2
 
 liftTTTTT2
-  :: (Monad m1, Monad (t1 (t1' (t1'' (t2 m1 m2)))), Monad (t1' (t1'' (t2 m1 m2))), Monad (t1'' (t2 m1 m2)), Monad (t2 m1 m2), 
-      Monad2 m2, 
+  :: (Monad m1, Monad (t1 (t1' (t1'' (t2 m1 m2)))), Monad (t1' (t1'' (t2 m1 m2))), Monad (t1'' (t2 m1 m2)), Monad (t2 m1 m2), Monad m2, 
       MonadTrans t, MonadTrans t1, MonadTrans t1', MonadTrans t1'', MonadTrans2 t2) =>
      m1 (m2 a) -> t (t1 (t1' (t1'' (t2 m1 m2)))) a
 liftTTTTT2 = liftT.liftT.liftT.liftT.liftT2
@@ -248,10 +245,10 @@ class (MonadTrans (T_ t), MonadTrans2 t) => MonadTransFold2 t where
 infixl 3  |-*|, |*-|, |**|
 
 class (MonadTransCover (Trans2Down t2)) => MonadTransCover2 t2 where
-    (|-*|) :: (Monad m1, Monad2 m2) => (Trans2Down t2) m1 a -> t2 m1 m2 a
-    (|*-|) :: (Monad m1, Monad2 m2) => (Trans2Down t2) m2 a -> t2 m1 m2 a
+    (|-*|) :: (Monad m1, Monad m2) => (Trans2Down t2) m1 a -> t2 m1 m2 a
+    (|*-|) :: (Monad m1, Monad m2) => (Trans2Down t2) m2 a -> t2 m1 m2 a
 
-(|**|) :: (Monad m1, Monad2 m2, MonadTransCover2 t2) => 
+(|**|) :: (Monad m1, Monad m2, MonadTransCover2 t2) => 
           (M_ t2) a -> t2 m1 m2 a
 (|**|) = (|*-|) . (|*|) 
 
@@ -268,30 +265,28 @@ untrans2 = untrans . untrans
 -- Level-3
 
 class MonadTrans3 t where
-    liftT3 :: (Monad m1, Monad2 m2, Monad3 m3) => m1 (m2 (m3 a)) -> t m1 m2 m3 a
+    liftT3 :: (Monad m1, Monad m2, Monad m3) => m1 (m2 (m3 a)) -> t m1 m2 m3 a
 
 liftTT3
-  :: (Monad m1, Monad (t3 m1 m2 m3), Monad2 m2, Monad3 m3,
+  :: (Monad m1, Monad (t3 m1 m2 m3), Monad m2, Monad m3,
       MonadTrans t, MonadTrans3 t3) =>
      m1 (m2 (m3 a)) -> t (t3 m1 m2 m3) a
 liftTT3 = liftT.liftT3
 
 liftTTT3
-  :: (Monad m1, Monad (t1 (t3 m1 m2 m3)), Monad (t3 m1 m2 m3), Monad2 m2, Monad3 m3, 
+  :: (Monad m1, Monad (t1 (t3 m1 m2 m3)), Monad (t3 m1 m2 m3), Monad m2, Monad m3, 
       MonadTrans t, MonadTrans t1, MonadTrans3 t3) =>
      m1 (m2 (m3 a)) -> t (t1 (t3 m1 m2 m3)) a
 liftTTT3 = liftT.liftT.liftT3
 
 liftTTTT3
-  :: (Monad m1, Monad (t1 (t1' (t3 m1 m2 m3))), Monad (t1' (t3 m1 m2 m3)), Monad (t3 m1 m2 m3),
-      Monad2 m2, Monad3 m3, 
+  :: (Monad m1, Monad (t1 (t1' (t3 m1 m2 m3))), Monad (t1' (t3 m1 m2 m3)), Monad (t3 m1 m2 m3), Monad m2, Monad m3, 
       MonadTrans t, MonadTrans t1, MonadTrans t1', MonadTrans3 t3) =>
      m1 (m2 (m3 a)) -> t (t1 (t1' (t3 m1 m2 m3))) a
 liftTTTT3 = liftT.liftT.liftT.liftT3
 
 liftTTTTT3
-  :: (Monad m1, Monad (t1 (t1' (t1'' (t3 m1 m2 m3)))), Monad (t1' (t1'' (t3 m1 m2 m3))), Monad (t1'' (t3 m1 m2 m3)), Monad (t3 m1 m2 m3), 
-      Monad2 m2, Monad3 m3,
+  :: (Monad m1, Monad (t1 (t1' (t1'' (t3 m1 m2 m3)))), Monad (t1' (t1'' (t3 m1 m2 m3))), Monad (t1'' (t3 m1 m2 m3)), Monad (t3 m1 m2 m3), Monad m2, Monad m3,
       MonadTrans t, MonadTrans t1, MonadTrans t1', MonadTrans t1'', MonadTrans3 t3) =>
      m1 (m2 (m3 a)) -> t (t1 (t1' (t1'' (t3 m1 m2 m3)))) a
 liftTTTTT3 = liftT.liftT.liftT.liftT.liftT3
@@ -319,22 +314,22 @@ class (MonadTrans (T__ t), MonadTrans3 t) => MonadTransFold3 t where
 
 infixl 3  |--*|, |-*-|, |*--|
 class (MonadTransCover2 (Trans3Down t3)) => MonadTransCover3 t3 where
-    (|--*|) :: (Monad m1, Monad2 m2, Monad3 m3) => (Trans3Down t3) m1 m2 a -> t3 m1 m2 m3 a
-    (|-*-|) :: (Monad m1, Monad2 m2, Monad3 m3) => (Trans3Down t3) m1 m3 a -> t3 m1 m2 m3 a
-    (|*--|) :: (Monad m1, Monad2 m2, Monad3 m3) => (Trans3Down t3) m2 m3 a -> t3 m1 m2 m3 a
+    (|--*|) :: (Monad m1, Monad m2, Monad m3) => (Trans3Down t3) m1 m2 a -> t3 m1 m2 m3 a
+    (|-*-|) :: (Monad m1, Monad m2, Monad m3) => (Trans3Down t3) m1 m3 a -> t3 m1 m2 m3 a
+    (|*--|) :: (Monad m1, Monad m2, Monad m3) => (Trans3Down t3) m2 m3 a -> t3 m1 m2 m3 a
 
 infixl 3  |***|
-(|***|) :: (Monad m1, Monad2 m2, Monad3 m3, MonadTransCover3 t3) => 
+(|***|) :: (Monad m1, Monad m2, Monad m3, MonadTransCover3 t3) => 
            (M__ t3) a -> t3 m1 m2 m3 a
 infixl 3  |-**|, |*-*|, |**-|
 (|***|) = (|--*|) . (|**|)
-(|-**|) :: (Monad m1, Monad2 m2, Monad3 m3, MonadTransCover3 t3) => 
+(|-**|) :: (Monad m1, Monad m2, Monad m3, MonadTransCover3 t3) => 
            (T__ t3) m1 a -> t3 m1 m2 m3 a
 (|-**|) = (|--*|) . (|-*|)
-(|*-*|) :: (Monad m1, Monad2 m2, Monad3 m3, MonadTransCover3 t3) => 
+(|*-*|) :: (Monad m1, Monad m2, Monad m3, MonadTransCover3 t3) => 
            (T__ t3) m2 a -> t3 m1 m2 m3 a
 (|*-*|) = (|--*|) . (|*-|)
-(|**-|) :: (Monad m1, Monad2 m2, Monad3 m3, MonadTransCover3 t3) => 
+(|**-|) :: (Monad m1, Monad m2, Monad m3, MonadTransCover3 t3) => 
            (T__ t3) m3 a -> t3 m1 m2 m3 a
 (|**-|) = (|-*-|) . (|*-|)
 
@@ -351,7 +346,7 @@ untrans3 = untrans2 . untrans
 -- Level-4
 
 class  MonadTrans4 t  where
-    liftT4 :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => m1 (m2 (m3 (m4 a))) -> t m1 m2 m3 m4 a
+    liftT4 :: (Monad m1, Monad m2, Monad m3, Monad m4) => m1 (m2 (m3 (m4 a))) -> t m1 m2 m3 m4 a
 
 class (MonadTrans3 (Trans4Down t4), MonadTrans4 t4) => MonadTrans4Down t4 where
     type Trans4Down t4 :: (* -> *) -> (* -> *) -> (* -> *) -> * -> *
@@ -378,45 +373,45 @@ class (MonadTrans (T___ t), MonadTrans4 t) => MonadTransFold4 t where
 
 infixl 3  |---*|, |--*-|, |-*--|, |*---|
 class (MonadTransCover3 (Trans4Down t4)) => MonadTransCover4 t4 where
-    (|---*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => (Trans4Down t4) m1 m2 m3 a -> t4 m1 m2 m3 m4 a
-    (|--*-|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => (Trans4Down t4) m1 m2 m4 a -> t4 m1 m2 m3 m4 a
-    (|-*--|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => (Trans4Down t4) m1 m3 m4 a -> t4 m1 m2 m3 m4 a
-    (|*---|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => (Trans4Down t4) m2 m3 m4 a -> t4 m1 m2 m3 m4 a
+    (|---*|) :: (Monad m1, Monad m2, Monad m3, Monad m4) => (Trans4Down t4) m1 m2 m3 a -> t4 m1 m2 m3 m4 a
+    (|--*-|) :: (Monad m1, Monad m2, Monad m3, Monad m4) => (Trans4Down t4) m1 m2 m4 a -> t4 m1 m2 m3 m4 a
+    (|-*--|) :: (Monad m1, Monad m2, Monad m3, Monad m4) => (Trans4Down t4) m1 m3 m4 a -> t4 m1 m2 m3 m4 a
+    (|*---|) :: (Monad m1, Monad m2, Monad m3, Monad m4) => (Trans4Down t4) m2 m3 m4 a -> t4 m1 m2 m3 m4 a
 
 infixl 3  |****|
-(|****|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|****|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (M___ t4) a -> t4 m1 m2 m3 m4 a
 (|****|) = (|---*|) . (|***|)
 infixl 3  |--**|, |-*-*|, |-**-|, |*-*-|, |**--|, |*--*|
-(|--**|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|--**|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T2__ t4) m1 m2 a -> t4 m1 m2 m3 m4 a
 (|--**|) = (|---*|) . (|--*|)
-(|-*-*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|-*-*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T2__ t4) m1 m3 a -> t4 m1 m2 m3 m4 a
 (|-*-*|) = (|---*|) . (|-*-|)
-(|-**-|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|-**-|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T2__ t4) m1 m4 a -> t4 m1 m2 m3 m4 a
 (|-**-|) = (|--*-|) . (|-*-|)
-(|*-*-|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|*-*-|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T2__ t4) m2 m4 a -> t4 m1 m2 m3 m4 a
 (|*-*-|) = (|--*-|) . (|*--|)
-(|**--|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|**--|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T2__ t4) m3 m4 a -> t4 m1 m2 m3 m4 a
 (|**--|) = (|-*--|) . (|*--|)
-(|*--*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|*--*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T2__ t4) m2 m3 a -> t4 m1 m2 m3 m4 a
 (|*--*|) = (|---*|) . (|*--|)
 infixl 3  |-***|, |*-**|, |**-*|, |***-| 
-(|-***|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|-***|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T___ t4) m1 a -> t4 m1 m2 m3 m4 a
 (|-***|) = (|---*|) . (|-**|)
-(|*-**|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|*-**|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T___ t4) m2 a -> t4 m1 m2 m3 m4 a
 (|*-**|) = (|---*|) . (|*-*|)
-(|**-*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|**-*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T___ t4) m3 a -> t4 m1 m2 m3 m4 a
 (|**-*|) = (|---*|) . (|**-|)
-(|***-|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, MonadTransCover4 t4) => 
+(|***-|) :: (Monad m1, Monad m2, Monad m3, Monad m4, MonadTransCover4 t4) => 
             (T___ t4) m4 a -> t4 m1 m2 m3 m4 a
 (|***-|) = (|--*-|) . (|**-|)
 
@@ -433,7 +428,7 @@ untrans4 = untrans3 . untrans
 -- Level-5
 
 class MonadTrans5 t where
-    liftT5 :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => m1 (m2 (m3 (m4 (m5 a)))) -> t m1 m2 m3 m4 m5 a
+    liftT5 :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => m1 (m2 (m3 (m4 (m5 a)))) -> t m1 m2 m3 m4 m5 a
 
 class (MonadTrans4 (Trans5Down t5), MonadTrans5 t5) => MonadTrans5Down t5 where
     type Trans5Down t5 :: (* -> *) -> (* -> *) -> (* -> *) -> (* -> *) -> * -> *
@@ -463,74 +458,74 @@ class (MonadTrans (T____ t), MonadTrans5 t) => MonadTransFold5 t where
 
 infixl 3  |----*|, |---*-|, |--*--|, |-*---|, |*----|
 class (MonadTransCover4 (Trans5Down t5)) => MonadTransCover5 t5 where
-    (|----*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => (Trans5Down t5) m1 m2 m3 m4 a -> t5 m1 m2 m3 m4 m5 a
-    (|---*-|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => (Trans5Down t5) m1 m2 m3 m5 a -> t5 m1 m2 m3 m4 m5 a
-    (|--*--|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => (Trans5Down t5) m1 m2 m4 m5 a -> t5 m1 m2 m3 m4 m5 a
-    (|-*---|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => (Trans5Down t5) m1 m3 m4 m5 a -> t5 m1 m2 m3 m4 m5 a
-    (|*----|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => (Trans5Down t5) m2 m3 m4 m5 a -> t5 m1 m2 m3 m4 m5 a
+    (|----*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => (Trans5Down t5) m1 m2 m3 m4 a -> t5 m1 m2 m3 m4 m5 a
+    (|---*-|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => (Trans5Down t5) m1 m2 m3 m5 a -> t5 m1 m2 m3 m4 m5 a
+    (|--*--|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => (Trans5Down t5) m1 m2 m4 m5 a -> t5 m1 m2 m3 m4 m5 a
+    (|-*---|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => (Trans5Down t5) m1 m3 m4 m5 a -> t5 m1 m2 m3 m4 m5 a
+    (|*----|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => (Trans5Down t5) m2 m3 m4 m5 a -> t5 m1 m2 m3 m4 m5 a
 
 infixl 3  |*****|
-(|*****|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|*****|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (M____ t5) a -> t5 m1 m2 m3 m4 m5 a
 (|*****|) = (|----*|) . (|****|)
 infixl 3  |---**|, |--*-*|, |-*--*|, |*---*|, |*--*-|, |*-*--|, |**---|
-(|---**|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|---**|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T3___ t5) m1 m2 m3 a -> t5 m1 m2 m3 m4 m5 a
 (|---**|) = (|----*|) . (|---*|)
-(|--*-*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|--*-*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T3___ t5) m1 m2 m4 a -> t5 m1 m2 m3 m4 m5 a
 (|--*-*|) = (|----*|) . (|--*-|)
-(|-*--*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|-*--*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T3___ t5) m1 m3 m4 a -> t5 m1 m2 m3 m4 m5 a
 (|-*--*|) = (|----*|) . (|-*--|)
-(|*---*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|*---*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T3___ t5) m2 m3 m4 a -> t5 m1 m2 m3 m4 m5 a
 (|*---*|) = (|----*|) . (|*---|)
-(|*--*-|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|*--*-|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T3___ t5) m2 m3 m5 a -> t5 m1 m2 m3 m4 m5 a
 (|*--*-|) = (|---*-|) . (|*---|)
-(|*-*--|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|*-*--|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T3___ t5) m2 m4 m5 a -> t5 m1 m2 m3 m4 m5 a
 (|*-*--|) = (|--*--|) . (|*---|)
-(|**---|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|**---|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T3___ t5) m3 m4 m5 a -> t5 m1 m2 m3 m4 m5 a
 (|**---|) = (|-*---|) . (|*---|)
 infixl 3  |--***|, |-*-**|, |*--**|, |*-*-*|, |**--*|, |**-*-|, |***--|
-(|--***|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|--***|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T2___ t5) m1 m2 a -> t5 m1 m2 m3 m4 m5 a
 (|--***|) = (|----*|) . (|--**|)
-(|-*-**|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|-*-**|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T2___ t5) m1 m3 a -> t5 m1 m2 m3 m4 m5 a
 (|-*-**|) = (|----*|) . (|-*-*|)
-(|*--**|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|*--**|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T2___ t5) m2 m3 a -> t5 m1 m2 m3 m4 m5 a
 (|*--**|) = (|----*|) . (|*--*|)
-(|*-*-*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|*-*-*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T2___ t5) m2 m4 a -> t5 m1 m2 m3 m4 m5 a
 (|*-*-*|) = (|----*|) . (|*-*-|)
-(|**--*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|**--*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T2___ t5) m3 m4 a -> t5 m1 m2 m3 m4 m5 a
 (|**--*|) = (|----*|) . (|**--|)
-(|**-*-|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|**-*-|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T2___ t5) m3 m5 a -> t5 m1 m2 m3 m4 m5 a
 (|**-*-|) = (|---*-|) . (|**--|)
-(|***--|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|***--|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T2___ t5) m4 m5 a -> t5 m1 m2 m3 m4 m5 a
 (|***--|) = (|--*--|) . (|**--|)
 infixl 3  |-****|, |*-***|, |**-**|, |***-*|, |****-|
-(|-****|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|-****|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T____ t5) m1 a -> t5 m1 m2 m3 m4 m5 a
 (|-****|) = (|----*|) . (|-***|)
-(|*-***|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|*-***|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T____ t5) m2 a -> t5 m1 m2 m3 m4 m5 a
 (|*-***|) = (|----*|) . (|*-**|)
-(|**-**|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|**-**|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T____ t5) m3 a -> t5 m1 m2 m3 m4 m5 a
 (|**-**|) = (|----*|) . (|**-*|)
-(|***-*|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|***-*|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T____ t5) m4 a -> t5 m1 m2 m3 m4 m5 a
 (|***-*|) = (|----*|) . (|***-|)
-(|****-|) :: (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5, MonadTransCover5 t5) => 
+(|****-|) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5, MonadTransCover5 t5) => 
             (T____ t5) m5 a -> t5 m1 m2 m3 m4 m5 a
 (|****-|) = (|---*-|) . (|***-|)
 
@@ -598,7 +593,8 @@ Here is a monad transformer example how to implement Ackermann function, improve
 Here is a monad transformer example showing how to use trans-cover functions.
 
 >import DeepControl.Applicative ((|$>))
->import DeepControl.Monad (Monad2)
+>import DeepControl.Commutative (Commutative)
+>import DeepControl.Monad (Monad)
 >import DeepControl.Monad.Morph ((|>|))
 >import DeepControl.Monad.Trans (liftT, (|*|), (|-*|), (|*-|))
 >import DeepControl.Monad.Trans.Identity
@@ -622,12 +618,12 @@ Here is a monad transformer example showing how to use trans-cover functions.
 >    n <- get
 >    liftT $ tell [n]
 >
->program ::               StateT Int (IdentityT2 IO (Writer [Int])) ()  -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
+>program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
 >program = replicateM_ 4 $ do
->    ((|-*|).liftT) |>| tock                                            -- (|-*|) is a level-2 trans-cover function, analogous for (-*)
->        :: (Monad2 m) => StateT Int (IdentityT2 IO m             ) ()
->    ((|*-|).liftT) |>| save                                            -- (|*-|) is a level-2 trans-cover function, analogous for (*:)
->        :: (Monad  m) => StateT Int (IdentityT2 m  (Writer [Int])) ()
+>    ((|-*|).liftT) |>| tock                                                         -- (|-*|) is a level-2 trans-cover function, analogous for (-*)
+>        :: (Monad m, Commutative m) => StateT Int (IdentityT2 IO m             ) ()
+>    ((|*-|).liftT) |>| save                                                         -- (|*-|) is a level-2 trans-cover function, analogous for (*:)
+>        :: (Monad m               ) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 >
 >-- λ> execWriter |$> runIdentityT2 (runStateT program 0)
 >-- Tock!

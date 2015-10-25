@@ -351,8 +351,8 @@ x -*| f = (-*) x <<*| f
 -- [Just 3]
 -- >>> [1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
 -- [Just 3,Just (-1),Just 2,Nothing]
--- >>> [0,1] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
--- [Just 2,Just 3,Just (-2),Just (-1),Just 0,Just 2,Nothing,Nothing]
+-- >>> [1,2] -*|[Just (+), Just (-), Just (*), Nothing]|*- Just 2
+-- [Just 3,Just (-1),Just 2,Nothing,Just 4,Just 0,Just 4,Nothing]
 --
 -- >>> print 1 -*|return [\_ _ -> 3]|-* print 2
 -- 1

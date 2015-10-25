@@ -73,20 +73,20 @@ instance (Commutative f1, Commutative f2) => Commutative (IdentityT2 f1 f2) wher
 instance (Applicative m1, Applicative m2) => Applicative (IdentityT2 m1 m2) where
     pure x = IdentityT2 $ (**:) x
     (<*>) = lift2IdentityT2 (|*>>)
-instance (Monad m1, Monad2 m2) => Monad (IdentityT2 m1 m2) where
+instance (Monad m1, Monad m2, Commutative m2) => Monad (IdentityT2 m1 m2) where
     return = IdentityT2 . (**:)
     m >>= f = IdentityT2 $ runIdentityT2 m >>== (f >-> runIdentityT2)
 
 instance (Alternative m1, Alternative m2) => Alternative (IdentityT2 m1 m2) where
     empty = IdentityT2 empty
     (<|>) = lift2IdentityT2 (<|>)
-instance (MonadPlus m1, Alternative m2, Monad2 m2) => MonadPlus (IdentityT2 m1 m2) where
+instance (MonadPlus m1, Alternative m2, Monad m2, Commutative m2) => MonadPlus (IdentityT2 m1 m2) where
     mzero = IdentityT2 mzero
     mplus = lift2IdentityT2 mplus
 
 instance MonadTrans2 IdentityT2 where
     liftT2 = IdentityT2
-instance (MonadIO m1, Monad m1, Monad2 m2) => MonadIO (IdentityT2 m1 m2) where
+instance (MonadIO m1, Monad m1, Monad m2, Commutative m2) => MonadIO (IdentityT2 m1 m2) where
     liftIO = liftT2 . (-*) . liftIO
 
 lift2IdentityT2 ::
@@ -125,20 +125,20 @@ instance (Commutative f1, Commutative f2, Commutative f3) => Commutative (Identi
 instance (Applicative m1, Applicative m2, Applicative m3) => Applicative (IdentityT3 m1 m2 m3) where
     pure x = IdentityT3 $ (***:) x
     (<*>) = lift3IdentityT3 (|*>>>)
-instance (Monad m1, Monad2 m2, Monad3 m3) => Monad (IdentityT3 m1 m2 m3) where
+instance (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => Monad (IdentityT3 m1 m2 m3) where
     return = IdentityT3 . (***:)
     m >>= f = IdentityT3 $ runIdentityT3 m >>>== (f >-> runIdentityT3)
 
 instance (Alternative m1, Alternative m2, Alternative m3) => Alternative (IdentityT3 m1 m2 m3) where
     empty = IdentityT3 empty
     (<|>) = lift3IdentityT3 (<|>)
-instance (MonadPlus m1, Alternative m2, Monad2 m2, Alternative m3, Monad3 m3) => MonadPlus (IdentityT3 m1 m2 m3) where
+instance (MonadPlus m1, Alternative m2, Monad m2, Commutative m2, Alternative m3, Monad m3, Commutative m3) => MonadPlus (IdentityT3 m1 m2 m3) where
     mzero = IdentityT3 mzero
     mplus = lift3IdentityT3 mplus
 
 instance MonadTrans3 IdentityT3 where
     liftT3 = IdentityT3
-instance (MonadIO m1, Monad m1, Monad2 m2, Monad3 m3) => MonadIO (IdentityT3 m1 m2 m3) where
+instance (MonadIO m1, Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => MonadIO (IdentityT3 m1 m2 m3) where
     liftIO = liftT3 . (-**) . liftIO
 
 lift3IdentityT3 ::
@@ -178,20 +178,20 @@ instance (Commutative f1, Commutative f2, Commutative f3, Commutative f4) => Com
 instance (Applicative m1, Applicative m2, Applicative m3, Applicative m4) => Applicative (IdentityT4 m1 m2 m3 m4) where
     pure x = IdentityT4 $ (****:) x
     (<*>) = lift4IdentityT4 (|*>>>>)
-instance (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => Monad (IdentityT4 m1 m2 m3 m4) where
+instance (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => Monad (IdentityT4 m1 m2 m3 m4) where
     return = IdentityT4 . (****:)
     m >>= f = IdentityT4 $ runIdentityT4 m >>>>== (f >-> runIdentityT4)
 
 instance (Alternative m1, Alternative m2, Alternative m3, Alternative m4) => Alternative (IdentityT4 m1 m2 m3 m4) where
     empty = IdentityT4 empty
     (<|>) = lift4IdentityT4 (<|>)
-instance (MonadPlus m1, Alternative m2, Monad2 m2, Alternative m3, Monad3 m3, Alternative m4, Monad4 m4) => MonadPlus (IdentityT4 m1 m2 m3 m4) where
+instance (MonadPlus m1, Alternative m2, Monad m2, Commutative m2, Alternative m3, Monad m3, Commutative m3, Alternative m4, Monad m4, Commutative m4) => MonadPlus (IdentityT4 m1 m2 m3 m4) where
     mzero = IdentityT4 mzero
     mplus = lift4IdentityT4 mplus
 
 instance MonadTrans4 IdentityT4 where
     liftT4 = IdentityT4
-instance (MonadIO m1, Monad m1, Monad2 m2, Monad3 m3, Monad4 m4) => MonadIO (IdentityT4 m1 m2 m3 m4) where
+instance (MonadIO m1, Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => MonadIO (IdentityT4 m1 m2 m3 m4) where
     liftIO = liftT4 . (-***) . liftIO
 
 lift4IdentityT4 ::
@@ -232,20 +232,20 @@ instance (Commutative f1, Commutative f2, Commutative f3, Commutative f4, Commut
 instance (Applicative m1, Applicative m2, Applicative m3, Applicative m4, Applicative m5) => Applicative (IdentityT5 m1 m2 m3 m4 m5) where
     pure x = IdentityT5 $ (*****:) x
     (<*>) = lift5IdentityT5 (|*>>>>>)
-instance (Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => Monad (IdentityT5 m1 m2 m3 m4 m5) where
+instance (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => Monad (IdentityT5 m1 m2 m3 m4 m5) where
     return = IdentityT5 . (*****:)
     m >>= f = IdentityT5 $ runIdentityT5 m >>>>>== (f >-> runIdentityT5)
 
 instance (Alternative m1, Alternative m2, Alternative m3, Alternative m4, Alternative m5) => Alternative (IdentityT5 m1 m2 m3 m4 m5) where
     empty = IdentityT5 empty
     (<|>) = lift5IdentityT5 (<|>)
-instance (MonadPlus m1, Alternative m2, Monad2 m2, Alternative m3, Monad3 m3, Alternative m4, Monad4 m4, Alternative m5, Monad5 m5) => MonadPlus (IdentityT5 m1 m2 m3 m4 m5) where
+instance (MonadPlus m1, Alternative m2, Monad m2, Commutative m2, Alternative m3, Monad m3, Commutative m3, Alternative m4, Monad m4, Commutative m4, Alternative m5, Monad m5, Commutative m5) => MonadPlus (IdentityT5 m1 m2 m3 m4 m5) where
     mzero = IdentityT5 mzero
     mplus = lift5IdentityT5 mplus
 
 instance MonadTrans5 IdentityT5 where
     liftT5 = IdentityT5
-instance (MonadIO m1, Monad m1, Monad2 m2, Monad3 m3, Monad4 m4, Monad5 m5) => MonadIO (IdentityT5 m1 m2 m3 m4 m5) where
+instance (MonadIO m1, Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => MonadIO (IdentityT5 m1 m2 m3 m4 m5) where
     liftIO = liftT5 . (-****) . liftIO
 
 lift5IdentityT5 ::
@@ -274,5 +274,4 @@ instance MonadTransCover5 IdentityT5 where
     (|--*--|) = IdentityT5 . (--*) . runIdentityT4
     (|-*---|) = IdentityT5 . (-*) . runIdentityT4
     (|*----|) = IdentityT5 . (*:) . runIdentityT4
-
 
