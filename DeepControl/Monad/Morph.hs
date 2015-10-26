@@ -44,6 +44,7 @@ module DeepControl.Monad.Morph (
     ) where 
 
 import DeepControl.Applicative
+import DeepControl.Commutative
 
 import Control.Monad.Morph
 
@@ -59,6 +60,8 @@ infixr 2  |<|
 -- | Equivalent to (|>|) with the arguments flipped.
 (|<|) :: (Monad m, MFunctor t) => t m b -> (forall a . m a -> n a) -> t n b
 (|<|) l r = hoist r l
+
+-- commuteT :: t1 (t2 m) a -> t2 (t1 m) a
 
 -------------------------------------------------------------------------------
 -- Level-2 functions

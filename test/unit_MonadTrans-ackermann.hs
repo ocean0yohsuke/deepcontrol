@@ -4,8 +4,8 @@ import DeepControl.Applicative
 import DeepControl.Commutative (commute)
 import DeepControl.Monad ((>-))
 import DeepControl.Monad.Morph ((|>|))
-import DeepControl.Monad.Trans (liftTT2, transfold2, untransfold2)
-import DeepControl.Monad.Trans.Identity
+import DeepControl.Monad.Trans (liftT, liftT2)
+import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..), transfold2, untransfold2)
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
 
@@ -26,7 +26,7 @@ ackermann :: Int -> Int ->
              ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann x y = do
     timelimit <- ask
-    liftTT2 $ ackermannTimeLimit timelimit x y           -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
+    liftT. liftT2 $ ackermannTimeLimit timelimit x y           -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
 
 calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
