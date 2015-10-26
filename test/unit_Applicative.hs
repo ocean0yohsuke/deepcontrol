@@ -98,11 +98,11 @@ tLevel1 = ("Level1" ~:) |$> [
 
         ]
     , TestList $ ("<$|, |*> and higher-order-function" ~:) |$> [ 
-          foldr (\n acc -> n <$|(+)|*> acc) ((*:) 0) [Just 1, Just 2,  Just 3] ~?= Just 6
-        , foldr (\n acc -> n <$|(+)|*> acc) ((*:) 0) [Just 1, Nothing, Just 3] ~?= Nothing
+          foldr (\n acc -> n <$|(+)|*> acc) ((.*) 0) [Just 1, Just 2,  Just 3] ~?= Just 6
+        , foldr (\n acc -> n <$|(+)|*> acc) ((.*) 0) [Just 1, Nothing, Just 3] ~?= Nothing
 
-        , foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Just 2,  Just 3] ~?= Just [1,2,3]
-        , foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Nothing, Just 3] ~?= Nothing
+        , foldr (\x acc -> x <$|(:)|*> acc) ((.*) []) [Just 1, Just 2,  Just 3] ~?= Just [1,2,3]
+        , foldr (\x acc -> x <$|(:)|*> acc) ((.*) []) [Just 1, Nothing, Just 3] ~?= Nothing
 
         , filter ((10 >) <$|(&&)|*> even)                  [1..100] ~?= [2,4,6,8]
         , filter ((10 >) <$|(&&)|*> even <$|(&&)|*> (5 <)) [1..100] ~?= [6,8]
@@ -141,9 +141,9 @@ tLevel2 = ("Level2" ~:) |$> [
         , [Just 1] <<$|(,)|*>> [Just 2]              ~?= [Just (1,2)]
         ]
     , TestList $ ("<<$|, |*>> and higher-order-function" ~:) |$> [ 
-          foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ((Right . Just) |$> [1,2,3])               ~?= (Right (Just 6) :: Either () (Maybe Int))
-        , foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) (Right |$> [Just 1,Nothing,Just 3])        ~?= (Right Nothing :: Either () (Maybe Int))
-        , foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) ([Right (Just 1), Right Nothing, Left ()]) ~?= (Left () :: Either () (Maybe Int))
+          foldr (\n acc -> n <<$|(+)|*>> acc) ((.**) 0) ((Right . Just) |$> [1,2,3])               ~?= (Right (Just 6) :: Either () (Maybe Int))
+        , foldr (\n acc -> n <<$|(+)|*>> acc) ((.**) 0) (Right |$> [Just 1,Nothing,Just 3])        ~?= (Right Nothing :: Either () (Maybe Int))
+        , foldr (\n acc -> n <<$|(+)|*>> acc) ((.**) 0) ([Right (Just 1), Right Nothing, Left ()]) ~?= (Left () :: Either () (Maybe Int))
         ]
     , TestList $ ("|**, |*-, |-*, **|, *-|, -*|" ~:) |$> [ 
           [Just 1] <<$|(+)|** 2          ~?= [Just 3]

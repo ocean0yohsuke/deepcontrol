@@ -149,7 +149,7 @@ Here is a monad-morph example, a level-2 monad-morph.
 >
 >tock                        ::                   StateT Int IO ()
 >tock = do
->    generalize |>| tick     :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous for (|$>) 
+>    generalize |>| tick     :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>) 
 >    lift $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
 >
 >-- λ> runStateT tock 0
@@ -166,7 +166,7 @@ Here is a monad-morph example, a level-2 monad-morph.
 >program = replicateM_ 4 $ do
 >    lift |>| tock
 >        :: (MonadTrans t) => StateT Int (t             IO) ()
->    generalize |>>| save                                         -- (|>>|) is the level-2 trans-map function, analogous for (|$>>)
+>    generalize |>>| save                                         -- (|>>|) is the level-2 trans-map function, analogous to (|$>>)
 >        :: (Monad      m) => StateT Int (WriterT [Int] m ) ()
 >
 >-- λ> execWriterT (runStateT program 0)

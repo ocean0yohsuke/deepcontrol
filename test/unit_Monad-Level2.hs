@@ -100,7 +100,7 @@ polandS "*" = do
 polandS "/" = do
     x <- popS
     y <- popS
-    liftT $ guard (x /= 0)
+    guard (x /= 0)
     pushS (y / x)
 polandS x = pushS (read x :: Double)
 
@@ -242,7 +242,7 @@ polandSI2 "/" = do
     x <- popSI2
     y <- popSI2
     liftIO $ putStr (show y ++" / "++ show x ++" = ")
-    liftT . liftT2 . (*:) $ guard (x /= 0)
+    guard (x /= 0)
     liftIO $ putStr (show (y / x) ++"\n")
     pushSI2 (y / x)
 polandSI2 x = pushSI2 (read x :: Double)
@@ -313,11 +313,11 @@ poland_calcSME xs = (cmap polandSME xs >> popSME) >- \x -> runStateT x []
 -- StateT-IdentityT-MaybeT-ExceptT-IO
 
 pushSIME :: a -> StateT [a] (IdentityT (MaybeT (ExceptT () IO))) a
-pushSIME x = liftT |>| pushSME x
+pushSIME x = IdentityT |>| pushSME x
 popSIME :: StateT [a] (IdentityT (MaybeT (ExceptT () IO))) a
-popSIME = liftT |>| popSME
+popSIME = IdentityT |>| popSME
 polandSIME :: String -> StateT [Double] (IdentityT (MaybeT (ExceptT () IO))) Double
-polandSIME x = liftT |>| polandSME x
+polandSIME x = IdentityT |>| polandSME x
 
 poland_calcSIME :: [String] -> IO (Either () (Maybe (Double, [Double])))
 poland_calcSIME xs = (cmap polandSIME xs >> popSIME) >- \x -> runStateT x []

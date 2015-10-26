@@ -1,17 +1,17 @@
 import Test.HUnit hiding (State)
 
-import DeepControl.Applicative ((|$>>), (*-*), (*:), (**:), (***:))
+import DeepControl.Applicative ((|$>>), (*-*), (.*), (.**), (.***))
 import DeepControl.Monad ((>>), (>>>==), (>--~), (-->~))
 import Control.Monad.Writer
 
 factorial :: Int ->
              IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer monad
 factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cover function
-            | n == 0 = (**:) $ tell [0] >> (*:) 1
+            | n == 0 = (.**) $ tell [0] >> (.*) 1
             | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous for (>>=)
                        print v >--~                   -- (>--~) is a level-3 bind-cover function, analogous for (>>)
                        tell [v] -->~                  -- (-->~) is a level-3 bind-cover function too, analogous for (>>)
-                       (***:) (n * v)
+                       (.***) (n * v)
 
 -- > runWriter |$>> factorial 5
 -- 1

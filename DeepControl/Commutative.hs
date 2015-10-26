@@ -75,10 +75,10 @@ instance Commutative Identity where
 
 instance Commutative Maybe where
     commute (Just fa) = Just |$> fa
-    commute Nothing   = (*:) Nothing
+    commute Nothing   = (.*) Nothing
 
 instance Commutative [] where
-    commute = foldr (\x acc -> x <$|(:)|*> acc) ((*:) [])
+    commute = foldr (\x acc -> x <$|(:)|*> acc) ((.*) [])
   
 instance (Monoid w) => Commutative (Writer w) where
     commute x = 
@@ -87,12 +87,12 @@ instance (Monoid w) => Commutative (Writer w) where
 
 instance Commutative (Either a) where
     commute (Right x) = Right |$> x
-    commute (Left x)  = (*:) $ Left x
+    commute (Left x)  = (.*) $ Left x
 instance Commutative (Except e) where
     commute x = ExceptT . Identity |$> commute (runExcept x)
 
 instance Commutative (Const m) where
-    commute (Const m) = (*:) $ Const m
+    commute (Const m) = (.*) $ Const m
 
 {-
 instance Commutative ((->) r) where

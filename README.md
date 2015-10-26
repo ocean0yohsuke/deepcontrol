@@ -49,9 +49,9 @@ bra-ket notation:
     > [0,1] <$|(+)|*> [2,3] <$|(+)|*> [4,5]
     [6,7,7,8,7,8,8,9]
 
-    > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Just 2,  Just 3]
+    > foldr (\x acc -> x <$|(:)|*> acc) ((.*) []) [Just 1, Just 2,  Just 3]
     Just [1,2,3]
-    > foldr (\x acc -> x <$|(:)|*> acc) ((*:) []) [Just 1, Nothing, Just 3]
+    > foldr (\x acc -> x <$|(:)|*> acc) ((.*) []) [Just 1, Nothing, Just 3]
     Nothing
 
     > filter (even <$|(&&)|*> (10 >)) [1..100]
@@ -61,14 +61,14 @@ bra-ket notation:
 
 cover notation:
 
-    > :t (*:)
-    (*:) :: Applicative f => a -> f a
+    > :t (.*)
+    (.*) :: Applicative f => a -> f a
 
-    > (*:) 1 :: Maybe Int
+    > (.*) 1 :: Maybe Int
     Just 1
-    > (*:) 1 :: [Int]
+    > (.*) 1 :: [Int]
     [1]
-    > (*:) 1 :: Either () Int
+    > (.*) 1 :: Either () Int
     Right 1
 
 cover-braket notation:
@@ -119,25 +119,25 @@ bra-ket notation:
     > [[1]] <<$|(+)|*>> [[2]] <<$|(-)|*>> [[3]]
     [[0]]
 
-    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right (Just 2), Right (Just 3)] :: Either () (Maybe Int)
+    > foldr (\n acc -> n <<$|(+)|*>> acc) ((.**) 0) [Right (Just 1), Right (Just 2), Right (Just 3)] :: Either () (Maybe Int)
     Right (Just 6)
-    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right Nothing, Right (Just 3)] :: Either () (Maybe Int)
+    > foldr (\n acc -> n <<$|(+)|*>> acc) ((.**) 0) [Right (Just 1), Right Nothing, Right (Just 3)] :: Either () (Maybe Int)
     Right Nothing
-    > foldr (\n acc -> n <<$|(+)|*>> acc) ((**:) 0) [Right (Just 1), Right Nothing, Left ()]
+    > foldr (\n acc -> n <<$|(+)|*>> acc) ((.**) 0) [Right (Just 1), Right Nothing, Left ()]
     Left ()
 
 cover notation:
 
-    > :t (**:)
-    (**:) :: (Applicative f1, Applicative f2) => a -> f1 (f2 a)
+    > :t (.**)
+    (.**) :: (Applicative f1, Applicative f2) => a -> f1 (f2 a)
     > :t (-*)
     (-*) :: (Applicative f1, Applicative f2) => f1 a -> f1 (f2 a)
 
-    > (**:) 1 :: Maybe [Int]
+    > (.**) 1 :: Maybe [Int]
     Just [1]
     > (-*) (Just 1) :: Maybe [Int]
     Just [1]
-    > (*:) [1] :: Maybe [Int]
+    > (.*) [1] :: Maybe [Int]
     Just [1]
 
 cover-braket notation:
@@ -226,30 +226,30 @@ plus x y =
 #### Level-2
 
 ```haskell
-import DeepControl.Applicative ((**:))
+import DeepControl.Applicative ((.**))
 import DeepControl.Monad ((>>==))
 
 listlist :: [[String]]             -- List-List monad
 listlist = [["a","b"]] >>== \x ->  -- (>>==) is the level-2 bind function, analogous to (>>=)
            [[0],[1,2]] >>== \y ->
-           (**:) $ x ++ show y
+           (.**) $ x ++ show y
 
 -- > listlist
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 ```
 
 ```haskell
-import DeepControl.Applicative ((|$>), (-*), (*:), (**:))
+import DeepControl.Applicative ((|$>), (-*), (.*), (.**))
 import DeepControl.Monad ((>>), (>>==), (->~))
 import Control.Monad.Writer
 
 factorial :: Int ->
              Maybe (Writer [Int] Int)               -- Maybe-Writer monad
 factorial n | n < 0  = (-*) Nothing
-            | n == 0 = (*:) $ tell [0] >> (*:) 1
+            | n == 0 = (.*) $ tell [0] >> (.*) 1
             | n > 0  = factorial (n-1) >>== \v ->   
                        tell [v] ->~                 -- (->~) is a level-2 cover-sequence function, analogous to (>>)
-                       (**:) (n * v)
+                       (.**) (n * v)
 
 -- > runWriter |$> factorial 5
 -- Just (120,[0,1,1,2,6,24])
@@ -258,18 +258,18 @@ factorial n | n < 0  = (-*) Nothing
 #### Level-3
 
 ```haskell
-import DeepControl.Applicative ((|$>>), (*-*), (*:), (**:), (***:))
+import DeepControl.Applicative ((|$>>), (*-*), (.*), (.**), (.***))
 import DeepControl.Monad ((>>), (>>>==), (>--~), (-->~))
 import Control.Monad.Writer
 
 factorial :: Int ->
              IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer monad
 factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cover function
-            | n == 0 = (**:) $ tell [0] >> (*:) 1
+            | n == 0 = (.**) $ tell [0] >> (.*) 1
             | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous to (>>=)
                        print v >--~                   -- (>--~) is a level-3 cover-sequence function, analogous to (>>)
                        tell [v] -->~                  -- (-->~) is a level-3 cover-sequence function too, analogous to (>>)
-                       (***:) (n * v)
+                       (.***) (n * v)
 
 -- > runWriter |$>> factorial 5
 -- 1
@@ -294,7 +294,7 @@ import DeepControl.Applicative
 import DeepControl.Commutative (commute)
 import DeepControl.Monad ((>-))
 import DeepControl.Monad.Morph ((|>|))
-import DeepControl.Monad.Trans (liftT, liftT2)
+import DeepControl.Monad.Trans ((|*|))
 import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..), transfold2, untransfold2)
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
@@ -304,19 +304,19 @@ import System.Timeout (timeout)
 type TimeLimit = Int
 
 ackermannTimeLimit :: TimeLimit -> Int -> Int -> 
-                      IO (Maybe Int)                     -- IO-Maybe Monad
+                      IO (Maybe Int)                      -- IO-Maybe Monad
 ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
   where
     ackermannIO :: Int -> Int -> IO Int
-    ackermannIO 0 n = (*:) $ n + 1
+    ackermannIO 0 n = (.*) $ n + 1
     ackermannIO m n | m > 0 && n == 0 = ackermannIO (m-1) 1
                     | m > 0 && n > 0  = ackermannIO m (n-1) >>= ackermannIO (m-1)
  
 ackermann :: Int -> Int -> 
-             ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
+             ReaderT TimeLimit (IdentityT2 IO Maybe) Int  -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann x y = do
     timelimit <- ask
-    liftT. liftT2 $ ackermannTimeLimit timelimit x y     -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
+    (|*|) . IdentityT2 $ ackermannTimeLimit timelimit x y -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
 
 calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
@@ -332,7 +332,6 @@ ackermann' x y = (runIdentityT . transfold2) |>| ackermann x y -- You can get us
 ackermann'' :: Int -> Int -> 
                ReaderT TimeLimit (IdentityT2 IO Maybe) Int      -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann'' x y = (untransfold2 . IdentityT) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
-
 ```
 
 Here is a monad transformer example showing how to use trans-cover functions.
@@ -342,8 +341,8 @@ import DeepControl.Applicative ((|$>))
 import DeepControl.Commutative (Commutative)
 import DeepControl.Monad (Monad)
 import DeepControl.Monad.Morph (generalize, (|>|))
-import DeepControl.Monad.Trans (liftT)
-import DeepControl.Monad.Trans.Identity (IdentityT2(..), (|-*|), (|*-|))
+import DeepControl.Monad.Trans ((|*|))
+import DeepControl.Monad.Trans.Identity (IdentityT(..), IdentityT2(..), (-*:), (*-:))
 import Control.Monad.Writer
 import Control.Monad.State
 
@@ -353,7 +352,7 @@ tick = modify (+1)
 tock                         ::                   StateT Int IO ()
 tock = do
     generalize |>| tick      :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>)
-    liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- 'liftT' is the level-1 trans-lift function, alias to 'lift'
+    (|*|) $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- (|*|) is the level-1 trans-lift function, alias to 'lift'
 
 -- λ> runStateT tock 0
 -- Tock!
@@ -362,13 +361,13 @@ tock = do
 save :: StateT Int (Writer [Int]) ()
 save = do
     n <- get
-    liftT $ tell [n]
+    (|*|) $ tell [n]
 
 program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
 program = replicateM_ 4 $ do
-    ((|-*|).liftT) |>| tock                                                         -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
+    ((-*:) . IdentityT) |>| tock                                                    -- (-*:) is a level-2 trans-cover function, analogous to (-*)
         :: (Monad m, Commutative m) => StateT Int (IdentityT2 IO m             ) ()
-    ((|*-|).liftT) |>| save                                                         -- (|*-|) is a level-2 trans-cover function, analogous to (*:)
+    ((*-:) . IdentityT) |>| save                                                    -- (*-:) is a level-2 trans-cover function, analogous to (.*)
         :: (Monad m               ) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 
 -- λ> execWriter |$> runIdentityT2 (runStateT program 0)

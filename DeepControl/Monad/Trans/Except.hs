@@ -15,6 +15,9 @@ This module extended Except monad of mtl(monad-transformer-library).
 module DeepControl.Monad.Trans.Except (
     module Control.Monad.Except,
 
+    -- * Useful function
+    --except,
+
     -- * Level-2
     throwError2,
     catchError2,
@@ -39,12 +42,19 @@ import DeepControl.Monad
 import DeepControl.Monad.Signatures
 
 import Control.Monad.Except
+import Data.Functor.Identity
+
+----------------------------------------------------------------
+-- 
+
+--except :: Either e a -> Except e a
+--except = ExceptT . Identity
 
 ----------------------------------------------------------------
 -- Level-2
 
 throwError2 :: (MonadError e m2, Applicative m1) => e -> m1 (m2 a)
-throwError2 = (*:) |$> throwError
+throwError2 = (.*) |$> throwError
 
 catchError2 :: (MonadError e m2, Commutative m1, Applicative m1, Commutative m2, Applicative m2) => 
                Catch2 e m1 m2 a
@@ -62,7 +72,7 @@ catchError2 = liftCatch catchError
 -- Level-3
 
 throwError3 :: (MonadError e m3, Applicative m1, Applicative m2) => e -> m1 (m2 (m3 a))
-throwError3 = (**:) |$> throwError
+throwError3 = (.**) |$> throwError
 
 catchError3 :: (MonadError e m3, Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3) => 
                Catch3 e m1 m2 m3 a
@@ -79,7 +89,7 @@ catchError3 = liftCatch catchError
 -- Level-4
 
 throwError4 :: (MonadError e m4, Applicative m1, Applicative m2, Applicative m3) => e -> m1 (m2 (m3 (m4 a)))
-throwError4 = (***:) |$> throwError
+throwError4 = (.***) |$> throwError
 
 catchError4 :: (MonadError e m4, Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3, Commutative m4, Applicative m4) => 
                Catch4 e m1 m2 m3 m4 a
@@ -96,7 +106,7 @@ catchError4 = liftCatch catchError
 -- Level-5
 
 throwError5 :: (MonadError e m5, Applicative m1, Applicative m2, Applicative m3, Applicative m4) => e -> m1 (m2 (m3 (m4 (m5 a))))
-throwError5 = (****:) |$> throwError
+throwError5 = (.****) |$> throwError
 
 catchError5 :: (MonadError e m5, Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3, Commutative m4, Applicative m4, Commutative m5, Applicative m5) => 
                Catch5 e m1 m2 m3 m4 m5 a
