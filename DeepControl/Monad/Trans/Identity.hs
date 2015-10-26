@@ -129,6 +129,13 @@ liftCatch2 catch m h = IdentityT2 $ (runIdentityT2 m) `catch` (h >-> runIdentity
 
 ----------
 
+-- | 
+--
+-- >>> transfold2 $ IdentityT2 [Just 1]
+-- IdentityT (MaybeT [Just 1])
+--
+-- >>> transfold2 $ IdentityT2 
+--
 transfold2 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2) => IdentityT2 m1 m2 a -> IdentityT (t2 m1) a
 transfold2 (IdentityT2 x) = IdentityT $ trans x
 untransfold2 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2) => IdentityT (t2 m1) a -> IdentityT2 m1 m2 a

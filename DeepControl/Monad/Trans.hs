@@ -74,7 +74,7 @@ import Data.Monoid
 liftT :: (Monad m, MonadTrans t) => m a -> t m a 
 liftT = lift
 
--- | Required only for @'MonadTransFold2'@ and @'MonadTransFold3'@ 
+-- | Required only for transfold
 class (Monad m, MonadTrans t) => MonadTrans_ m t | m -> t where
     trans :: (Monad n) => n (m a) -> t n a
     untrans :: (Monad n) => t n a -> n (m a)
@@ -129,8 +129,8 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >import DeepControl.Commutative (commute)
 >import DeepControl.Monad ((>-))
 >import DeepControl.Monad.Morph ((|>|))
->import DeepControl.Monad.Trans (liftTT2, transfold2, untransfold2)
->import DeepControl.Monad.Trans.Identity
+>import DeepControl.Monad.Trans (liftT, liftT2)
+>import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..), transfold2, untransfold2)
 >import Control.Monad.Reader
 >import Control.Monad.Trans.Maybe
 >
@@ -151,7 +151,7 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >             ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
 >ackermann x y = do
 >    timelimit <- ask
->    liftTT2 $ ackermannTimeLimit timelimit x y           -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
+>    liftT. liftT2 $ ackermannTimeLimit timelimit x y     -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
 >
 >calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 >calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
@@ -167,6 +167,7 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >ackermann'' :: Int -> Int -> 
 >               ReaderT TimeLimit (IdentityT2 IO Maybe) Int      -- ReaderT-IdentityT2-IO-Maybe monad
 >ackermann'' x y = (untransfold2 . IdentityT) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+>
 -}
 
 {- $Example_Level2_cover

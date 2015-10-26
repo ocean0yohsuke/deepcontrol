@@ -215,7 +215,7 @@ import DeepControl.Monad ((>-))
 
 plus :: Int -> Int -> Int
 plus x y = 
-    x >- \a ->   -- (>-) is the level-0 bind function, analogous for (>>=)
+    x >- \a ->   -- (>-) is the level-0 bind function, analogous to (>>=)
     y >- \b ->
     a + b
 
@@ -230,7 +230,7 @@ import DeepControl.Applicative ((**:))
 import DeepControl.Monad ((>>==))
 
 listlist :: [[String]]             -- List-List monad
-listlist = [["a","b"]] >>== \x ->  -- (>>==) is the level-2 bind function, analogous for (>>=)
+listlist = [["a","b"]] >>== \x ->  -- (>>==) is the level-2 bind function, analogous to (>>=)
            [[0],[1,2]] >>== \y ->
            (**:) $ x ++ show y
 
@@ -248,7 +248,7 @@ factorial :: Int ->
 factorial n | n < 0  = (-*) Nothing
             | n == 0 = (*:) $ tell [0] >> (*:) 1
             | n > 0  = factorial (n-1) >>== \v ->   
-                       tell [v] ->~                 -- (->~) is a level-2 cover-sequence function, analogous for (>>)
+                       tell [v] ->~                 -- (->~) is a level-2 cover-sequence function, analogous to (>>)
                        (**:) (n * v)
 
 -- > runWriter |$> factorial 5
@@ -266,9 +266,9 @@ factorial :: Int ->
              IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer monad
 factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cover function
             | n == 0 = (**:) $ tell [0] >> (*:) 1
-            | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous for (>>=)
-                       print v >--~                   -- (>--~) is a level-3 cover-sequence function, analogous for (>>)
-                       tell [v] -->~                  -- (-->~) is a level-3 cover-sequence function too, analogous for (>>)
+            | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous to (>>=)
+                       print v >--~                   -- (>--~) is a level-3 cover-sequence function, analogous to (>>)
+                       tell [v] -->~                  -- (-->~) is a level-3 cover-sequence function too, analogous to (>>)
                        (***:) (n * v)
 
 -- > runWriter |$>> factorial 5
@@ -351,7 +351,7 @@ tick = modify (+1)
 
 tock                         ::                   StateT Int IO ()
 tock = do
-    generalize |>| tick      :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous for (|$>)
+    generalize |>| tick      :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>)
     liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- 'liftT' is the level-1 trans-lift function, alias to 'lift'
 
 -- λ> runStateT tock 0
@@ -365,9 +365,9 @@ save = do
 
 program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
 program = replicateM_ 4 $ do
-    ((|-*|).liftT) |>| tock                                                         -- (|-*|) is a level-2 trans-cover function, analogous for (-*)
+    ((|-*|).liftT) |>| tock                                                         -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
         :: (Monad m, Commutative m) => StateT Int (IdentityT2 IO m             ) ()
-    ((|*-|).liftT) |>| save                                                         -- (|*-|) is a level-2 trans-cover function, analogous for (*:)
+    ((|*-|).liftT) |>| save                                                         -- (|*-|) is a level-2 trans-cover function, analogous to (*:)
         :: (Monad m               ) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 
 -- λ> execWriter |$> runIdentityT2 (runStateT program 0)
@@ -396,7 +396,7 @@ tick = modify (+1)
 
 tock                        ::                   StateT Int IO ()
 tock = do
-    generalize |>| tick     :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous for (|$>)
+    generalize |>| tick     :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>)
     lift $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
 
 -- λ> runStateT tock 0
@@ -413,7 +413,7 @@ program ::                   StateT Int (WriterT [Int] IO) ()
 program = replicateM_ 4 $ do
     lift |>| tock
         :: (MonadTrans t) => StateT Int (t             IO) ()
-    generalize |>>| save                                        -- (|>>|) is the level-2 trans-map function, analogous for (|$>>)
+    generalize |>>| save                                        -- (|>>|) is the level-2 trans-map function, analogous to (|$>>)
         :: (Monad      m) => StateT Int (WriterT [Int] m ) ()
 
 -- λ> execWriterT (runStateT program 0)

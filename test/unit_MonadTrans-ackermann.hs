@@ -26,7 +26,7 @@ ackermann :: Int -> Int ->
              ReaderT TimeLimit (IdentityT2 IO Maybe) Int -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann x y = do
     timelimit <- ask
-    liftT. liftT2 $ ackermannTimeLimit timelimit x y           -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
+    liftT. liftT2 $ ackermannTimeLimit timelimit x y     -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
 
 calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
