@@ -13,7 +13,7 @@ You would soon realize exactly what __/more deeper level/__ means by reading the
 Note: 
 
     * This module never makes mtl(monad-transformer-library) unnessasary. 
-      The range in which this module is helpful is regrettably confined to the range of deep monads (namely Monad, Monad, etc).
+      The range in which this module is helpful is regrettably confined to the range of @'Commutative'@.
     
     * In my opinion this bad confinement is hard-wired with the ability of the compiler, that is to say GHC doesn't parse @(r->)@ or @((->) r)@ as a data constructor; 
       thus some fundamental expressions such as @(r->)|$>@ or @fmap (r->)@ are useless.

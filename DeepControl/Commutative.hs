@@ -48,7 +48,7 @@ import Control.Monad.Writer (Writer, WriterT(..), runWriter)
 --   So these monads can be deepened to Monad2, Monad3, Monad4 and Monad5.
 -- 
 class (Functor c) => Commutative c where
-  -- | This method is equivalent for @'Data.Traversable.sequenceA'@ except the name.
+  -- | This method is equivalent to @'Data.Traversable.sequenceA'@ except the name.
   --   The only difference is the name "commute", that is to say from which no action kind of concepts smell.
   --
   -- >>> commute $ Just [1]
@@ -63,12 +63,15 @@ class (Functor c) => Commutative c where
   --
   commute :: Applicative f => c (f a) -> f (c a)
 
--- | Do @fmap f@ then commute, equivalent for @'Data.Traversable.traverse'@.
+-- | Do @fmap f@ then commute, equivalent to @'Data.Traversable.traverse'@.
 cmap :: (Applicative f, Commutative c) => (a -> f b) -> c a -> f (c b)
 cmap f = commute . (f |$>)
--- | The auguments-flipped function for @'cmap'@, equivalent for @'Data.Traversable.for'@.
+-- | The auguments-flipped function for @'cmap'@, equivalent to @'Data.Traversable.for'@.
 cfor :: (Applicative f, Commutative c) => c a -> (a -> f b) -> f (c b)
 cfor = flip cmap
+
+instance Commutative Identity where
+    commute (Identity fa) = Identity |$> fa
 
 instance Commutative Maybe where
     commute (Just fa) = Just |$> fa
