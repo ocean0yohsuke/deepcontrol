@@ -175,9 +175,9 @@ Here is a monad transformer example showing how to use trans-cover functions.
 >import DeepControl.Applicative ((|$>))
 >import DeepControl.Commutative (Commutative)
 >import DeepControl.Monad (Monad)
->import DeepControl.Monad.Morph ((|>|))
->import DeepControl.Monad.Trans (liftT, (|*|), (|-*|), (|*-|))
->import DeepControl.Monad.Trans.Identity
+>import DeepControl.Monad.Morph (generalize, (|>|))
+>import DeepControl.Monad.Trans (liftT)
+>import DeepControl.Monad.Trans.Identity (IdentityT2(..), (|-*|), (|*-|))
 >import Control.Monad.Writer
 >import Control.Monad.State
 >
@@ -186,7 +186,7 @@ Here is a monad transformer example showing how to use trans-cover functions.
 >
 >tock                         ::                   StateT Int IO ()
 >tock = do
->    (|*|) tick               :: (Monad      m) => StateT Int m  ()  -- (|*|) is the level-1 trans-cover function, analogous for (*:)
+>    generalize |>| tick      :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous for (|$>)
 >    liftT $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- 'liftT' is the level-1 trans-lift function, alias to 'lift'
 >
 >-- λ> runStateT tock 0
