@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Monad.Trans.Writer
-Description : Extension for mtl's Contrl.Monad.Writer.
+Description : Deepened the usual Control.Monad.Writer module.
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology, 2001,
               (c) 2015 KONISHI Yohsuke,

@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Applicative
-Description : Enable deep level Applicative style programming.
+Description : Deepened the usual Control.Applicative module.
 Copyright   : (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
@@ -120,14 +120,6 @@ module DeepControl.Applicative (
 
 import Control.Applicative
 
---
--- 計算式（プログラムのコード）の計算は線で行われる（紙の上、あるいはモニターの画面上に書かれた式（線）のどの文字列をとっても、繋がり（関係）があるのは
--- その線上の文字列だけだ。別の線とは直接繋がりをもたない。ある文字列が直接繋がりをもてるのは前後だけだ。自分が住む線の世界を飛び越えて別の線と繋がる事はできない。
--- つまり線世界にコードが閉じ込められている。）。
--- よって liftA2 がプログラミング言語においては一際重要な意味を持つ（関数型プログラミング（時間概念から開放された計算）がしたい場合は特に）。
--- 化学式のような２次元平面（あるいは３次元空間）で行われるコードならば liftA3 や liftA4 がおそらく重要な意味を帯びてくるはず。
---
-
 -------------------------------------------------------------------------------
 -- Level-0 functions
 
@@ -140,7 +132,7 @@ infixl 4  |>, <|
 (|>) :: (a -> b) -> a -> b
 (|>) = ($)
 
--- | The auguments-flipped function for @'|>'@. 
+-- | The auguments-flipped function of @'|>'@. 
 -- 
 -- >>> 1 <| (+2) 
 -- 3 
@@ -172,7 +164,7 @@ infixl 4 |$>
 
 infixl 3  <$|, |*>, <*|, |*, *|
 
--- | The auguments-flipped function for @'|$>'@.
+-- | The auguments-flipped function of @'|$>'@.
 --
 -- >>> [1] <$| (+2) 
 -- [3]
@@ -206,7 +198,7 @@ infixl 3  <$|, |*>, <*|, |*, *|
 (|*>) :: Applicative f => f (a -> b) -> f a -> f b
 (|*>) = (<*>)
 
--- | The auguments-flipped function for @'|*>'@. 
+-- | The auguments-flipped function of @'|*>'@. 
 (<*|) :: Applicative f => f a -> f (a -> b) -> f b
 (<*|) = flip (|*>)
 
@@ -243,7 +235,6 @@ f |* x = f |*> (.*) x
 -- >>> 1 *|Just (,)|* 2
 -- Just (1,2)
 (*|) :: Applicative f => a -> f (a -> b) -> f b
--- (*|) = flip (|*)
 x *| f = (.*) x <*| f
 
 -------------------------------------------------------------------------------
@@ -276,14 +267,14 @@ infixl 3  <<$|, |*>>, <<*|
 infixl 3  |**, **|
 infixl 3  |-*, |*-, -*|, *-|
 
--- | The auguments-flipped function for @'|$>>'@
+-- | The auguments-flipped function of @'|$>>'@
 --
 -- >>> [[2]] <<$| (+1)
 -- [[3]]
 (<<$|) :: (Functor f1, Functor f2) => f1 (f2 a) -> (a -> b) -> f1 (f2 b)
 (<<$|) = flip (|$>>)
 
--- | Definition: @ (|*>>) = liftA2 (|*>) @
+-- | Definition: @ f |*>> x = f <$|(|*>)|*> x @
 --
 -- >>> [Just 1] <<$|(+)|*>> [Just 2] 
 -- [Just 3]
@@ -301,11 +292,12 @@ infixl 3  |-*, |*-, -*|, *-|
 -- >>> foldr (\n acc -> n <<$|(+)|*>> acc) ((.**) 0) [Right (Just 1), Right Nothing, Left ()]
 -- Left ()
 (|*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
-(|*>>) = liftA2 (|*>)
+-- (|*>>) = liftA2 (|*>)
+f |*>> x = f <$|(|*>)|*> x
 
 -- | Definition: @ (<<*|) = liftA2 (<*|) @
 (<<*|) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 (a -> b)) -> f1 (f2 b)
-(<<*|) = liftA2 (<*|)
+x <<*| f = x <$|(<*|)|*> f
 
 -- | Definition: @ f |** x = f |*>> (.**) x @
 --
@@ -372,7 +364,7 @@ x *-| f = (.*) x <<*| f
 infixl 5  <<*, *>>
 infixl 5  *->, <*-, -*>, <-*
 
--- | Definition: @ (*>>) = liftA2 (*>) @
+-- | Definition: @ f *>> x = f <$|(*>)|*> x @
 --
 -- >>> sequence $ Just (print 1) *>> (.**) 2
 -- 1
@@ -382,7 +374,7 @@ infixl 5  *->, <*-, -*>, <-*
 -- 1
 -- Just 2
 (*>>) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 b) -> f1 (f2 b)
-(*>>) = liftA2 (*>)
+f *>> x = f <$|(*>)|*> x
 
 -- | Definition: @ (<<*) = liftA2 (<*) @
 --
@@ -397,7 +389,7 @@ infixl 5  *->, <*-, -*>, <-*
 -- >>> sequence $ [putStr "1", putStr "2"] *>> (.**) 0 <<* [putStr "3", putStr "4"]
 -- 13142324[0,0,0,0]
 (<<*) :: (Applicative f1, Applicative f2) => f1 (f2 a) -> f1 (f2 b) -> f1 (f2 a)
-(<<*) = liftA2 (<*)
+x <<* f = x <$|(<*)|*> f
 
 -- | Definition: @ a -*> x = (-*) a *>> x @
 --
@@ -466,15 +458,15 @@ infixl 3  <<<$|, |*>>>, <<<*|
 (<<<$|) :: (Functor f1, Functor f2, Functor f3) => f1 (f2 (f3 a)) -> (a -> b) -> f1 (f2 (f3 b))
 (<<<$|) = flip (|$>>>)
 (|*>>>) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 a)) -> f1 (f2 (f3 b))
-(|*>>>) = liftA2 (|*>>)
+f |*>>> x = f <$|(|*>>)|*> x
 (<<<*|) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 a)) -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
-(<<<*|) = flip (|*>>>)
+x <<<*| f = x <$|(<<*|)|*> f
 
 infixl 3  |***, ***|
 (|***) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> a -> f1 (f2 (f3 b))
 f |*** x = f |*>>> (.***) x
 (***|) :: (Applicative f1, Applicative f2, Applicative f3) => a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
-(***|)  = flip (|***)
+x ***| f = (.***) x <<<*| f
 
 infixl 3  |-**, |*-*, |**-, |--*, |-*-, |*--
 (|-**) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f1 a -> f1 (f2 (f3 b))
@@ -490,25 +482,25 @@ f |*-- x = f |*>>> (.*) x
 (|-*-) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 (a -> b))) -> f1 (f3 a) -> f1 (f2 (f3 b))
 f |-*- x = f |*>>> (-*) x
 
-infixl 3  -**|, *-*|, **-|, --*|, -*-|, *--|
-(-**|) :: (Applicative f1, Applicative f2, Applicative f3) => f1 a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
-(-**|) = flip (|-**)
-(*-*|) :: (Applicative f1, Applicative f2, Applicative f3) => f2 a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
-(*-*|) = flip (|*-*)
-(**-|) :: (Applicative f1, Applicative f2, Applicative f3) => f3 a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
-(**-|) = flip (|**-)
+infixl 3  --*|, -*-|, *--|, -**|, *-*|, **-|
 (--*|) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 a) -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
-(--*|) = flip (|--*)
-(*--|) :: (Applicative f1, Applicative f2, Applicative f3) => f2 (f3 a) -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
-(*--|) = flip (|*--)
+x --*| f = (--*) x <<<*| f
 (-*-|) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f3 a) -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
-(-*-|) = flip (|-*-)
+x -*-| f = (-*) x <<<*| f
+(*--|) :: (Applicative f1, Applicative f2, Applicative f3) => f2 (f3 a) -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
+x *--| f = (.*) x <<<*| f
+(-**|) :: (Applicative f1, Applicative f2, Applicative f3) => f1 a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
+x -**| f = (-**) x <<<*| f
+(*-*|) :: (Applicative f1, Applicative f2, Applicative f3) => f2 a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
+x *-*| f = (*-*) x <<<*| f
+(**-|) :: (Applicative f1, Applicative f2, Applicative f3) => f3 a -> f1 (f2 (f3 (a -> b))) -> f1 (f2 (f3 b))
+x **-| f = (.**) x <<<*| f
 
 infixl 5  <<<*, *>>>
 (*>>>) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 a)) -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
-(*>>>) = liftA2 (*>>)
+f *>>> x = f <$|(*>>)|*> x
 (<<<*) :: (Applicative f1, Applicative f2, Applicative f3) => f1 (f2 (f3 a)) -> f1 (f2 (f3 b)) -> f1 (f2 (f3 a))
-(<<<*) = liftA2 (<<*)
+x <<<* f = x <$|(<<*)|*> f
 
 infixl 5  *-->, -*->, --*>, **->, *-*>, -**>
 (*-->) :: (Applicative f1, Applicative f2, Applicative f3) => f2 (f3 a) -> f1 (f2 (f3 b)) -> f1 (f2 (f3 b))
@@ -570,9 +562,9 @@ infixl 3  <<<<$|, |*>>>>, <<<<*|
 (<<<<$|) :: (Functor f1, Functor f2, Functor f3, Functor f4) => f1 (f2 (f3 (f4 a))) -> (a -> b) -> f1 (f2 (f3 (f4 b)))
 (<<<<$|) = flip (|$>>>>)
 (|*>>>>) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 (a -> b)))) -> f1 (f2 (f3 (f4 a))) -> f1 (f2 (f3 (f4 b)))
-(|*>>>>) = liftA2 (|*>>>)
+f |*>>>> x = f <$|(|*>>>)|*> x
 (<<<<*|) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 a))) -> f1 (f2 (f3 (f4 (a -> b)))) -> f1 (f2 (f3 (f4 b)))
-(<<<<*|) = flip (|*>>>>)
+x <<<<*| f = x <$|(<<<*|)|*> f
 
 infixl 3  |****
 (|****) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 (a -> b)))) -> a -> f1 (f2 (f3 (f4 b)))
@@ -611,7 +603,7 @@ f |*--- x = f |*>>>> (.*) x
 
 infixl 3  ****|
 (****|) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => a -> f1 (f2 (f3 (f4 (a -> b)))) -> f1 (f2 (f3 (f4 b)))
-(****|)  = flip (|****)
+x ****| f = (.****) x <<<<*| f
 infixl 3  -***|, *-**|, **-*|, ***-|  
 
 (-***|) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 a -> f1 (f2 (f3 (f4 (a -> b)))) -> f1 (f2 (f3 (f4 b)))
@@ -647,9 +639,9 @@ x *---| f = (.*) x <<<<*| f
 
 infixl 5  <<<<*, *>>>>
 (*>>>>) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 a))) -> f1 (f2 (f3 (f4 b))) -> f1 (f2 (f3 (f4 b)))
-(*>>>>) = liftA2 (*>>>)
+f *>>>> x = f <$|(*>>>)|*> x
 (<<<<*) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 a))) -> f1 (f2 (f3 (f4 b))) -> f1 (f2 (f3 (f4 a)))
-(<<<<*) = liftA2 (<<<*)
+x <<<<* f = x <$|(<<<*)|*> f
 
 infixl 5  <---*, <--*-, <-*--, <*---
 (<---*) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4) => f1 (f2 (f3 (f4 b))) -> f1 (f2 (f3 a)) -> f1 (f2 (f3 (f4 b)))
@@ -763,9 +755,9 @@ infixl 3  <<<<<$|, |*>>>>>, <<<<<*|
 (<<<<<$|) :: (Functor f1, Functor f2, Functor f3, Functor f4, Functor f5) => f1 (f2 (f3 (f4 (f5 a)))) -> (a -> b) -> f1 (f2 (f3 (f4 (f5 b))))
 (<<<<<$|) = flip (|$>>>>>)
 (|*>>>>>) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 (a -> b))))) -> f1 (f2 (f3 (f4 (f5 a)))) -> f1 (f2 (f3 (f4 (f5 b))))
-(|*>>>>>) = liftA2 (|*>>>>)
+f |*>>>>> x = f <$|(|*>>>>)|*> x
 (<<<<<*|) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 a)))) -> f1 (f2 (f3 (f4 (f5 (a -> b))))) -> f1 (f2 (f3 (f4 (f5 b))))
-(<<<<<*|) = flip (|*>>>>>)
+x <<<<<*| f = x <$|(<<<<*|)|*> f
 
 infixl 3  |-****, |*-***, |**-**, |***-*, |****-
 (|-****) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 (a -> b))))) -> f1 a -> f1 (f2 (f3 (f4 (f5 b))))
@@ -899,9 +891,9 @@ x *----| f = (.*) x <<<<<*| f
 
 infixl 5  <<<<<*, *>>>>>
 (*>>>>>) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 a)))) -> f1 (f2 (f3 (f4 (f5 b)))) -> f1 (f2 (f3 (f4 (f5 b))))
-(*>>>>>) = liftA2 (*>>>>)
+f *>>>>> x = f <$|(*>>>>)|*> x
 (<<<<<*) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 a)))) -> f1 (f2 (f3 (f4 (f5 b)))) -> f1 (f2 (f3 (f4 (f5 a))))
-(<<<<<*) = liftA2 (<<<<*)
+x <<<<<* f = x <$|(<<<<*)|*> f
 
 infixl 5  <----*, <---*-, <--*--, <-*---, <*----
 (<----*) :: (Applicative f1, Applicative f2, Applicative f3, Applicative f4, Applicative f5) => f1 (f2 (f3 (f4 (f5 b)))) -> f1 (f2 (f3 (f4 a))) -> f1 (f2 (f3 (f4 (f5 b))))

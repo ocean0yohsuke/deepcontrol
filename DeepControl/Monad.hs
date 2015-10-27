@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Monad
-Description : Enable deep level Monad programming.
+Description : Deepend the usual Control.Monad module.
 Copyright   : (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
@@ -13,7 +13,7 @@ You would soon realize exactly what __/more deeper level/__ means by reading the
 Note: 
 
     * This module never makes mtl(monad-transformer-library) unnessasary. 
-      The range in which this module is helpful is regrettably confined to the range of @'Commutative'@.
+      The range in which this module is helpful is regrettably confined to the range of @'Traversable'@.
     
     * In my opinion this bad confinement is hard-wired with the ability of the compiler, that is to say GHC doesn't parse @(r->)@ or @((->) r)@ as a data constructor; 
       thus some fundamental expressions such as @(r->)|$>@ or @fmap (r->)@ are useless.
@@ -92,7 +92,7 @@ module DeepControl.Monad (
     ) where 
 
 import DeepControl.Applicative
-import DeepControl.Commutative
+import DeepControl.Traversable
 
 import Control.Monad
 
@@ -172,36 +172,36 @@ infixr 1  ->~, >-~
 -- :}
 -- [Just 35.0,Nothing]
 --
-(>>==) :: (Monad m1, Monad m2, Commutative m2) => m1 (m2 a) -> (a -> m1 (m2 b)) -> m1 (m2 b)
-m >>== f = m >>= \x -> join |$> (commute $ f |$> x)
+(>>==) :: (Monad m1, Monad m2, Traversable m2) => m1 (m2 a) -> (a -> m1 (m2 b)) -> m1 (m2 b)
+m >>== f = m >>= \x -> join |$> (sink $ f |$> x)
 
 -- | The level-2 composite function, analogous for @'>=>'@.
-(>==>) :: (Monad m1, Monad m2, Commutative m2) => (a -> m1 (m2 b)) -> (b -> m1 (m2 c)) -> a -> m1 (m2 c)
+(>==>) :: (Monad m1, Monad m2, Traversable m2) => (a -> m1 (m2 b)) -> (b -> m1 (m2 c)) -> a -> m1 (m2 c)
 f >==> g = \x -> f x >>== g
 -- | The level-2 sequence function, analogous for @'>>'@.
 --
 --   Definition: @ m >>~ f = m >>== \\_ -> f @
-(>>~) :: (Monad m1, Monad m2, Commutative m2) => m1 (m2 a) -> m1 (m2 b) -> m1 (m2 b)
+(>>~) :: (Monad m1, Monad m2, Traversable m2) => m1 (m2 a) -> m1 (m2 b) -> m1 (m2 b)
 m >>~ f = m >>== \_ -> f
 -- | A level-2 cover-bind function, analogous for @'>>='@.
 --
 --   Definition: @ m >-== f = (-*) m >>== f @
-(>-==) :: (Monad m1, Monad m2, Commutative m2) => m1 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
+(>-==) :: (Monad m1, Monad m2, Traversable m2) => m1 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
 m >-== f = (-*) m >>== f
 -- | A level-2 cover-bind function, analogous for @'>>='@.
 --
 --   Definition: @ m ->== f = (.*) m >>== f @
-(->==) :: (Monad m1, Monad m2, Commutative m2) => m2 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
+(->==) :: (Monad m1, Monad m2, Traversable m2) => m2 a -> (a -> m1 (m2 b)) -> m1 (m2 b)
 m ->== f = (.*) m >>== f
 -- | A level-2 cover-sequence function, analogous for @'>>'@.
 --
 --   Definition: @ m >-~ f = (-*) m >>~ f @
-(>-~) :: (Monad m1, Monad m2, Commutative m2) => m1 a -> m1 (m2 b) -> m1 (m2 b)
+(>-~) :: (Monad m1, Monad m2, Traversable m2) => m1 a -> m1 (m2 b) -> m1 (m2 b)
 m >-~ f = (-*) m >>~ f
 -- | A level-2 cover-sequence function, analogous for @'>>'@.
 --
 --   Definition: @ m ->~ f = (.*) m >>~ f @
-(->~) :: (Monad m1, Monad m2, Commutative m2) => m2 a -> m1 (m2 b) -> m1 (m2 b)
+(->~) :: (Monad m1, Monad m2, Traversable m2) => m2 a -> m1 (m2 b) -> m1 (m2 b)
 m ->~ f = (.*) m >>~ f
 
 -------------------------------------------------------------------------------
@@ -246,37 +246,37 @@ infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 -- ("b",2)
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 --
-(>>>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
+(>>>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m >>>== f = m >>== \x -> join |$>> (sink2 $ f |$> x)
 
-(>===>) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => (a -> m1 (m2 (m3 b))) -> (b -> m1 (m2 (m3 c))) -> a -> m1 (m2 (m3 c))
+(>===>) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => (a -> m1 (m2 (m3 b))) -> (b -> m1 (m2 (m3 c))) -> a -> m1 (m2 (m3 c))
 f >===> g = \x -> f x >>>== g
-(>>>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m1 (m2 (m3 a)) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+(>>>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m1 (m2 (m3 a)) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m >>>~ k = m >>>== \_ -> k
 
-(>--==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m1 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
+(>--==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m1 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m >--== k = (-**) m >>>== k
-(->-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m2 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
+(->-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m2 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m ->-== k = (*-*) m >>>== k
-(-->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m3 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
+(-->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m3 a -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m -->== k = (.**) m >>>== k
-(>>-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m1 (m2 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
+(>>-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m1 (m2 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m >>-== k = (--*) m >>>== k
-(->>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m2 (m3 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
+(->>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m2 (m3 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m ->>== k = (.*) m >>>== k
-(>->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m1 (m3 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
+(>->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m1 (m3 a) -> (a -> m1 (m2 (m3 b))) -> m1 (m2 (m3 b))
 m >->== k = (-*) m >>>== k
-(-->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m3 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+(-->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m3 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m -->~ k = (.**) m >>>~ k
-(->-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m2 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+(->-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m2 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m ->-~ k = (*-*) m >>>~ k
-(>--~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m1 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+(>--~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m1 a -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m >--~ k = (-**) m >>>~ k
-(->>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m2 (m3 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+(->>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m2 (m3 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m ->>~ k = (.*) m >>>~ k
-(>->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m1 (m3 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+(>->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m1 (m3 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m >->~ k = (-*) m >>>~ k
-(>>-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => m1 (m2 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
+(>>-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => m1 (m2 a) -> m1 (m2 (m3 b)) -> m1 (m2 (m3 b))
 m >>-~ k = (--*) m >>>~ k
 
 -------------------------------------------------------------------------------
@@ -291,74 +291,74 @@ infixr 1  --->~, -->-~, ->--~, >---~
 infixr 1  -->>~, ->->~, >-->~, >->-~, ->>-~, >>--~
 infixr 1  ->>>~, >->>~, >>->~, >>>-~
 
-(>>>>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m2 (m3 (m4 a))) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(>>>>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m2 (m3 (m4 a))) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m >>>>== f = m >>>== \x -> join |$>>> (sink3 $ f |$> x)
 
-(>====>) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => (a -> m1 (m2 (m3 (m4 b)))) -> (b -> m1 (m2 (m3 (m4 c)))) -> a -> m1 (m2 (m3 (m4 c)))
+(>====>) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => (a -> m1 (m2 (m3 (m4 b)))) -> (b -> m1 (m2 (m3 (m4 c)))) -> a -> m1 (m2 (m3 (m4 c)))
 f >====> g = \x -> f x >>>>== g
-(>>>>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m2 (m3 (m4 a))) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(>>>>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m2 (m3 (m4 a))) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >>>>~ k = m >>>>== \_ -> k
 
-(--->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m4 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(--->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m4 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m --->== k = (.***) m >>>>== k 
-(-->-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m3 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(-->-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m3 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m -->-== k = (**-*) m >>>>== k 
-(->--==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m2 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(->--==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m2 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m ->--== k = (*-**) m >>>>== k 
-(>---==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(>---==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 a -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m >---== k = (-***) m >>>>== k
 
-(-->>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m3 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(-->>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m3 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m -->>== k = (.**) m >>>>== k 
-(->->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m2 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(->->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m2 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m ->->== k = (*-*) m >>>>== k 
-(>-->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(>-->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m4 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m >-->== k = (-**) m >>>>== k 
-(>->-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m3 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(>->-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m3 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m >->-== k = (-*-*) m >>>>== k 
-(->>-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m2 (m3 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(->>-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m2 (m3 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m ->>-== k = (*--*) m >>>>== k 
-(>>--==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m2 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(>>--==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m2 a) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m >>--== k = (--**) m >>>>== k 
 
-(->>>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m2 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(->>>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m2 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m ->>>== k = (.*) m >>>>== k 
-(>->>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(>->>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m >->>== k = (-*) m >>>>== k 
-(>>->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m2 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(>>->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m2 (m4 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m >>->== k = (--*) m >>>>== k 
-(>>>-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
+(>>>-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 (m4 b)))) -> m1 (m2 (m3 (m4 b)))
 m >>>-== k = (---*) m >>>>== k 
 
-(--->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m4 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(--->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m4 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m --->~ k = (.***) m >>>>~ k
-(-->-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m3 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(-->-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m3 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m -->-~ k = (**-*) m >>>>~ k
-(->--~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m2 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(->--~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m2 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m ->--~ k = (*-**) m >>>>~ k
-(>---~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(>---~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 a -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >---~ k = (-***) m >>>>~ k
 
-(-->>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m3 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(-->>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m3 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m -->>~ k = (.**) m >>>>~ k
-(->->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m2 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(->->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m2 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m ->->~ k = (*-*) m >>>>~ k
-(>-->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(>-->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m4 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >-->~ k = (-**) m >>>>~ k
-(>->-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m3 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(>->-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m3 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >->-~ k = (-*-*) m >>>>~ k
-(->>-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m2 (m3 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(->>-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m2 (m3 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m ->>-~ k = (*--*) m >>>>~ k
-(>>--~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m2 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(>>--~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m2 a) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >>--~ k = (--**) m >>>>~ k
 
-(->>>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m2 (m3 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(->>>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m2 (m3 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m ->>>~ k = (.*) m >>>>~ k
-(>->>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m3 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(>->>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m3 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >->>~ k = (-*) m >>>>~ k
-(>>->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m2 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(>>->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m2 (m4 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >>->~ k = (--*) m >>>>~ k
-(>>>-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => m1 (m2 (m3 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
+(>>>-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => m1 (m2 (m3 a)) -> m1 (m2 (m3 (m4 b))) -> m1 (m2 (m3 (m4 b)))
 m >>>-~ k = (---*) m >>>>~ k
 
 -------------------------------------------------------------------------------
@@ -376,140 +376,140 @@ infixr 1  --->>~, -->->~, ->-->~, >--->~, >-->-~, ->->-~, -->>-~, ->>--~, >->--~
 infixr 1  -->>>~, ->->>~, >-->>~, >->->~, ->>->~, >>-->~, >>->-~, >->>-~, ->>>-~, >>>--~
 infixr 1  ->>>>~, >->>>~, >>->>~, >>>->~, >>>>-~
 
-(>>>>>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m3 (m4 (m5 a)))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>>>>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m3 (m4 (m5 a)))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>>>== f = m >>>>== \x -> join |$>>>> (sink4 $ f |$> x)
 
-(>=====>) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => (a -> m1 (m2 (m3 (m4 (m5 b))))) -> (b -> m1 (m2 (m3 (m4 (m5 c))))) -> a -> m1 (m2 (m3 (m4 (m5 c))))
+(>=====>) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => (a -> m1 (m2 (m3 (m4 (m5 b))))) -> (b -> m1 (m2 (m3 (m4 (m5 c))))) -> a -> m1 (m2 (m3 (m4 (m5 c))))
 f >=====> g = \x -> f x >>>>>== g
-(>>>>>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m3 (m4 (m5 a)))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>>>>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m3 (m4 (m5 a)))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>>>~ k = m >>>>>== \_ -> k
 
-(---->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m5 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(---->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m5 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ---->== k = (.****) m >>>>>== k 
-(--->-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m4 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(--->-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m4 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m --->-== k = (***-*) m >>>>>== k 
-(-->--==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m3 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(-->--==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m3 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m -->--== k = (**-**) m >>>>>== k 
-(->---==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->---==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->---== k = (*-***) m >>>>>== k 
-(>----==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>----==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 a -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >----== k = (-****) m >>>>>== k 
 
-(--->>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m4 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(--->>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m4 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m --->>== k = (.***) m >>>>>== k 
-(-->->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m3 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(-->->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m3 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m -->->== k = (**-*) m >>>>>== k 
-(->-->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->-->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->-->== k = (*-**) m >>>>>== k 
-(>--->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>--->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m5 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >--->== k = (-***) m >>>>>== k 
-(>-->-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>-->-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >-->-== k = (-**-*) m >>>>>== k 
-(->->-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->->-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->->-== k = (*-*-*) m >>>>>== k 
-(-->>-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m3 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(-->>-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m3 (m4 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m -->>-== k = (**--*) m >>>>>== k 
-(->>--==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m3 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->>--==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m3 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->>--== k = (*--**) m >>>>>== k 
-(>->--==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m3 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>->--==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m3 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >->--== k = (-*-**) m >>>>>== k 
-(>>---==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>---==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 a) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>---== k = (--***) m >>>>>== k 
 
-(-->>>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m3 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(-->>>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m3 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m -->>>== k = (.**) m >>>>>== k 
-(->->>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->->>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->->>== k = (*-*) m >>>>>== k 
-(>-->>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>-->>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m4 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >-->>== k = (-**) m >>>>>== k 
-(>->->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m3 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>->->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m3 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >->->== k = (-*-*) m >>>>>== k 
-(->>->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m3 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->>->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m3 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->>->== k = (*--*) m >>>>>== k 
-(>>-->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>-->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m5 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>-->== k = (--**) m >>>>>== k 
-(>>->-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>->-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>->-== k = (--*-*) m >>>>>== k 
-(>->>-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>->>-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >->>-== k = (-*--*) m >>>>>== k 
-(->>>-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->>>-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m3 (m4 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->>>-== k = (*---*) m >>>>>== k 
-(>>>--==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>>--==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m3 a)) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>--== k = (---**) m >>>>>== k 
 
-(->>>>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m3 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->>>>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m3 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->>>>== k = (.*) m >>>>>== k 
-(>->>>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m3 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>->>>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m3 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >->>>== k = (-*) m >>>>>== k 
-(>>->>==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>->>==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m4 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>->>== k = (--*) m >>>>>== k 
-(>>>->==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m3 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>>->==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m3 (m5 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>->== k = (---*) m >>>>>== k 
-(>>>>-==) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m3 (m4 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>>>-==) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m3 (m4 a))) -> (a -> m1 (m2 (m3 (m4 (m5 b))))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>>-== k = (----*) m >>>>>== k 
 
 
-(---->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m5 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(---->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m5 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ---->~ k = (.****) m >>>>>~ k 
-(--->-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m4 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(--->-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m4 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m --->-~ k = (***-*) m >>>>>~ k 
-(-->--~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m3 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(-->--~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m3 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m -->--~ k = (**-**) m >>>>>~ k 
-(->---~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->---~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->---~ k = (*-***) m >>>>>~ k 
-(>----~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>----~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 a -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >----~ k = (-****) m >>>>>~ k 
 
-(--->>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m4 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(--->>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m4 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m --->>~ k = (.***) m >>>>>~ k 
-(-->->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m3 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(-->->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m3 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m -->->~ k = (**-*) m >>>>>~ k 
-(->-->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->-->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->-->~ k = (*-**) m >>>>>~ k 
-(>--->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>--->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m5 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >--->~ k = (-***) m >>>>>~ k 
-(>-->-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>-->-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >-->-~ k = (-**-*) m >>>>>~ k 
-(->->-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->->-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->->-~ k = (*-*-*) m >>>>>~ k 
-(-->>-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m3 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(-->>-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m3 (m4 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m -->>-~ k = (**--*) m >>>>>~ k 
-(->>--~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m3 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->>--~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m3 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->>--~ k = (*--**) m >>>>>~ k 
-(>->--~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m3 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>->--~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m3 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >->--~ k = (-*-**) m >>>>>~ k 
-(>>---~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>---~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 a) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>---~ k = (--***) m >>>>>~ k 
 
-(-->>>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m3 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(-->>>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m3 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m -->>>~ k = (.**) m >>>>>~ k 
-(->->>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->->>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->->>~ k = (*-*) m >>>>>~ k 
-(>-->>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>-->>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m4 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >-->>~ k = (-**) m >>>>>~ k 
-(>->->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m3 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>->->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m3 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >->->~ k = (-*-*) m >>>>>~ k 
-(->>->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m3 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->>->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m3 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->>->~ k = (*--*) m >>>>>~ k 
-(>>-->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>-->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m5 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>-->~ k = (--**) m >>>>>~ k 
-(>>->-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>->-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>->-~ k = (--*-*) m >>>>>~ k 
-(>->>-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m3 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>->>-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m3 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >->>-~ k = (-*--*) m >>>>>~ k 
-(->>>-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m3 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->>>-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m3 (m4 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->>>-~ k = (*---*) m >>>>>~ k 
-(>>>--~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m3 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>>--~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m3 a)) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>--~ k = (---**) m >>>>>~ k 
 
-(->>>>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m2 (m3 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(->>>>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m2 (m3 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m ->>>>~ k = (.*) m >>>>>~ k 
-(>->>>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m3 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>->>>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m3 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >->>>~ k = (-*) m >>>>>~ k 
-(>>->>~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>->>~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m4 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>->>~ k = (--*) m >>>>>~ k 
-(>>>->~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m3 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>>->~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m3 (m5 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>->~ k = (---*) m >>>>>~ k 
-(>>>>-~) :: (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => m1 (m2 (m3 (m4 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
+(>>>>-~) :: (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => m1 (m2 (m3 (m4 a))) -> m1 (m2 (m3 (m4 (m5 b)))) -> m1 (m2 (m3 (m4 (m5 b))))
 m >>>>-~ k = (----*) m >>>>>~ k 
 

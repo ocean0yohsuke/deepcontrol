@@ -1,5 +1,5 @@
 name:                deepcontrol
-version:             0.5.0.0
+version:             0.5.1.0
 synopsis:            Provide more deeper level style of programming than the usual Control.xxx modules express
 description:         This module enables more deeper level style of programming than the usual Control.xxx modules express, especially for Applicative and Monad.
 license:             BSD3
@@ -23,14 +23,14 @@ source-repository head
 library
   exposed-modules:     DeepControl.Arrow
                      , DeepControl.Applicative
-                     , DeepControl.Commutative
+                     , DeepControl.Traversable
                      , DeepControl.Monad
+                     , DeepControl.Monad.Trans.Except
+                     , DeepControl.Monad.Trans.Writer
                      , DeepControl.Monad.Morph
                      , DeepControl.Monad.Signatures
                      , DeepControl.Monad.Trans
                      , DeepControl.Monad.Trans.Identity
-                     , DeepControl.Monad.Trans.Except
-                     , DeepControl.Monad.Trans.Writer
   -- other-modules:       
   other-extensions:    MultiParamTypeClasses
                      , FlexibleInstances
@@ -68,12 +68,12 @@ Test-Suite unit_Applicative
   Build-Depends:        base
                       , HUnit >= 1.3.0
                       , deepcontrol
-Test-Suite unit_Commutative
+Test-Suite unit_Traversable
   Type:                 exitcode-stdio-1.0
   Default-Language:     Haskell2010
   HS-Source-Dirs:       test
   -- Ghc-Options:          -threaded -Wall
-  Main-Is:              unit_Commutative.hs
+  Main-Is:              unit_Traversable.hs
   Build-Depends:        base
                       , HUnit >= 1.3.0
                       , deepcontrol
@@ -157,5 +157,15 @@ Test-Suite unit_MonadMorph
   Build-Depends:        base
                       , HUnit >= 1.3.0
                       , mtl
+                      , deepcontrol
+Test-Suite unit_MonadMorph-bind
+  Type:                 exitcode-stdio-1.0
+  Default-Language:     Haskell2010
+  HS-Source-Dirs:       test
+  -- Ghc-Options:          -threaded -Wall
+  Main-Is:              unit_MonadMorph-bind.hs
+  Build-Depends:        base
+                      , HUnit >= 1.3.0
+                      , mtl, transformers
                       , deepcontrol
 

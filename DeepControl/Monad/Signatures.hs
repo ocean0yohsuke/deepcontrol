@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------
--- |
+-- | Deepened the usual Control.Monad.Signatures module.
 -- Module      :  DeepControl.Monad.Signatures
 -- Copyright   :  (c) Ross Paterson 2012,
 --                (c) 2015 KONISHI Yohsuke

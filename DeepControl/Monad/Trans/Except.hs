@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Monad.Trans.Except
-Description : Extension for mtl's Contrl.Monad.Except.
+Description : Deepened the usual Control.Monad.Except module.
 Copyright   : (C) 2013 Ross Paterson,
               (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the file LICENSE)
@@ -37,7 +37,7 @@ module DeepControl.Monad.Trans.Except (
     ) where 
 
 import DeepControl.Applicative
-import DeepControl.Commutative
+import DeepControl.Traversable
 import DeepControl.Monad
 import DeepControl.Monad.Signatures
 
@@ -56,16 +56,16 @@ import Data.Functor.Identity
 throwError2 :: (MonadError e m2, Applicative m1) => e -> m1 (m2 a)
 throwError2 = (.*) |$> throwError
 
-catchError2 :: (MonadError e m2, Commutative m1, Applicative m1, Commutative m2, Applicative m2) => 
+catchError2 :: (MonadError e m2, Traversable m1, Applicative m1, Traversable m2, Applicative m2) => 
                Catch2 e m1 m2 a
 catchError2 = liftCatch catchError
   where
-    liftCatch :: (Commutative m1, Applicative m1, Commutative m2, Applicative m2) => 
+    liftCatch :: (Traversable m1, Applicative m1, Traversable m2, Applicative m2) => 
                  (forall a. Catch e m2 a) -> Catch2 e m1 m2 a
     liftCatch catch m h = 
-        let m' = commute m
-            h' = commute |$> h
-        in commute $ catch m' h'
+        let m' = sink m
+            h' = sink |$> h
+        in sink $ catch m' h'
 
 
 ----------------------------------------------------------------
@@ -74,11 +74,11 @@ catchError2 = liftCatch catchError
 throwError3 :: (MonadError e m3, Applicative m1, Applicative m2) => e -> m1 (m2 (m3 a))
 throwError3 = (.**) |$> throwError
 
-catchError3 :: (MonadError e m3, Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3) => 
+catchError3 :: (MonadError e m3, Traversable m1, Applicative m1, Traversable m2, Applicative m2, Traversable m3, Applicative m3) => 
                Catch3 e m1 m2 m3 a
 catchError3 = liftCatch catchError
   where
-    liftCatch :: (Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3) => 
+    liftCatch :: (Traversable m1, Applicative m1, Traversable m2, Applicative m2, Traversable m3, Applicative m3) => 
                  (forall a. Catch e m3 a) -> Catch3 e m1 m2 m3 a
     liftCatch catch m h = 
         let m' = float2 m
@@ -91,11 +91,11 @@ catchError3 = liftCatch catchError
 throwError4 :: (MonadError e m4, Applicative m1, Applicative m2, Applicative m3) => e -> m1 (m2 (m3 (m4 a)))
 throwError4 = (.***) |$> throwError
 
-catchError4 :: (MonadError e m4, Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3, Commutative m4, Applicative m4) => 
+catchError4 :: (MonadError e m4, Traversable m1, Applicative m1, Traversable m2, Applicative m2, Traversable m3, Applicative m3, Traversable m4, Applicative m4) => 
                Catch4 e m1 m2 m3 m4 a
 catchError4 = liftCatch catchError
   where
-    liftCatch :: (Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3, Commutative m4, Applicative m4) => 
+    liftCatch :: (Traversable m1, Applicative m1, Traversable m2, Applicative m2, Traversable m3, Applicative m3, Traversable m4, Applicative m4) => 
                  (forall a. Catch e m4 a) -> Catch4 e m1 m2 m3 m4 a
     liftCatch catch m h = 
         let m' = float3 m
@@ -108,11 +108,11 @@ catchError4 = liftCatch catchError
 throwError5 :: (MonadError e m5, Applicative m1, Applicative m2, Applicative m3, Applicative m4) => e -> m1 (m2 (m3 (m4 (m5 a))))
 throwError5 = (.****) |$> throwError
 
-catchError5 :: (MonadError e m5, Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3, Commutative m4, Applicative m4, Commutative m5, Applicative m5) => 
+catchError5 :: (MonadError e m5, Traversable m1, Applicative m1, Traversable m2, Applicative m2, Traversable m3, Applicative m3, Traversable m4, Applicative m4, Traversable m5, Applicative m5) => 
                Catch5 e m1 m2 m3 m4 m5 a
 catchError5 = liftCatch catchError
   where
-    liftCatch :: (Commutative m1, Applicative m1, Commutative m2, Applicative m2, Commutative m3, Applicative m3, Commutative m4, Applicative m4, Commutative m5, Applicative m5) =>
+    liftCatch :: (Traversable m1, Applicative m1, Traversable m2, Applicative m2, Traversable m3, Applicative m3, Traversable m4, Applicative m4, Traversable m5, Applicative m5) =>
                  (forall a. Catch e m5 a) -> Catch5 e m1 m2 m3 m4 m5 a
     liftCatch catch m h = 
         let m' = float4 m

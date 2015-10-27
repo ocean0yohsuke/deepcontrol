@@ -1,10 +1,8 @@
 import Test.HUnit hiding (State)
 
 import DeepControl.Applicative ((|$>))
-import DeepControl.Commutative (Commutative)
 import DeepControl.Monad (Monad)
-import DeepControl.Monad.Morph (generalize, (|>|))
-import DeepControl.Monad.Trans ((|*|))
+import DeepControl.Monad.Morph (generalize, (|*|), (|>|))
 import DeepControl.Monad.Trans.Identity (IdentityT(..), IdentityT2(..), (-*:), (*-:))
 import Control.Monad.Writer
 import Control.Monad.State
@@ -29,7 +27,7 @@ save = do
 program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
 program = replicateM_ 4 $ do
     ((-*:) . IdentityT) |>| tock                                                    -- (-*:) is a level-2 trans-cover function, analogous to (-*)
-        :: (Monad m, Commutative m) => StateT Int (IdentityT2 IO m             ) ()
+        :: (Monad m, Traversable m) => StateT Int (IdentityT2 IO m             ) ()
     ((*-:) . IdentityT) |>| save                                                    -- (*-:) is a level-2 trans-cover function, analogous to (.*)
         :: (Monad m               ) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 

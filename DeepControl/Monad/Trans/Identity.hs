@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Monad.Trans.Identity
-Description : Enables dealing with deep monads in monad-transformer
+Description : Deepened the usual Control.Monad.Trans.Identity module.
 Copyright   : (c) 2007 Magnus Therning,
               (c) 2015 KONISHI Yohsuke
 License     : BSD-style (see the file LICENSE)
@@ -19,59 +19,59 @@ module DeepControl.Monad.Trans.Identity (
     module Control.Monad.Trans.Identity,
 
     -- * Level-1
-    -- ** trans-cover  
+    -- ** identity-cover  
     (*:),
 
     -- * Level-2
     IdentityT2(..),
-    -- ** trans-cover  
+    -- ** identity-cover  
     (**:),
     (-*:), (*-:),
-    -- ** trans-fold  
-    transfold2, untransfold2,
+    -- ** identity-roll  
+    transrollI2, untransrollI2,
     -- ** lift
     mapIdentityT2, liftCallCC2, liftCatch2,
 
     -- * Level-3
     IdentityT3(..),
-    -- ** trans-cover  
+    -- ** identity-cover  
     (***:),
     (--*:), (-*-:), (*--:),
     (-**:), (*-*:), (**-:),
-    -- ** trans-fold  
-    transfold3, untransfold3,
+    -- ** identity-roll  
+    transrollI3, untransrollI3,
     -- ** lift 
     mapIdentityT3, liftCallCC3, liftCatch3,
 
     -- * Level-4
     IdentityT4(..),
-    -- ** trans-cover
+    -- ** identity-cover
     (****:),
     (---*:), (--*-:), (-*--:), (*---:),
     (--**:), (-*-*:), (*--*:), (*-*-:), (-**-:), (**--:), 
     (-***:), (*-**:), (**-*:), (***-:), 
-    -- ** trans-fold  
-    transfold4, untransfold4,
+    -- ** identity-roll  
+    transrollI4, untransrollI4,
     -- ** lift 
     mapIdentityT4, liftCallCC4, liftCatch4,
 
     -- * Level-5
     IdentityT5(..),
-    -- ** trans-cover
+    -- ** identity-cover
     (*****:),
     (----*:), (---*-:), (--*--:), (-*---:), (*----:),
     (---**:), (--*-*:), (-*--*:), (*---*:), (*--*-:), (-*-*-:), (--**-:), (-**--:), (*-*--:), (**---:),
     (--***:), (-*-**:), (*--**:), (*-*-*:), (-**-*:), (**--*:), (**-*-:), (*-**-:), (-***-:), (***--:),
     (-****:), (*-***:), (**-**:), (***-*:), (****-:),
-    -- ** trans-fold  
-    transfold5, untransfold5,
+    -- ** identity-roll  
+    transrollI5, untransrollI5,
     -- ** lift 
     mapIdentityT5, liftCallCC5, liftCatch5,
 
     ) where 
 
 import DeepControl.Applicative
-import DeepControl.Commutative
+import DeepControl.Traversable
 import DeepControl.Monad
 import DeepControl.Monad.Trans
 import DeepControl.Monad.Signatures
@@ -88,11 +88,8 @@ import Control.Monad.Trans.Identity
 ----------------------------------------------------------------------
 -- Level-1
 
-instance (Commutative f) => Commutative (IdentityT f) where
-    commute = (IdentityT|$>) . commute . runIdentityT
-
 infixl 3  *:
--- | The level-1 trans-cover function, analogous to @'(.*)'@
+-- | The level-1 identity-cover function, analogous to @'(.*)'@
 --
 -- >>> (*:) (Identity 1) :: IdentityT [] Int
 -- IdentityT [1]
@@ -111,9 +108,6 @@ infixl 3  *:
 -- lift2IdentityT :: (m a -> n b -> p c) -> IdentityT m a -> IdentityT n b -> IdentityT p c
 -- lift2IdentityT f a b = IdentityT (f (runIdentityT a) (runIdentityT b))
 
-liftI :: (Monad m) => m a -> IdentityT m a
-liftI = lift
-
 ----------------------------------------------------------------------
 -- Level-2
 
@@ -123,21 +117,24 @@ newtype IdentityT2 f1 f2 a = IdentityT2 { runIdentityT2 :: f1 (f2 a) }
 instance (Applicative m1, Applicative m2) => Applicative (IdentityT2 m1 m2) where
     pure x = IdentityT2 $ (.**) x
     (<*>) = lift2IdentityT2 (|*>>)
-instance (Commutative f1, Commutative f2) => Commutative (IdentityT2 f1 f2) where
-    commute = (IdentityT2|$>) . float2 . runIdentityT2
-instance (Monad m1, Monad m2, Commutative m2) => Monad (IdentityT2 m1 m2) where
+instance (Monad m1, Monad m2, Traversable m2) => Monad (IdentityT2 m1 m2) where
     return = IdentityT2 . (.**)
     m >>= f = IdentityT2 $ runIdentityT2 m >>== (f >-> runIdentityT2)
 
 instance (Alternative m1, Alternative m2) => Alternative (IdentityT2 m1 m2) where
     empty = IdentityT2 empty
     (<|>) = lift2IdentityT2 (<|>)
-instance (MonadPlus m1, Alternative m2, Monad m2, Commutative m2) => MonadPlus (IdentityT2 m1 m2) where
+instance (MonadPlus m1, Alternative m2, Monad m2, Traversable m2) => MonadPlus (IdentityT2 m1 m2) where
     mzero = IdentityT2 mzero
     mplus = lift2IdentityT2 mplus
 
-instance (MonadIO m1, Monad m1, Monad m2, Commutative m2) => MonadIO (IdentityT2 m1 m2) where
+instance (MonadIO m1, Monad m1, Monad m2, Traversable m2) => MonadIO (IdentityT2 m1 m2) where
     liftIO = IdentityT2 . (-*) . liftIO
+
+transrollI2 :: (Monad m1, MonadTrans_ m2 t2) => IdentityT2 m1 m2 a -> IdentityT (t2 m1) a
+transrollI2 = IdentityT . transroll2 . runIdentityT2
+untransrollI2 :: (Monad m1, MonadTrans_ m2 t2) => IdentityT (t2 m1) a -> IdentityT2 m1 m2 a
+untransrollI2 = IdentityT2 . untransroll2 . runIdentityT
 
 lift2IdentityT2 :: (m1 (m2 a) -> n1 (n2 b) -> p1 (p2 c)) -> IdentityT2 m1 m2 a -> IdentityT2 n1 n2 b -> IdentityT2 p1 p2 c
 lift2IdentityT2 f a b = IdentityT2 (f (runIdentityT2 a) (runIdentityT2 b))
@@ -151,32 +148,8 @@ liftCallCC2 callCC f = IdentityT2 $ callCC $ \c -> runIdentityT2 $ (c >-> Identi
 liftCatch2 :: Catch2 e m1 m2 a -> Catch e (IdentityT2 m1 m2) a
 liftCatch2 catch m h = IdentityT2 $ (runIdentityT2 m) `catch` (h >-> runIdentityT2)
 
-----------
-
--- | 
---
--- >>> transfold2 . IdentityT2 $ [Just 1]
--- IdentityT (MaybeT [Just 1])
---
--- >>> transfold2 . IdentityT2 $ Just [1]
--- IdentityT (ListT (Just [1]))
---
-transfold2 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2) => IdentityT2 m1 m2 a -> IdentityT (t2 m1) a
-transfold2 (IdentityT2 x) = IdentityT $ trans x
-
--- | 
---
--- >>> untransfold2 . IdentityT $ MaybeT [Just 1]
--- IdentityT2 {runIdentityT2 = [Just 1]}
---
--- >>> untransfold2 . IdentityT $ ListT (Just [1])
--- IdentityT2 {runIdentityT2 = Just [1]}
---
-untransfold2 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2) => IdentityT (t2 m1) a -> IdentityT2 m1 m2 a
-untransfold2 (IdentityT x) = IdentityT2 $ untrans x
-
 infixl 3  **:
--- | The level-2 trans-cover function, analogous to @'(**:)'@
+-- | The level-2 identity-cover function, analogous to @'(**:)'@
 --
 -- >>> (**:) (Identity 1) :: IdentityT2 [] Maybe Int
 -- IdentityT2 {runIdentityT2 = [Just 1]}
@@ -187,7 +160,7 @@ infixl 3  **:
 (**:) :: (Monad m1, Monad m2) => Identity a -> IdentityT2 m1 m2 a
 (**:) = IdentityT2 . (.**) . runIdentity
 infixl 3  -*:, *-:
--- | The level-2 trans-cover function, analogous to @'(-*)'@
+-- | The level-2 identity-cover function, analogous to @'(-*)'@
 --
 -- >>> (-*:) (IdentityT [1]) :: IdentityT2 [] Maybe Int
 -- IdentityT2 {runIdentityT2 = [Just 1]}
@@ -197,7 +170,7 @@ infixl 3  -*:, *-:
 --
 (-*:) :: (Monad m1, Monad m2) => IdentityT m1 a -> IdentityT2 m1 m2 a
 (-*:) = IdentityT2 . (-*) . runIdentityT
--- | The level-2 trans-cover function, analogous to @'(.*)'@
+-- | The level-2 identity-cover function, analogous to @'(.*)'@
 --
 -- >>> (*-:) (IdentityT (Just 1)) :: IdentityT2 [] Maybe Int
 -- IdentityT2 {runIdentityT2 = [Just 1]}
@@ -217,21 +190,24 @@ newtype IdentityT3 f1 f2 f3 a = IdentityT3 { runIdentityT3 :: f1 (f2 (f3 a)) }
 instance (Applicative m1, Applicative m2, Applicative m3) => Applicative (IdentityT3 m1 m2 m3) where
     pure x = IdentityT3 $ (.***) x
     (<*>) = lift2IdentityT3 (|*>>>)
-instance (Commutative f1, Commutative f2, Commutative f3) => Commutative (IdentityT3 f1 f2 f3) where
-    commute = (IdentityT3|$>) . float3 . runIdentityT3
-instance (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => Monad (IdentityT3 m1 m2 m3) where
+instance (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => Monad (IdentityT3 m1 m2 m3) where
     return = IdentityT3 . (.***)
     m >>= f = IdentityT3 $ runIdentityT3 m >>>== (f >-> runIdentityT3)
 
 instance (Alternative m1, Alternative m2, Alternative m3) => Alternative (IdentityT3 m1 m2 m3) where
     empty = IdentityT3 empty
     (<|>) = lift2IdentityT3 (<|>)
-instance (MonadPlus m1, Alternative m2, Monad m2, Commutative m2, Alternative m3, Monad m3, Commutative m3) => MonadPlus (IdentityT3 m1 m2 m3) where
+instance (MonadPlus m1, Alternative m2, Monad m2, Traversable m2, Alternative m3, Monad m3, Traversable m3) => MonadPlus (IdentityT3 m1 m2 m3) where
     mzero = IdentityT3 mzero
     mplus = lift2IdentityT3 mplus
 
-instance (MonadIO m1, Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3) => MonadIO (IdentityT3 m1 m2 m3) where
+instance (MonadIO m1, Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => MonadIO (IdentityT3 m1 m2 m3) where
     liftIO = IdentityT3 . (-**) . liftIO
+
+transrollI3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => IdentityT3 m1 m2 m3 a -> IdentityT (t3 (t2 m1)) a
+transrollI3 = IdentityT . transroll3 . runIdentityT3
+untransrollI3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => IdentityT (t3 (t2 m1)) a -> IdentityT3 m1 m2 m3 a
+untransrollI3 = IdentityT3 . untransroll3 . runIdentityT
 
 lift2IdentityT3 :: (m1 (m2 (m3 a)) -> n1 (n2 (n3 b)) -> p1 (p2 (p3 c))) -> IdentityT3 m1 m2 m3 a -> IdentityT3 n1 n2 n3 b -> IdentityT3 p1 p2 p3 c
 lift2IdentityT3 f a b = IdentityT3 (f (runIdentityT3 a) (runIdentityT3 b))
@@ -244,23 +220,6 @@ liftCallCC3 callCC f = IdentityT3 $ callCC $ \c -> runIdentityT3 $ (c >-> Identi
 
 liftCatch3 :: Catch3 e m1 m2 m3 a -> Catch e (IdentityT3 m1 m2 m3) a
 liftCatch3 catch m h = IdentityT3 $ (runIdentityT3 m) `catch` (h >-> runIdentityT3)
-
--------------
-
--- | 
---
--- >>> transfold3 . IdentityT3 $ ExceptT (Identity (Right [Just 1]))
--- IdentityT (MaybeT (ListT (ExceptT (Identity (Right [Just 1])))))
---
-transfold3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, Monad (t3 (t2 m1)), MonadTrans_ m3 t3) => IdentityT3 m1 m2 m3 a -> IdentityT (t3 (t2 m1)) a
-transfold3 (IdentityT3 x) = IdentityT $ trans . trans $  x
--- | 
---
--- >>> untransfold3 . IdentityT $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
--- IdentityT3 {runIdentityT3 = ExceptT (Identity (Right [Just 1]))}
---
-untransfold3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, Monad (t3 (t2 m1)), MonadTrans_ m3 t3) => IdentityT (t3 (t2 m1)) a -> IdentityT3 m1 m2 m3 a
-untransfold3 (IdentityT x) = IdentityT3 $ untrans . untrans $ x
 
 infixl 3  ***:
 (***:) :: (Monad m1, Monad m2, Monad m3) => Identity a -> IdentityT3 m1 m2 m3 a
@@ -291,21 +250,24 @@ newtype IdentityT4 f1 f2 f3 f4 a = IdentityT4 { runIdentityT4 :: f1 (f2 (f3 (f4 
 instance (Applicative m1, Applicative m2, Applicative m3, Applicative m4) => Applicative (IdentityT4 m1 m2 m3 m4) where
     pure x = IdentityT4 $ (.****) x
     (<*>) = lift2IdentityT4 (|*>>>>)
-instance (Commutative f1, Commutative f2, Commutative f3, Commutative f4) => Commutative (IdentityT4 f1 f2 f3 f4) where
-    commute = (IdentityT4|$>) . float4 . runIdentityT4
-instance (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => Monad (IdentityT4 m1 m2 m3 m4) where
+instance (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => Monad (IdentityT4 m1 m2 m3 m4) where
     return = IdentityT4 . (.****)
     m >>= f = IdentityT4 $ runIdentityT4 m >>>>== (f >-> runIdentityT4)
 
 instance (Alternative m1, Alternative m2, Alternative m3, Alternative m4) => Alternative (IdentityT4 m1 m2 m3 m4) where
     empty = IdentityT4 empty
     (<|>) = lift2IdentityT4 (<|>)
-instance (MonadPlus m1, Alternative m2, Monad m2, Commutative m2, Alternative m3, Monad m3, Commutative m3, Alternative m4, Monad m4, Commutative m4) => MonadPlus (IdentityT4 m1 m2 m3 m4) where
+instance (MonadPlus m1, Alternative m2, Monad m2, Traversable m2, Alternative m3, Monad m3, Traversable m3, Alternative m4, Monad m4, Traversable m4) => MonadPlus (IdentityT4 m1 m2 m3 m4) where
     mzero = IdentityT4 mzero
     mplus = lift2IdentityT4 mplus
 
-instance (MonadIO m1, Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4) => MonadIO (IdentityT4 m1 m2 m3 m4) where
+instance (MonadIO m1, Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => MonadIO (IdentityT4 m1 m2 m3 m4) where
     liftIO = IdentityT4 . (-***) . liftIO
+
+transrollI4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => IdentityT4 m1 m2 m3 m4 a -> IdentityT (t4 (t3 (t2 m1))) a
+transrollI4 = IdentityT . transroll4 . runIdentityT4
+untransrollI4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => IdentityT (t4 (t3 (t2 m1))) a -> IdentityT4 m1 m2 m3 m4 a
+untransrollI4 = IdentityT4 . untransroll4 . runIdentityT
 
 lift2IdentityT4 :: (m1 (m2 (m3 (m4 a))) -> n1 (n2 (n3 (n4 b))) -> p1 (p2 (p3 (p4 c)))) -> IdentityT4 m1 m2 m3 m4 a -> IdentityT4 n1 n2 n3 n4 b -> IdentityT4 p1 p2 p3 p4 c
 lift2IdentityT4 f a b = IdentityT4 (f (runIdentityT4 a) (runIdentityT4 b))
@@ -318,13 +280,6 @@ liftCallCC4 callCC f = IdentityT4 $ callCC $ \c -> runIdentityT4 $ (c >-> Identi
 
 liftCatch4 :: Catch4 e m1 m2 m3 m4 a -> Catch e (IdentityT4 m1 m2 m3 m4) a
 liftCatch4 catch m h = IdentityT4 $ (runIdentityT4 m) `catch` (h >-> runIdentityT4)
-
--------------
-
-transfold4 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, Monad (t3 (t2 m1)), MonadTrans_ m3 t3, Monad (t4 (t3 (t2 m1))), MonadTrans_ m4 t4) => IdentityT4 m1 m2 m3 m4 a -> IdentityT (t4 (t3 (t2 m1))) a
-transfold4 (IdentityT4 x) = IdentityT $ trans . trans . trans $  x
-untransfold4 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, Monad (t3 (t2 m1)), MonadTrans_ m3 t3, Monad (t4 (t3 (t2 m1))), MonadTrans_ m4 t4) => IdentityT (t4 (t3 (t2 m1))) a -> IdentityT4 m1 m2 m3 m4 a
-untransfold4 (IdentityT x) = IdentityT4 $ untrans . untrans . untrans $ x
 
 infixl 3  ****:
 (****:) :: (Monad m1, Monad m2, Monad m3, Monad m4) => Identity a -> IdentityT4 m1 m2 m3 m4 a
@@ -370,25 +325,29 @@ infixl 3  -***:, *-**:, **-*:, ***-:
 newtype IdentityT5 f1 f2 f3 f4 f5 a = IdentityT5 { runIdentityT5 :: f1 (f2 (f3 (f4 (f5 a)))) }
     deriving (Functor, Eq, Ord, Read, Show, Foldable, Traversable)
 
-instance (Commutative f1, Commutative f2, Commutative f3, Commutative f4, Commutative f5) => Commutative (IdentityT5 f1 f2 f3 f4 f5) where
-    commute = (IdentityT5|$>) . float5 . runIdentityT5
-
 instance (Applicative m1, Applicative m2, Applicative m3, Applicative m4, Applicative m5) => Applicative (IdentityT5 m1 m2 m3 m4 m5) where
     pure x = IdentityT5 $ (.*****) x
     (<*>) = lift2IdentityT5 (|*>>>>>)
-instance (Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => Monad (IdentityT5 m1 m2 m3 m4 m5) where
+instance (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => Monad (IdentityT5 m1 m2 m3 m4 m5) where
     return = IdentityT5 . (.*****)
     m >>= f = IdentityT5 $ runIdentityT5 m >>>>>== (f >-> runIdentityT5)
 
 instance (Alternative m1, Alternative m2, Alternative m3, Alternative m4, Alternative m5) => Alternative (IdentityT5 m1 m2 m3 m4 m5) where
     empty = IdentityT5 empty
     (<|>) = lift2IdentityT5 (<|>)
-instance (MonadPlus m1, Alternative m2, Monad m2, Commutative m2, Alternative m3, Monad m3, Commutative m3, Alternative m4, Monad m4, Commutative m4, Alternative m5, Monad m5, Commutative m5) => MonadPlus (IdentityT5 m1 m2 m3 m4 m5) where
+instance (MonadPlus m1, Alternative m2, Monad m2, Traversable m2, Alternative m3, Monad m3, Traversable m3, Alternative m4, Monad m4, Traversable m4, Alternative m5, Monad m5, Traversable m5) => MonadPlus (IdentityT5 m1 m2 m3 m4 m5) where
     mzero = IdentityT5 mzero
     mplus = lift2IdentityT5 mplus
 
-instance (MonadIO m1, Monad m1, Monad m2, Commutative m2, Monad m3, Commutative m3, Monad m4, Commutative m4, Monad m5, Commutative m5) => MonadIO (IdentityT5 m1 m2 m3 m4 m5) where
+instance (MonadIO m1, Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => MonadIO (IdentityT5 m1 m2 m3 m4 m5) where
     liftIO = IdentityT5 . (-****) . liftIO
+
+transrollI5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
+                IdentityT5 m1 m2 m3 m4 m5 a -> IdentityT (t5 (t4 (t3 (t2 m1)))) a
+transrollI5 = IdentityT . transroll5 . runIdentityT5
+untransrollI5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
+                  IdentityT (t5 (t4 (t3 (t2 m1)))) a -> IdentityT5 m1 m2 m3 m4 m5 a
+untransrollI5 = IdentityT5 . untransroll5 . runIdentityT
 
 lift2IdentityT5 :: (m1 (m2 (m3 (m4 (m5 a)))) -> n1 (n2 (n3 (n4 (n5 b)))) -> p1 (p2 (p3 (p4 (p5 c))))) -> IdentityT5 m1 m2 m3 m4 m5 a -> IdentityT5 n1 n2 n3 n4 n5 b -> IdentityT5 p1 p2 p3 p4 p5 c
 lift2IdentityT5 f a b = IdentityT5 (f (runIdentityT5 a) (runIdentityT5 b))
@@ -401,13 +360,6 @@ liftCallCC5 callCC f = IdentityT5 $ callCC $ \c -> runIdentityT5 $ (c >-> Identi
 
 liftCatch5 :: Catch5 e m1 m2 m3 m4 m5 a -> Catch e (IdentityT5 m1 m2 m3 m4 m5) a
 liftCatch5 catch m h = IdentityT5 $ (runIdentityT5 m) `catch` (h >-> runIdentityT5)
-
--------------
-
-transfold5 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, Monad (t3 (t2 m1)), MonadTrans_ m3 t3, Monad (t4 (t3 (t2 m1))), MonadTrans_ m4 t4, Monad (t5 (t4 (t3 (t2 m1)))), MonadTrans_ m5 t5) => IdentityT5 m1 m2 m3 m4 m5 a -> IdentityT (t5 (t4 (t3 (t2 m1)))) a
-transfold5 (IdentityT5 x) = IdentityT $ trans . trans . trans . trans $  x
-untransfold5 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, Monad (t3 (t2 m1)), MonadTrans_ m3 t3, Monad (t4 (t3 (t2 m1))), MonadTrans_ m4 t4, Monad (t5 (t4 (t3 (t2 m1)))), MonadTrans_ m5 t5) => IdentityT (t5 (t4 (t3 (t2 m1)))) a -> IdentityT5 m1 m2 m3 m4 m5 a
-untransfold5 (IdentityT x) = IdentityT5 $ untrans . untrans . untrans . untrans $ x
 
 infixl 3  *****:
 (*****:) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => Identity a -> IdentityT5 m1 m2 m3 m4 m5 a
@@ -479,3 +431,44 @@ infixl 3  -****:, *-***:, **-**:, ***-*:, ****-:
 (****-:) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => IdentityT m5 a -> IdentityT5 m1 m2 m3 m4 m5 a
 (****-:) = (---*-:) . (***-:)
 
+{- $Example_Level2
+Here is an example showing how to use identity-cover functions
+
+>import DeepControl.Applicative ((|$>))
+>import DeepControl.Monad (Monad)
+>import DeepControl.Monad.Morph (generalize, (|*|), (|>|))
+>import DeepControl.Monad.Trans.Identity (IdentityT(..), IdentityT2(..), (-*:), (*-:))
+>import Control.Monad.Writer
+>import Control.Monad.State
+>
+>tick :: State Int ()
+>tick = modify (+1)
+>
+>tock                         ::                   StateT Int IO ()
+>tock = do
+>    generalize |>| tick      :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>)
+>    (|*|) $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- (|*|) is the level-1 trans-lift function, alias to 'lift'
+>
+>-- λ> runStateT tock 0
+>-- Tock!
+>-- ((),1)
+>
+>save :: StateT Int (Writer [Int]) ()
+>save = do
+>    n <- get
+>    (|*|) $ tell [n]
+>
+>program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
+>program = replicateM_ 4 $ do
+>    ((-*:) . IdentityT) |>| tock                                                    -- (-*:) is a level-2 identity-cover function, analogous to (-*)
+>        :: (Monad m, Traversable m) => StateT Int (IdentityT2 IO m             ) ()
+>    ((*-:) . IdentityT) |>| save                                                    -- (*-:) is a level-2 identity-cover function, analogous to (.*)
+>        :: (Monad m               ) => StateT Int (IdentityT2 m  (Writer [Int])) ()
+>
+>-- λ> execWriter |$> runIdentityT2 (runStateT program 0)
+>-- Tock!
+>-- Tock!
+>-- Tock!
+>-- Tock!
+>-- [1,2,3,4]
+-}

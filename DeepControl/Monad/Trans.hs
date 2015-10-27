@@ -1,6 +1,6 @@
 {-|
 Module      : DeepControl.Monad.Trans
-Description : Enable deep level Monad-Transform programming.
+Description : Deepened the usual Control.Monad.Trans module.
 Copyright   : (c) Andy Gill 2001,
               (c) Oregon Graduate Institute of Science and Technology, 2001,
               (c) 2015 KONISHI Yohsuke
@@ -17,78 +17,54 @@ You would realize exactly what __/more deeper level/__ means by reading the exam
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 module DeepControl.Monad.Trans (
-    -- * Level-1
-    -- ** trans-cover
-    (|*|),
-
-    -- * Level-2
-    -- ** trans-cover  
-    (|**|),
-    (|-*|), 
-
-    -- * Level-3
-    -- ** trans-cover  
-    (|***|),
-    (|--*|), 
-    (|-**|), (|*-*|), 
-
-    -- * Level-4
-    -- ** trans-cover
-    (|****|),
-    (|---*|),
-    (|--**|), (|-*-*|), (|*--*|),
-    (|-***|), (|*-**|), (|**-*|), 
-
-
-    -- * Level-5
-    -- ** trans-cover
-    (|*****|),
-    (|----*|), 
-    (|---**|), (|--*-*|), (|-*--*|), (|*---*|), 
-    (|--***|), (|-*-**|), (|*--**|), (|*-*-*|), (|-**-*|), (|**--*|),
-    (|-****|), (|*-***|), (|**-**|), (|***-*|), 
-
+    module Control.Monad.Trans,
     -- * MonadTrans
-    MonadTrans(..), 
     MonadTrans_(..), 
 
-    -- * MonadIO
-    MonadIO(..),
+    -- * Level-2
+    -- ** trans-roll
+    transroll2, untransroll2,
+
+    -- * Level-3
+    -- ** trans-roll
+    transroll3, untransroll3,
+
+    -- * Level-4
+    -- ** trans-roll
+    transroll4, untransroll4,
+
+    -- * Level-5
+    -- ** trans-roll
+    transroll5, untransroll5,
 
     -- * Level-2 example
     -- $Example_Level2
-
-    -- * Level-2 example2
-    -- $Example_Level2_cover
 
 ) where
 
 import DeepControl.Applicative
 import DeepControl.Monad
-import DeepControl.Monad.Morph
 
-import Control.Monad.IO.Class
-import Control.Monad.Trans.Class (MonadTrans (..))
-import qualified Control.Monad.List          as L
-import qualified Control.Monad.Trans.Maybe   as M
-import qualified Control.Monad.Except        as E
-import Control.Monad.Identity
-import Control.Monad.Trans.Identity
-import Control.Monad.RWS (RWS, RWST(..), runRWS)
-import Control.Monad.Reader (Reader, ReaderT(..), runReader)
-import Control.Monad.State (State, StateT(..), runState)
+import Control.Monad.Trans
+import Control.Monad.Identity (Identity(..))
+import Control.Monad.Trans.Identity (IdentityT(..))
+import Control.Monad.Trans.List (ListT(..))
+import Control.Monad.Trans.Maybe (MaybeT(..))
+import Control.Monad.Except (Except, ExceptT(..), runExcept, runExceptT)
 import Control.Monad.Writer (Writer, WriterT(..), runWriter)
 import Data.Monoid 
+-- import Control.Monad.Reader (Reader, ReaderT(..), runReader)
+
+-- $setup
+-- >>> import Control.Monad.Trans.Maybe
+-- >>> import Control.Monad.List
+-- >>> import Control.Monad.Except
+-- >>> import Control.Monad.Writer
 
 ----------------------------------------------------------------------
 -- Level-1
 
-infixl 3 |*|
--- | Alias to @'lift'@
-(|*|) :: (Monad m, MonadTrans t) => m a -> t m a 
-(|*|) = lift
-
--- | Required only for transfold
+-- | Required only for transroll
 class (Monad m, MonadTrans t) => MonadTrans_ m t | m -> t, t -> m where
     trans :: (Monad n) => n (m a) -> t n a
     untrans :: (Monad n) => t n a -> n (m a)
@@ -96,211 +72,98 @@ class (Monad m, MonadTrans t) => MonadTrans_ m t | m -> t, t -> m where
 instance MonadTrans_ Identity IdentityT where
     trans   = IdentityT . (runIdentity|$>)
     untrans = (Identity|$>) . runIdentityT
-instance MonadTrans_ [] L.ListT where
-    trans   = L.ListT
-    untrans = L.runListT
-instance MonadTrans_ Maybe M.MaybeT where
-    trans   = M.MaybeT
-    untrans = M.runMaybeT
-instance MonadTrans_ (E.Except e) (E.ExceptT e) where
-    trans x   = E.ExceptT ((runIdentity . E.runExceptT) |$> x)
-    untrans x = (E.ExceptT . Identity) |$> E.runExceptT x
+instance MonadTrans_ [] ListT where
+    trans   = ListT
+    untrans = runListT
+instance MonadTrans_ Maybe MaybeT where
+    trans   = MaybeT
+    untrans = runMaybeT
+instance MonadTrans_ (Except e) (ExceptT e) where
+    trans x   = ExceptT ((runIdentity . runExceptT) |$> x)
+    untrans x = (ExceptT . Identity) |$> runExceptT x
 instance (Monoid w) => MonadTrans_ (Writer w) (WriterT w) where
     trans x   = WriterT ((runIdentity . runWriterT) |$> x)
     untrans x = (WriterT . Identity) |$> runWriterT x
 
+{- 
+instance MonadTrans_ (Reader r) (ReaderT r) where
+    trans x   = ReaderT . sink $ (((runIdentity|$>) . runReaderT) |$> x)
+    untrans x = (ReaderT . (Identity|$>)) |$> (sink . runReaderT) x      -- error: Could not deduce (Traversable ((->) r))
+-}
+
 ----------------------------------------------------------------------
 -- Level-2
 
-infixl 3 |**|
-(|**|) :: (Monad m, MonadTrans t1, MonadTrans t2, Monad (t2 m)) => m a -> t1 (t2 m) a 
-(|**|) = (|*|) . (|*|)
+-- | 
+--
+-- >>> transroll2 $ [Just 1]
+-- MaybeT [Just 1]
+--
+-- >>> transroll2 $ Just [1]
+-- ListT (Just [1])
+--
+transroll2 :: (Monad m1, MonadTrans_ m2 t2) => m1 (m2 a) -> (t2 m1) a
+transroll2 = trans
 
-infixl 3  |-*|
-(|-*|) :: (Monad m, MonadTrans t1, MonadTrans t2, MFunctor t1) => t1 m a -> t1 (t2 m) a
-(|-*|) = ((|*|) |>|)
+-- | 
+--
+-- >>> untransroll2 $ MaybeT [Just 1]
+-- [Just 1]
+--
+-- >>> untransroll2 $ ListT (Just [1])
+-- Just [1]
+--
+untransroll2 :: (Monad m1, MonadTrans_ m2 t2) => (t2 m1) a -> m1 (m2 a)
+untransroll2 = untrans
 
 ----------------------------------------------------------------------
 -- Level-3
 
-infixl 3 |***|
-(|***|) :: (Monad m, Monad (t2 (t3 m)), Monad (t3 m),
-            MonadTrans t1, MonadTrans t2, MonadTrans t3) => 
-            m a -> t1 (t2 (t3 m)) a 
-(|***|) = (|*|) . (|**|)
-
-infixl 3  |--*|
-(|--*|) :: (Monad m, Monad (t2 m),
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, 
-            MFunctor t1, MFunctor t2) => 
-            t1 (t2 m) a -> t1 (t2 (t3 m)) a
-(|--*|) = ((|*|) |>>|)
-
-infixl 3  |-**|, |*-*|
-(|-**|) :: (Monad m, Monad (t2 (t3 m)), Monad (t3 m),
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, 
-            MFunctor t1) => 
-            t1 m a -> t1 (t2 (t3 m)) a
-(|-**|) = ((|**|) |>|)
-(|*-*|) :: (Monad m, Monad (t3 m), Monad (t2 (t3 m)),
-            MonadTrans t1, MonadTrans t2, MonadTrans t3,
-            MFunctor t2) => 
-            t2 m a -> t1 (t2 (t3 m)) a
-(|*-*|) = (|*|) . ((|*|) |>|)
+-- | 
+--
+-- >>> transroll3 $ ExceptT (Identity (Right [Just 1]))
+-- MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+--
+transroll3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => m1 (m2 (m3 a)) -> t3 (t2 m1) a
+transroll3 = trans . trans
+-- | 
+--
+-- >>> untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+-- ExceptT (Identity (Right [Just 1]))
+--
+untransroll3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => t3 (t2 m1) a -> m1 (m2 (m3 a))
+untransroll3 = untrans . untrans
 
 ----------------------------------------------------------------------
 -- Level-4
 
-infixl 3 |****|
-(|****|) :: (Monad m, Monad (t2 (t3 (t4 m))), Monad (t3 (t4 m)), Monad (t4 m),
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4) => 
-            m a -> t1 (t2 (t3 (t4 m))) a 
-(|****|) = (|*|) . (|***|)
-
-infixl 3  |---*|
-(|---*|) :: (Monad m, Monad (t2 (t3 m)), Monad (t3 m), 
-            MFunctor t1, MFunctor t2, MFunctor t3,
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4) => 
-            t1 (t2 (t3 m)) a -> t1 (t2 (t3 (t4 m))) a
-(|---*|) = ((|*|) |>>>|)
-infixl 3  |--**|, |-*-*|
-(|--**|) :: (Monad m, Monad (t2 m), Monad (t4 m), 
-            MFunctor t1, MFunctor t2,
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4) => 
-            t1 (t2 m) a -> t1 (t2 (t3 (t4 m))) a
-(|--**|) = ((|**|) |>>|)
-(|-*-*|) :: (Monad m, Monad (t3 m), Monad (t3 (t4 m)), Monad (t4 m),
-            MFunctor t1, MFunctor t3,
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4) => 
-            t1 (t3 m) a -> t1 (t2 (t3 (t4 m))) a
-(|-*-*|) = ((|*-*|) |>|)
-(|*--*|) :: (Monad m, Monad (t3 m), Monad (t2 (t3 (t4 m))), Monad (t2 (t3 m)),
-            MFunctor t2, MFunctor t3,
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4) => 
-            t2 (t3 m) a -> t1 (t2 (t3 (t4 m))) a
-(|*--*|) = (|*|) . (|--*|)
-infixl 3  |-***|, |*-**|, |**-*|
-(|-***|) :: (Monad m, Monad (t3 (t4 m)), Monad (t4 m),
-            MFunctor t1, 
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4) => 
-            t1 m a -> t1 (t2 (t3 (t4 m))) a
-(|-***|) = ((|***|) |>|)
-(|*-**|) :: (Monad m, Monad (t2 (t3 (t4 m))), Monad (t3 (t4 m)), Monad (t4 m),
-            MFunctor t2, 
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4) => 
-            t2 m a -> t1 (t2 (t3 (t4 m))) a
-(|*-**|) = (|*|) . (|-**|)
-(|**-*|) :: (Monad m, Monad (t2 (t3 (t4 m))), Monad (t3 (t4 m)), 
-            MFunctor t3, 
-            MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4) => 
-            t3 m a -> t1 (t2 (t3 (t4 m))) a
-(|**-*|) = (|**|) . (|-*|)
+transroll4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => m1 (m2 (m3 (m4 a))) -> t4 (t3 (t2 m1)) a
+transroll4 = trans . trans . trans
+untransroll4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => t4 (t3 (t2 m1)) a -> m1 (m2 (m3 (m4 a)))
+untransroll4 = untrans . untrans . untrans
 
 ----------------------------------------------------------------------
 -- Level-4
 
-infixl 3 |*****|
-(|*****|) :: (Monad m, Monad (t2 (t3 (t4 (t5 m)))), Monad (t3 (t4 (t5 m))), Monad (t4 (t5 m)), Monad (t5 m), 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              m a -> t1 (t2 (t3 (t4 (t5 m)))) a 
-(|*****|) = (|*|) . (|****|)
-
-infixl 3  |----*|
-(|----*|) :: (Monad m, Monad (t2 (t3 (t4 m))), Monad (t3 (t4 m)), Monad (t4 m), 
-              MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t1 (t2 (t3 (t4 m))) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|----*|) = ((|*|) |>>>>|)
-
-infixl 3  |---**|, |--*-*|, |-*--*|, |*---*|
-(|---**|) :: (Monad m, Monad (t2 (t3 m)), Monad (t3 m), Monad (t5 m), 
-              MFunctor t1, MFunctor t2, MFunctor t3,
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t1 (t2 (t3 m)) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|---**|) = ((|**|) |>>>|)
-(|--*-*|) :: (Monad m, Monad (t2 (t4 m)), Monad (t4 m), Monad (t4 (t5 m)), Monad (t5 m), 
-              MFunctor t1, MFunctor t2, MFunctor t4, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t1 (t2 (t4 m)) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|--*-*|) = ((|*-*|) |>>|)
-(|-*--*|) :: (Monad m, Monad (t3 (t4 m)), Monad (t4 m), Monad (t3 (t4 (t5 m))),
-              MFunctor t1, MFunctor t3, MFunctor t4, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t1 (t3 (t4 m)) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|-*--*|) = ((|*--*|) |>|)
-(|*---*|) :: (Monad m, Monad (t3 (t4 m)), Monad (t4 m), Monad (t2 (t3 (t4 (t5 m)))), 
-              MFunctor t2, MFunctor t3, MFunctor t4, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t2 (t3 (t4 m)) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|*---*|) = (|*|) . (|---*|)
-
-infixl 3  |--***|, |-*-**|, |*--**|, |*-*-*|, |-**-*|, |**--*|
-(|--***|) :: (Monad m, Monad (t2 m), Monad (t4 (t5 m)), Monad (t5 m),
-              MFunctor t1, MFunctor t2, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t1 (t2 m) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|--***|) = ((|***|) |>>|)
-(|-*-**|) :: (Monad m, Monad (t3 m), Monad (t3 (t4 (t5 m))), Monad (t4 (t5 m)), Monad (t5 m),
-              MFunctor t1, MFunctor t3, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t1 (t3 m) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|-*-**|) = ((|*-**|) |>|)
-(|*--**|) :: (Monad m, Monad (t3 m), Monad (t2 (t3 (t4 (t5 m)))), Monad (t5 m), 
-              MFunctor t2, MFunctor t3, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t2 (t3 m) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|*--**|) = (|*|) . (|--**|)
-(|*-*-*|) :: (Monad m, Monad (t4 m), Monad (t2 (t3 (t4 (t5 m)))), Monad (t4 (t5 m)), Monad (t5 m), 
-              MFunctor t2, MFunctor t4, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t2 (t4 m) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|*-*-*|) = (|*|) . (|-*-*|)
-(|-**-*|) :: (Monad m, Monad (t4 m), Monad (t3 (t4 (t5 m))), Monad (t4 (t5 m)), Monad (t5 m), 
-              MFunctor t1, MFunctor t4, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t1 (t4 m) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|-**-*|) = (|-*|) . (|-*-*|)
-(|**--*|) :: (Monad m, Monad (t4 m), Monad (t2 (t3 (t4 (t5 m)))), Monad (t3 (t4 (t5 m))), Monad (t3 (t4 m)), 
-              MFunctor t3, MFunctor t4, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t3 (t4 m) a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|**--*|) = (|*|) . (|*--*|)
-
-infixl 3  |-****|, |*-***|, |**-**|, |***-*|
-(|-****|) :: (Monad m, Monad (t3 (t4 (t5 m))), Monad (t4 (t5 m)), Monad (t5 m), 
-              MFunctor t1, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t1 m a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|-****|) = ((|****|) |>|)
-(|*-***|) :: (Monad m, Monad (t2 (t3 (t4 (t5 m)))), Monad (t4 (t5 m)), Monad (t5 m),
-              MFunctor t2, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t2 m a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|*-***|) = (|*|) . (|-***|)
-(|**-**|) :: (Monad m, Monad (t2 (t3 (t4 (t5 m)))), Monad (t3 (t4 (t5 m))), Monad (t4 (t5 m)), Monad (t5 m), 
-              MFunctor t3, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t3 m a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|**-**|) = (|**|) . (|-**|)
-(|***-*|) :: (Monad m, Monad (t2 (t3 (t4 (t5 m)))), Monad (t3 (t4 (t5 m))), Monad (t4 (t5 m)), 
-              MFunctor t4, 
-              MonadTrans t1, MonadTrans t2, MonadTrans t3, MonadTrans t4, MonadTrans t5) => 
-              t4 m a -> t1 (t2 (t3 (t4 (t5 m)))) a
-(|***-*|) = (|***|) . (|-*|)
-
+transroll5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
+              m1 (m2 (m3 (m4 (m5 a)))) -> t5 (t4 (t3 (t2 m1))) a
+transroll5 = trans . trans . trans . trans
+untransroll5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
+                t5 (t4 (t3 (t2 m1))) a -> m1 (m2 (m3 (m4 (m5 a))))
+untransroll5 = untrans . untrans . untrans . untrans
 
 ----------------------------------------------------------------------
 -- Examples
 
 {- $Example_Level2
-Here is a monad transformer example how to implement Ackermann function, improved to stop within a certain limit of time, with ReaderT-IdentityT2-IO-Maybe monad, a level-2 monad-transformation.
+Here is a monad transformer example how to implement Ackermann function improved to stop within a certain limit of time, with ReaderT-IdentityT2-IO-Maybe monad, a level-2 monad-transformation.
 
 >import DeepControl.Applicative
->import DeepControl.Commutative (commute)
+>import DeepControl.Traversable (sink)
 >import DeepControl.Monad ((>-))
->import DeepControl.Monad.Morph ((|>|))
->import DeepControl.Monad.Trans ((|*|))
->import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..), transfold2, untransfold2)
+>import DeepControl.Monad.Morph ((|*|), (|>|))
+>import DeepControl.Monad.Trans (transroll2, untransroll2)
+>import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..))
 >import Control.Monad.Reader
 >import Control.Monad.Trans.Maybe
 >
@@ -327,58 +190,16 @@ Here is a monad transformer example how to implement Ackermann function, improve
 >calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
 >                                             >- runIdentityT2
 >
->-- λ> commute $ calc_ackermann 1000 |$> [0..4] |* 4
+>-- λ> sink $ calc_ackermann 1000 |$> [0..4] |* 4
 >-- [Just 5,Just 6,Just 11,Just 125,Nothing]
 >
 >ackermann' :: Int -> Int -> 
->              ReaderT TimeLimit (MaybeT IO) Int                -- ReaderT-MaybeT-IO monad
->ackermann' x y = (runIdentityT . transfold2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
+>              ReaderT TimeLimit (MaybeT IO) Int                 -- ReaderT-MaybeT-IO monad
+>ackermann' x y = (transroll2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
 >
 >ackermann'' :: Int -> Int -> 
->               ReaderT TimeLimit (IdentityT2 IO Maybe) Int      -- ReaderT-IdentityT2-IO-Maybe monad
->ackermann'' x y = (untransfold2 . IdentityT) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+>               ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
+>ackermann'' x y = (IdentityT2 . untransroll2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 -}
 
-{- $Example_Level2_cover
-Here is a monad transformer example showing how to use trans-cover functions.
 
->import DeepControl.Applicative ((|$>))
->import DeepControl.Commutative (Commutative)
->import DeepControl.Monad (Monad)
->import DeepControl.Monad.Morph (generalize, (|>|))
->import DeepControl.Monad.Trans ((|*|))
->import DeepControl.Monad.Trans.Identity (IdentityT(..), IdentityT2(..), (-*:), (*-:))
->import Control.Monad.Writer
->import Control.Monad.State
->
->tick :: State Int ()
->tick = modify (+1)
->
->tock                         ::                   StateT Int IO ()
->tock = do
->    generalize |>| tick      :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>)
->    (|*|) $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- (|*|) is the level-1 trans-lift function, alias to 'lift'
->
->-- λ> runStateT tock 0
->-- Tock!
->-- ((),1)
->
->save :: StateT Int (Writer [Int]) ()
->save = do
->    n <- get
->    (|*|) $ tell [n]
->
->program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
->program = replicateM_ 4 $ do
->    ((-*:) . IdentityT) |>| tock                                                    -- (-*:) is a level-2 trans-cover function, analogous to (-*)
->        :: (Monad m, Commutative m) => StateT Int (IdentityT2 IO m             ) ()
->    ((*-:) . IdentityT) |>| save                                                    -- (*-:) is a level-2 trans-cover function, analogous to (.*)
->        :: (Monad m               ) => StateT Int (IdentityT2 m  (Writer [Int])) ()
->
->-- λ> execWriter |$> runIdentityT2 (runStateT program 0)
->-- Tock!
->-- Tock!
->-- Tock!
->-- Tock!
->-- [1,2,3,4]
--}

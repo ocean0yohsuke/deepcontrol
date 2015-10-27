@@ -182,26 +182,26 @@ cover-braket notation:
 
 Work well likewise.
 
-### [Commutative](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Commutative.html)
+### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Traversable.html)
 
-    Prelude> :m DeepControl.Commutative
+    Prelude> :m DeepControl.Traversable
 
-[], Maybe, Either, Except and Writer monads are all commutative each other.
+List, Maybe, Either, Except and Writer monads are all sinkable infinitely.
 
-    > :t commute
-    commute :: (Applicative f, Commutative c) => c (f a) -> f (c a)
+    > :t sink
+    sink :: (Applicative f, Traversable c) => c (f a) -> f (c a)
 
-    > commute $ Just [1]
+    > sink $ Just [1]
     [Just 1]
-    > commute $ [Just 1]
-    Just [1]
+    > sink2 $ Just (Right [1])
+    Right [Just 1]
 
-    > commute $ Right (Just 1)
-    Just (Right 1)
-    > commute $ Just (Right 1)
-    Right (Just 1)
+    > sink $ Right [Just 1]
+    [Right (Just 1)]
+    > sink2 $ Right [Just 1]
+    [Just (Right 1)]
 
-So these monads can be deepened freely.
+So these monads can be deepened.
 
 ### [Monad](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Monad.html)
 
@@ -239,13 +239,13 @@ listlist = [["a","b"]] >>== \x ->  -- (>>==) is the level-2 bind function, analo
 ```
 
 ```haskell
-import DeepControl.Applicative ((|$>), (-*), (.*), (.**))
+import DeepControl.Applicative ((|$>), (.*), (.**))
 import DeepControl.Monad ((>>), (>>==), (->~))
 import Control.Monad.Writer
 
 factorial :: Int ->
              Maybe (Writer [Int] Int)               -- Maybe-Writer monad
-factorial n | n < 0  = (-*) Nothing
+factorial n | n < 0  = Nothing
             | n == 0 = (.*) $ tell [0] >> (.*) 1
             | n > 0  = factorial (n-1) >>== \v ->   
                        tell [v] ->~                 -- (->~) is a level-2 cover-sequence function, analogous to (>>)
@@ -253,18 +253,20 @@ factorial n | n < 0  = (-*) Nothing
 
 -- > runWriter |$> factorial 5
 -- Just (120,[0,1,1,2,6,24])
+-- > factorial (-1)
+-- Nothing
 ```
 
 #### Level-3
 
 ```haskell
-import DeepControl.Applicative ((|$>>), (*-*), (.*), (.**), (.***))
+import DeepControl.Applicative ((|$>>), (.*), (.**), (.***))
 import DeepControl.Monad ((>>), (>>>==), (>--~), (-->~))
 import Control.Monad.Writer
 
 factorial :: Int ->
              IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer monad
-factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cover function
+factorial n | n < 0  = (.*) Nothing                  
             | n == 0 = (.**) $ tell [0] >> (.*) 1
             | n > 0  = factorial (n-1) >>>== \v ->    -- (>>>==) is the level-3 bind function, analogous to (>>=)
                        print v >--~                   -- (>--~) is a level-3 cover-sequence function, analogous to (>>)
@@ -278,6 +280,8 @@ factorial n | n < 0  = (*-*) Nothing                  -- (*-*) is a level-3 cove
 -- 6
 -- 24
 -- Just (120,[0,1,1,2,6,24])
+-- > factorial (-1)
+-- Nothing
 ```
 #### Level-4 and Level-5
 
@@ -287,15 +291,15 @@ Work well likewise.
 
 #### Level-2
 
-Here is a monad transformer example how to implement Ackermann function, improved to stop within a certain limit of time, with ReaderT-IdentityT2-IO-Maybe monad, a level-2 monad-transformation.
+Here is a monad transformer example how to implement Ackermann function improved to stop within a certain limit of time, with ReaderT-IdentityT2-IO-Maybe monad, a level-2 monad-transformation.
 
 ```haskell
 import DeepControl.Applicative
-import DeepControl.Commutative (commute)
+import DeepControl.Traversable (sink)
 import DeepControl.Monad ((>-))
-import DeepControl.Monad.Morph ((|>|))
-import DeepControl.Monad.Trans ((|*|))
-import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..), transfold2, untransfold2)
+import DeepControl.Monad.Morph ((|*|), (|>|))
+import DeepControl.Monad.Trans (transroll2, untransroll2)
+import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..))
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
 
@@ -304,7 +308,7 @@ import System.Timeout (timeout)
 type TimeLimit = Int
 
 ackermannTimeLimit :: TimeLimit -> Int -> Int -> 
-                      IO (Maybe Int)                      -- IO-Maybe Monad
+                      IO (Maybe Int)                       -- IO-Maybe Monad
 ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
   where
     ackermannIO :: Int -> Int -> IO Int
@@ -313,35 +317,33 @@ ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
                     | m > 0 && n > 0  = ackermannIO m (n-1) >>= ackermannIO (m-1)
  
 ackermann :: Int -> Int -> 
-             ReaderT TimeLimit (IdentityT2 IO Maybe) Int  -- ReaderT-IdentityT2-IO-Maybe monad
+             ReaderT TimeLimit (IdentityT2 IO Maybe) Int   -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann x y = do
     timelimit <- ask
-    (|*|) . IdentityT2 $ ackermannTimeLimit timelimit x y -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
+    (|*|) . IdentityT2 $ ackermannTimeLimit timelimit x y  -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
 
 calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
                                              >- runIdentityT2
 
--- λ> commute $ calc_ackermann 1000 |$> [0..4] |* 4
+-- λ> sink $ calc_ackermann 1000 |$> [0..4] |* 4
 -- [Just 5,Just 6,Just 11,Just 125,Nothing]
 
 ackermann' :: Int -> Int -> 
-              ReaderT TimeLimit (MaybeT IO) Int                -- ReaderT-MaybeT-IO monad
-ackermann' x y = (runIdentityT . transfold2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
+              ReaderT TimeLimit (MaybeT IO) Int                 -- ReaderT-MaybeT-IO monad
+ackermann' x y = (transroll2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
 
 ackermann'' :: Int -> Int -> 
-               ReaderT TimeLimit (IdentityT2 IO Maybe) Int      -- ReaderT-IdentityT2-IO-Maybe monad
-ackermann'' x y = (untransfold2 . IdentityT) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+               ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
+ackermann'' x y = (IdentityT2 . untransroll2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 ```
 
 Here is a monad transformer example showing how to use trans-cover functions.
 
 ```haskell
 import DeepControl.Applicative ((|$>))
-import DeepControl.Commutative (Commutative)
 import DeepControl.Monad (Monad)
-import DeepControl.Monad.Morph (generalize, (|>|))
-import DeepControl.Monad.Trans ((|*|))
+import DeepControl.Monad.Morph (generalize, (|*|), (|>|))
 import DeepControl.Monad.Trans.Identity (IdentityT(..), IdentityT2(..), (-*:), (*-:))
 import Control.Monad.Writer
 import Control.Monad.State
@@ -366,7 +368,7 @@ save = do
 program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
 program = replicateM_ 4 $ do
     ((-*:) . IdentityT) |>| tock                                                    -- (-*:) is a level-2 trans-cover function, analogous to (-*)
-        :: (Monad m, Commutative m) => StateT Int (IdentityT2 IO m             ) ()
+        :: (Monad m, Traversable m) => StateT Int (IdentityT2 IO m             ) ()
     ((*-:) . IdentityT) |>| save                                                    -- (*-:) is a level-2 trans-cover function, analogous to (.*)
         :: (Monad m               ) => StateT Int (IdentityT2 m  (Writer [Int])) ()
 
@@ -383,7 +385,7 @@ Work well likewise.
 
 ### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Monad-Morph.html)
 
-Here is a monad-morph example, a level-2 monad-morph.
+Here is a monad morph example how to use trans-map functions.
 
 ```haskell
 import DeepControl.Monad.Morph
@@ -422,6 +424,62 @@ program = replicateM_ 4 $ do
 -- Tock!
 -- Tock!
 -- [1,2,3,4]
+```
+
+Here is a monad morph example how to use trans-cover and trans-bind functions.
+
+```haskell
+import DeepControl.Monad.Morph ((|>=), (|>>=), (|*|), (|-*|))
+import DeepControl.Monad.Trans.Except
+
+import Control.Exception (IOException, try)
+import Control.Monad.Trans.Maybe
+
+-----------------------------------------------
+-- Level-1 
+
+catchIOError :: IO a -> 
+                ExceptT IOException IO a   -- ExceptT-IO monad
+catchIOError io = ExceptT $ (try io)
+
+viewFile :: IO ()                          -- IO monad
+viewFile = do
+    str <- readFile "test.txt"
+    putStr str
+
+program :: ExceptT IOException IO ()       -- ExceptT-IO monad
+program = (|*|) viewFile |>= catchIOError  -- (|*|) is the level-1 trans-cover function, alias to 'lift', analogous to (.*)
+                                           -- (|>=) is the level-1 trans-bind function, analogous to (>>=)
+
+calc_program :: IO (Either IOException ())
+calc_program = runExceptT $ program
+
+-- > calc_program
+-- Left test.txt: openFile: does not exist (No such file or directory)
+
+-----------------------------------------------
+-- Level-2
+
+viewFile2 :: String -> 
+             MaybeT IO ()                        -- MaybeT-IO monad
+viewFile2 filename = do
+    guard (filename /= "")
+    str <- (|*|) $ readFile "test.txt"
+    (|*|) $ putStr str
+
+program2 :: String -> 
+            (ExceptT IOException (MaybeT IO)) () -- ExceptT-MaybeT-IO monad
+program2 filename = 
+    (|*|) (viewFile2 filename) |>>= \x ->        -- (|>>=) is the level-2 trans-bind function, analogous to (>>=)
+    (|-*|) $ catchIOError x                      -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
+
+calc_program2 :: String -> IO (Maybe (Either IOException ())) 
+calc_program2 filename = runMaybeT . runExceptT $ program2 filename
+
+-- > calc_program "test.txt"
+-- Just (Left test.txt: openFile: does not exist (No such file or directory))
+-- > calc_program ""
+-- Nothing
 ```
 
 #### Level-3, Level-4 and Level-5
