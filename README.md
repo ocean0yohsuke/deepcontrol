@@ -4,7 +4,7 @@ A Haskell library that enables more deeper level style programming than the usua
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.1.0/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -182,7 +182,7 @@ cover-braket notation:
 
 Work well likewise.
 
-### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Traversable.html)
+### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.1.0/docs/DeepControl-Traversable.html)
 
     Prelude> :m DeepControl.Traversable
 
@@ -203,7 +203,7 @@ List, Maybe, Either, Except and Writer monads are all sinkable infinitely.
 
 So these monads can be deepened.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.1.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -287,7 +287,7 @@ factorial n | n < 0  = (.*) Nothing
 
 Work well likewise.
 
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.1.0/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -337,53 +337,37 @@ ackermann'' :: Int -> Int ->
                ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
 ackermann'' x y = (IdentityT2 . untransroll2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 ```
-
-Here is a monad transformer example showing how to use trans-cover functions.
-
-```haskell
-import DeepControl.Applicative ((|$>))
-import DeepControl.Monad (Monad)
-import DeepControl.Monad.Morph (generalize, (|*|), (|>|))
-import DeepControl.Monad.Trans.Identity (IdentityT(..), IdentityT2(..), (-*:), (*-:))
-import Control.Monad.Writer
-import Control.Monad.State
-
-tick :: State Int ()
-tick = modify (+1)
-
-tock                         ::                   StateT Int IO ()
-tock = do
-    generalize |>| tick      :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>)
-    (|*|) $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()  -- (|*|) is the level-1 trans-lift function, alias to 'lift'
-
--- λ> runStateT tock 0
--- Tock!
--- ((),1)
-
-save :: StateT Int (Writer [Int]) ()
-save = do
-    n <- get
-    (|*|) $ tell [n]
-
-program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
-program = replicateM_ 4 $ do
-    ((-*:) . IdentityT) |>| tock                                                    -- (-*:) is a level-2 trans-cover function, analogous to (-*)
-        :: (Monad m, Traversable m) => StateT Int (IdentityT2 IO m             ) ()
-    ((*-:) . IdentityT) |>| save                                                    -- (*-:) is a level-2 trans-cover function, analogous to (.*)
-        :: (Monad m               ) => StateT Int (IdentityT2 m  (Writer [Int])) ()
-
--- λ> execWriter |$> runIdentityT2 (runStateT program 0)
--- Tock!
--- Tock!
--- Tock!
--- Tock!
--- [1,2,3,4]
-```
 #### Level-3, Level-4 and Level-5
 
 Work well likewise.
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Monad-Morph.html)
+transroll and untransroll:
+
+    Prelude> :m DeepControl.Monad.Trans 
+    > :m + Control.Monad.Trans.List Control.Monad.Trans.Maybe
+    > :m + DeepControl.Monad.Trans.Identity DeepControl.Monad.Trans.Except DeepControl.Monad.Trans.Writer
+
+    > transroll3 $ ExceptT (Identity (Right [Just 1]))    -- note: type Except e = ExceptT e Identity
+    MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+
+    > :t ExceptT (Identity (Right [Just 1]))
+    ExceptT (Identity (Right [Just 1]))
+      :: Num a => ExceptT e Identity [Maybe a]
+    > :t transroll3 $ ExceptT (Identity (Right [Just 1]))
+    transroll3 $ ExceptT (Identity (Right [Just 1]))
+      :: Num a => MaybeT (ListT (ExceptT e Identity)) a
+
+    > untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+    ExceptT (Identity (Right [Just 1]))
+
+    > :t MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+    MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+      :: Num a => MaybeT (ListT (ExceptT e Identity)) a
+    > :t untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+    untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+      :: Num a => ExceptT e Identity [Maybe a]
+
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.1.0/docs/DeepControl-Monad-Morph.html)
 
 Here is a monad morph example how to use trans-map functions.
 
@@ -432,8 +416,8 @@ Here is a monad morph example how to use trans-cover and trans-bind functions.
 import DeepControl.Monad.Morph ((|>=), (|>>=), (|*|), (|-*|))
 import DeepControl.Monad.Trans.Except
 
-import Control.Exception (IOException, try)
 import Control.Monad.Trans.Maybe
+import Control.Exception (IOException, try)
 
 -----------------------------------------------
 -- Level-1 
@@ -448,7 +432,7 @@ viewFile = do
     putStr str
 
 program :: ExceptT IOException IO ()       -- ExceptT-IO monad
-program = (|*|) viewFile |>= catchIOError  -- (|*|) is the level-1 trans-cover function, alias to 'lift', analogous to (.*)
+program = (|*|) viewFile |>= catchIOError  -- (|*|) is the level-1 trans-cover function, alias to 'lift' and analogous to (.*)
                                            -- (|>=) is the level-1 trans-bind function, analogous to (>>=)
 
 calc_program :: IO (Either IOException ())
@@ -486,4 +470,4 @@ calc_program2 filename = runMaybeT . runExceptT $ program2 filename
 
 Work well likewise.
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.4.3.0/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.1.0/docs/DeepControl-Arrow.html)
