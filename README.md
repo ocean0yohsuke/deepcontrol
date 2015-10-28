@@ -460,9 +460,9 @@ program2 filename =
 calc_program2 :: String -> IO (Maybe (Either IOException ())) 
 calc_program2 filename = runMaybeT . runExceptT $ program2 filename
 
--- > calc_program "test.txt"
+-- > calc_program2 "test.txt"
 -- Just (Left test.txt: openFile: does not exist (No such file or directory))
--- > calc_program ""
+-- > calc_program2 ""
 -- Nothing
 ```
 
