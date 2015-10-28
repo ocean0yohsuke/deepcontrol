@@ -3,15 +3,15 @@ import Test.HUnit hiding (State)
 import DeepControl.Monad.Morph ((|>=), (|>>=), (|*|), (|-*|))
 import DeepControl.Monad.Trans.Except
 
-import Control.Exception (IOException, try)
 import Control.Monad.Trans.Maybe
+import Control.Exception (IOException, try)
 
 -----------------------------------------------
 -- Level-1 
 
-catchIOError :: IO a -> 
+check :: IO a -> 
                 ExceptT IOException IO a   -- ExceptT-IO monad
-catchIOError io = ExceptT $ (try io)
+check io = ExceptT $ (try io)
 
 viewFile :: IO ()                          -- IO monad
 viewFile = do
@@ -19,7 +19,7 @@ viewFile = do
     putStr str
 
 program :: ExceptT IOException IO ()       -- ExceptT-IO monad
-program = (|*|) viewFile |>= catchIOError  -- (|*|) is the level-1 trans-cover function, alias to 'lift', analogous to (.*)
+program = (|*|) viewFile |>= check  -- (|*|) is the level-1 trans-cover function, alias to 'lift', analogous to (.*)
                                            -- (|>=) is the level-1 trans-bind function, analogous to (>>=)
 
 calc_program :: IO (Either IOException ())
@@ -35,21 +35,21 @@ viewFile2 :: String ->
              MaybeT IO ()                        -- MaybeT-IO monad
 viewFile2 filename = do
     guard (filename /= "")
-    str <- (|*|) $ readFile "test.txt"        
+    str <- (|*|) $ readFile filename       
     (|*|) $ putStr str
 
 program2 :: String -> 
             (ExceptT IOException (MaybeT IO)) () -- ExceptT-MaybeT-IO monad
 program2 filename = 
     (|*|) (viewFile2 filename) |>>= \x ->        -- (|>>=) is the level-2 trans-bind function, analogous to (>>=)
-    (|-*|) $ catchIOError x                      -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
+    (|-*|) $ check x                      -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
 
 calc_program2 :: String -> IO (Maybe (Either IOException ())) 
 calc_program2 filename = runMaybeT . runExceptT $ program2 filename
 
--- > calc_program "test.txt"
+-- > calc_program2 "test.txt"
 -- Just (Left test.txt: openFile: does not exist (No such file or directory))
--- > calc_program ""
+-- > calc_program2 ""
 -- Nothing
 
 ------------------------------------------------------

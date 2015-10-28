@@ -68,6 +68,9 @@ module DeepControl.Monad.Trans.Identity (
     -- ** lift 
     mapIdentityT5, liftCallCC5, liftCatch5,
 
+    -- * Example: identity-cover
+    -- $Example
+
     ) where 
 
 import DeepControl.Applicative
@@ -192,7 +195,7 @@ instance (Applicative m1, Applicative m2, Applicative m3) => Applicative (Identi
     (<*>) = lift2IdentityT3 (|*>>>)
 instance (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => Monad (IdentityT3 m1 m2 m3) where
     return = IdentityT3 . (.***)
-    m >>= f = IdentityT3 $ runIdentityT3 m >>>== (f >-> runIdentityT3)
+    m >>= f = IdentityT3 $ runIdentityT3 m >>>= (f >-> runIdentityT3)
 
 instance (Alternative m1, Alternative m2, Alternative m3) => Alternative (IdentityT3 m1 m2 m3) where
     empty = IdentityT3 empty
@@ -252,7 +255,7 @@ instance (Applicative m1, Applicative m2, Applicative m3, Applicative m4) => App
     (<*>) = lift2IdentityT4 (|*>>>>)
 instance (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => Monad (IdentityT4 m1 m2 m3 m4) where
     return = IdentityT4 . (.****)
-    m >>= f = IdentityT4 $ runIdentityT4 m >>>>== (f >-> runIdentityT4)
+    m >>= f = IdentityT4 $ runIdentityT4 m >>>>= (f >-> runIdentityT4)
 
 instance (Alternative m1, Alternative m2, Alternative m3, Alternative m4) => Alternative (IdentityT4 m1 m2 m3 m4) where
     empty = IdentityT4 empty
@@ -330,7 +333,7 @@ instance (Applicative m1, Applicative m2, Applicative m3, Applicative m4, Applic
     (<*>) = lift2IdentityT5 (|*>>>>>)
 instance (Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => Monad (IdentityT5 m1 m2 m3 m4 m5) where
     return = IdentityT5 . (.*****)
-    m >>= f = IdentityT5 $ runIdentityT5 m >>>>>== (f >-> runIdentityT5)
+    m >>= f = IdentityT5 $ runIdentityT5 m >>>>>= (f >-> runIdentityT5)
 
 instance (Alternative m1, Alternative m2, Alternative m3, Alternative m4, Alternative m5) => Alternative (IdentityT5 m1 m2 m3 m4 m5) where
     empty = IdentityT5 empty
@@ -431,7 +434,7 @@ infixl 3  -****:, *-***:, **-**:, ***-*:, ****-:
 (****-:) :: (Monad m1, Monad m2, Monad m3, Monad m4, Monad m5) => IdentityT m5 a -> IdentityT5 m1 m2 m3 m4 m5 a
 (****-:) = (---*-:) . (***-:)
 
-{- $Example_Level2
+{- $Example
 Here is an example showing how to use identity-cover functions
 
 >import DeepControl.Applicative ((|$>))

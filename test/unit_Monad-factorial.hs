@@ -9,7 +9,7 @@ factorial :: Int ->
 factorial n | n < 0  = Nothing
             | n == 0 = (.*) $ tell [0] >> (.*) 1
             | n > 0  = factorial (n-1) >>== \v ->   
-                       tell [v] ->~                 -- (->~) is a level-2 bind-cover function, analogous for (>>)
+                       tell [v] ->~                 -- (->~) is a level-2 bind-cover function, analogous to (>>)
                        (.**) (n * v)
 
 -- > runWriter |$> factorial 5

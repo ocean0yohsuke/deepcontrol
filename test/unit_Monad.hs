@@ -46,13 +46,13 @@ tLevel2 = ("Level2" ~:) |$> [
     ]
 
 tLevel3 = ("Level3" ~:) |$> [
-      ([[[1]]] >>>== \x -> (.***) x) ~?= [[[1]]]
-    , ((Just [[1]]) >>>== \x -> (.***) x) ~?= Just [[1]]
-    , (([Just [1]]) >>>== \x -> (.***) x) ~?= [Just [1]]
-    , (Right (Just [1]) >>>== \x -> (.***) x) ~?= (Right (Just [1]) :: Either () (Maybe [Int]))
+      ([[[1]]] >>>= \x -> (.***) x) ~?= [[[1]]]
+    , ((Just [[1]]) >>>= \x -> (.***) x) ~?= Just [[1]]
+    , (([Just [1]]) >>>= \x -> (.***) x) ~?= [Just [1]]
+    , (Right (Just [1]) >>>= \x -> (.***) x) ~?= (Right (Just [1]) :: Either () (Maybe [Int]))
 
-    , (Right (Just [0]) >>>== \x -> (.***) (x+1) >>>== \x -> (.***) (x+2)) ~?= (Right (Just [3]) :: Either () (Maybe [Int]))
-    , (Right Nothing    >>>== \x -> (.***) (x+1) >>>== \x -> (.***) (x+2)) ~?= (Right Nothing :: Either () (Maybe [Int]))
+    , (Right (Just [0]) >>>= \x -> (.***) (x+1) >>>= \x -> (.***) (x+2)) ~?= (Right (Just [3]) :: Either () (Maybe [Int]))
+    , (Right Nothing    >>>= \x -> (.***) (x+1) >>>= \x -> (.***) (x+2)) ~?= (Right Nothing :: Either () (Maybe [Int]))
     ]
 
 tests_Level0 :: Test
@@ -68,14 +68,14 @@ tests_Level0 = test [
 
 tests_Level2 :: Test
 tests_Level2 = test [ 
-      "List-List" ~: "(>>==)" ~: do
+      "List-List" ~: "(>>=)" ~: do
         let actual :: [[String]]
             actual = [["a","b"]] >>== \x ->
                      [[0],[1,2]] >>== \y ->
                      (.**) $ x ++ show y
         actual @?= [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 
-    , "List-Maybe" ~: "(>>==), (>>~)" ~: do
+    , "List-Maybe" ~: "(>>=), (>>~)" ~: do
         let actual :: [Maybe Double]
             actual = (readMay |$> ["1", "2", "_"]) >>== \a ->
                      (readMay |$> ["0", "2"]) >>== \b ->
@@ -90,13 +90,13 @@ tests_Level2 = test [
                      (.**) $ a / b
         actual @?= [Just 0.5,Just 1.0,Nothing]
 
-    , "(->)-Maybe" ~: "(>-==)" ~: do
+    , "(->)-Maybe" ~: "(>-=)" ~: do
         let lengthM :: [Int] -> Maybe Int
             lengthM [] = Nothing
             lengthM xs = Just (length xs) 
             averageM :: [Int] -> Maybe Double
             averageM = 
-                sum >-== \s ->
+                sum >-= \s ->
                 lengthM >>== \l ->
                 (.**) $ fromIntegral s / fromIntegral l
         averageM [10, 25, 70] @?= Just 35.0
@@ -110,7 +110,7 @@ tests_Level2 = test [
                                         xs -> Just (length xs) 
             averageRM :: Reader [Int] (Maybe Double)
             averageRM = 
-                sumR >-== \s ->
+                sumR >-= \s ->
                 lengthRM >>== \l ->
                 (.**) $ fromIntegral s / fromIntegral l
         runReader averageRM [10, 25, 70] @?= Just 35.0
@@ -129,11 +129,11 @@ tests_Level2 = test [
 
 tests_Level3 :: Test
 tests_Level3 = test [ 
-      "IO-Maybe-Writer" ~: "(>>>==), (-->~), (*-*)" ~: do
+      "IO-Maybe-Writer" ~: "(>>>=), (-->~), (*-*)" ~: do
         let factorial :: Int -> IO (Maybe (Writer [Int] Int))
             factorial n | n < 0  = (*-*) Nothing
                         | n == 0 = (.**) $ tell [0] >> return 1
-                        | n > 0  = factorial (n-1) >>>== \v ->
+                        | n > 0  = factorial (n-1) >>>= \v ->
                                    print v >--~
                                    tell [v] -->~
                                    (.***) (n * v)

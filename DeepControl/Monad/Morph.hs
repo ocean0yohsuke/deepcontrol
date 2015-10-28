@@ -26,10 +26,14 @@ module DeepControl.Monad.Morph (
     (|>|), (|<|), 
     -- ** trans-cover
     (|*|),
+    -- ** trans-fish
+    (|>=>),
 
     -- * Level-2
     -- ** trans-bind
     (|>>=),
+    -- ** trans-fish
+    (|>>=>),
     -- ** trans-map
     (|>>|), (|<<|),
     -- ** trans-cover  
@@ -39,7 +43,9 @@ module DeepControl.Monad.Morph (
     -- * Level-3
     -- ** trans-bind
     (|>>>=),
-    -- ** trans-map
+    -- ** trans-fish
+    (|>>>=>),
+     -- ** trans-map
     (|>>>|), (|<<<|),
     -- ** trans-cover  
     (|***|),
@@ -80,7 +86,7 @@ import DeepControl.Traversable
 import DeepControl.Monad.Trans
 
 import Control.Monad.Morph
--- import Control.Monad.Identity (Identity(..))
+import Control.Monad.Identity (Identity(..))
 import Control.Monad.Trans.Identity (IdentityT(..))
 import Control.Monad.Trans.Maybe (MaybeT(..))
 import Control.Monad.List (ListT(..))
@@ -92,6 +98,14 @@ import Data.Monoid
 -- SinkT
 
 class (MonadTrans s) => SinkT s where
+    -- | Alalog to @'DeepControl.Traversable.sink'@.
+    -- 
+    -- >>> sinkT $ MaybeT (ListT (Right [Just 1]))
+    -- ListT (MaybeT (Right (Just [1])))
+    --
+    -- >>> sinkT $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+    -- ListT (MaybeT (ExceptT (Identity (Right (Just [1])))))
+    --
     sinkT :: (Monad m, MMonad t,
               MonadTrans_ x t, Traversable x) => 
              s (t m) a -> t (s m) a
@@ -111,6 +125,11 @@ instance (Monoid w) => SinkT (WriterT w) where
         sinkToTuple = flipTuple . sink . (flipTuple|$>)
         flipTuple (x,y) = (y,x)
 
+-- | Alalog to @'DeepControl.Traversable.sink2'@.
+-- 
+-- >>> sinkT2 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+-- ListT (ExceptT (MaybeT (Identity (Just (Right [1])))))
+--
 sinkT2 :: (Monad m, Monad (s (t2 m)), Monad (t2 m), 
            MonadTrans_ x1 t1, Traversable x1, MonadTrans_ x2 t2, Traversable x2, 
            SinkT s, MMonad t1, MMonad t2) =>
@@ -157,6 +176,10 @@ infixl 5 |*|
 m |>~ k = m |>= \_ -> k
 -}
 
+infixr 3  |>=>
+(|>=>) :: (Monad m3, MMonad t) => (forall a. m1 a -> t m2 a) -> (forall b. m2 b -> t m3 b) -> m1 c -> t m3 c
+(|>=>) = (>|>)
+
 -------------------------------------------------------------------------------
 -- Level-2 functions
 
@@ -167,6 +190,13 @@ infixr 3  |>>=
            MMonad t1, MMonad t2, SinkT t2) => 
           t1 (t2 m) b -> (forall a. m a -> t1 (t2 n) a) -> t1 (t2 n) b
 m |>>= f = m |>= \x -> squash |>| (sinkT $ f |>| x)
+
+infixr 3  |>>=>
+(|>>=>) :: (Monad m3, Monad m2, Monad (t2 m3), Monad (t2 (t2 m3)), 
+            MonadTrans_ x t1, Traversable x, 
+            MMonad t1, MMonad t2, SinkT t2) => 
+           (forall a. m1 a -> t1 (t2 m2) a) -> (forall b. m2 b -> t1 (t2 m3) b) -> m1 c -> t1 (t2 m3) c
+f |>>=> g = \x -> f x |>>= g
 
 infixl 4  |>>|
 (|>>|) :: (Monad m, Monad (t2 m), MFunctor t1, MFunctor t2) => 
@@ -198,6 +228,14 @@ infixr 3  |>>>=
     MMonad t1, MMonad t2, MMonad t3) => 
    t1 (t2 (t3 m)) b -> (forall a. m a -> t1 (t2 (t3 n)) a) -> t1 (t2 (t3 n)) b
 m |>>>= f = m |>>= \x -> squash |>>| (sinkT2 $ f |>| x)
+
+infixr 3  |>>>=>
+(|>>>=>) :: (Monad m3, Monad m2, Monad (t2 m3), Monad (t2 (t2 m3)), Monad (t2 (t2 (t3 m3))), Monad (t2 (t3 m3)), Monad (t2 (t3 (t3 m3))), 
+             Monad (t3 m3), Monad (t3 m2), Monad (t3 (t2 (t3 m3))), Monad (t3 (t3 m3)), 
+             MonadTrans_ x1 t1, Traversable x1, MonadTrans_ x2 t2, Traversable x2, 
+             MMonad t1, MMonad t2, MMonad t3, SinkT t2, SinkT t3) => 
+            (forall a. m1 a -> t1 (t2 (t3 m2)) a) -> (forall b. m2 b -> t1 (t2 (t3 m3)) b) -> m1 c -> t1 (t2 (t3 m3)) c
+f |>>>=> g = \x -> f x |>>>= g
 
 infixl 4  |>>>|
 (|>>>|) :: (Monad m, Monad (t3 m), Monad (t2 (t3 m)), MFunctor t1, MFunctor t2, MFunctor t3) => 
@@ -434,10 +472,10 @@ Here is a monad morph example how to use trans-map functions.
 >tick    :: State Int ()
 >tick = modify (+1)
 >
->tock                        ::                   StateT Int IO ()
+>tock                         ::                   StateT Int IO ()
 >tock = do
->    generalize |>| tick     :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>) 
->    lift $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
+>    generalize |>| tick      :: (Monad      m) => StateT Int m  ()  -- (|>|) is the level-1 trans-map function, analogous to (|$>) 
+>    (|*|) $ putStrLn "Tock!" :: (MonadTrans t) => t          IO ()
 >
 >-- λ> runStateT tock 0
 >-- Tock!
@@ -447,11 +485,11 @@ Here is a monad morph example how to use trans-map functions.
 >save    :: StateT Int (Writer  [Int]) ()
 >save = do
 >    n <- get
->    lift $ tell [n]
+>    (|*|) $ tell [n]
 >
 >program ::                   StateT Int (WriterT [Int] IO) ()
 >program = replicateM_ 4 $ do
->    lift |>| tock
+>    (|*|) |>| tock
 >        :: (MonadTrans t) => StateT Int (t             IO) ()
 >    generalize |>>| save                                         -- (|>>|) is the level-2 trans-map function, analogous to (|$>>)
 >        :: (Monad      m) => StateT Int (WriterT [Int] m ) ()
@@ -477,9 +515,9 @@ Here is a monad morph example how to use trans-cover and trans-bind functions.
 >-----------------------------------------------
 >-- Level-1 
 >
->catchIOError :: IO a -> 
+>check :: IO a -> 
 >                ExceptT IOException IO a   -- ExceptT-IO monad
->catchIOError io = ExceptT $ (try io)
+>check io = ExceptT $ (try io)
 >
 >viewFile :: IO ()                          -- IO monad
 >viewFile = do
@@ -487,7 +525,7 @@ Here is a monad morph example how to use trans-cover and trans-bind functions.
 >    putStr str
 >
 >program :: ExceptT IOException IO ()       -- ExceptT-IO monad
->program = (|*|) viewFile |>= catchIOError  -- (|*|) is the level-1 trans-cover function, alias to 'lift', analogous to (.*)
+>program = (|*|) viewFile |>= check         -- (|*|) is the level-1 trans-cover function, alias to 'lift' and analogous to (.*)
 >                                           -- (|>=) is the level-1 trans-bind function, analogous to (>>=)
 >
 >calc_program :: IO (Either IOException ())
@@ -503,20 +541,20 @@ Here is a monad morph example how to use trans-cover and trans-bind functions.
 >             MaybeT IO ()                        -- MaybeT-IO monad
 >viewFile2 filename = do
 >    guard (filename /= "")
->    str <- (|*|) $ readFile "test.txt"        
+>    str <- (|*|) $ readFile filename        
 >    (|*|) $ putStr str
 >
 >program2 :: String -> 
 >            (ExceptT IOException (MaybeT IO)) () -- ExceptT-MaybeT-IO monad
 >program2 filename = 
 >    (|*|) (viewFile2 filename) |>>= \x ->        -- (|>>=) is the level-2 trans-bind function, analogous to (>>=)
->    (|-*|) $ catchIOError x                      -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
+>    (|-*|) $ check x                             -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
 >
 >calc_program2 :: String -> IO (Maybe (Either IOException ())) 
 >calc_program2 filename = runMaybeT . runExceptT $ program2 filename
 >
->-- > calc_program "test.txt"
+>-- > calc_program2 "test.txt"
 >-- Just (Left test.txt: openFile: does not exist (No such file or directory))
->-- > calc_program ""
+>-- > calc_program2 ""
 >-- Nothing
 -}
