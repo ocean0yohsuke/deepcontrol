@@ -1,6 +1,6 @@
 # deepcontrol
 
-A Haskell library that enables more deeper level style programming than the usual Control.xxx modules provide, especially for Applicative and Monad.
+A Haskell library that enables more deeper level style programming than the usual Control.xxx modules express, especially for Applicative and Monad.
 
 ## Examples
 
@@ -267,7 +267,7 @@ factorial :: Int ->
              IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer monad
 factorial n | n < 0  = (.*) Nothing
             | n == 0 = (.**) $ tell [0] >> (.*) 1
-            | n > 0  = factorial (n-1) >>>= \v ->    -- (>>>=) is the level-3 bind function, analogous to (>>=)
+            | n > 0  = factorial (n-1) >>>= \v ->     -- (>>>=) is the level-3 bind function, analogous to (>>=)
                        print v >--~                   -- (>--~) is a level-3 cover-sequence function, analogous to (>>)
                        tell [v] -->~                  -- (-->~) is a level-3 cover-sequence function too, analogous to (>>)
                        (.***) (n * v)
