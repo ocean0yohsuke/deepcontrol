@@ -8,7 +8,6 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module is deepened of @'Data.Traversable'@.
 -}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -32,7 +31,7 @@ import DeepControl.Applicative
 ------------------------------------------------------------------------------
 -- Level-1
 
--- | Alias to @'Data.Traversable.sequenceA'@.
+-- | Synonym to @'Data.Traversable.sequenceA'@.
 -- 
 -- >>> sink $ Just [1]
 -- [Just 1]

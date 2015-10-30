@@ -10,7 +10,7 @@ import Control.Exception (IOException, try)
 -- Level-1 
 
 check :: IO a -> 
-                ExceptT IOException IO a   -- ExceptT-IO monad
+         ExceptT IOException IO a          -- ExceptT-IO monad
 check io = ExceptT $ (try io)
 
 viewFile :: IO ()                          -- IO monad
@@ -19,7 +19,7 @@ viewFile = do
     putStr str
 
 program :: ExceptT IOException IO ()       -- ExceptT-IO monad
-program = (|*|) viewFile |>= check  -- (|*|) is the level-1 trans-cover function, alias to 'lift', analogous to (.*)
+program = (|*|) viewFile |>= check         -- (|*|) is the level-1 trans-cover function, alias to 'lift', analogous to (.*)
                                            -- (|>=) is the level-1 trans-bind function, analogous to (>>=)
 
 calc_program :: IO (Either IOException ())
@@ -42,7 +42,7 @@ program2 :: String ->
             (ExceptT IOException (MaybeT IO)) () -- ExceptT-MaybeT-IO monad
 program2 filename = 
     (|*|) (viewFile2 filename) |>>= \x ->        -- (|>>=) is the level-2 trans-bind function, analogous to (>>=)
-    (|-*|) $ check x                      -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
+    (|-*|) $ check x                             -- (|-*|) is a level-2 trans-cover function, analogous to (-*)
 
 calc_program2 :: String -> IO (Maybe (Either IOException ())) 
 calc_program2 filename = runMaybeT . runExceptT $ program2 filename

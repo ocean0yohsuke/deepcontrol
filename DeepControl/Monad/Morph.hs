@@ -170,14 +170,6 @@ infixl 4  |>|
 (|>|) :: (Monad m, MFunctor t) => (forall a . m a -> n a) -> t m b -> t n b
 (|>|) = hoist
 
-{- -- TODO:
-(|*>|) :: (Monad m, MFunctor t) => ? -> t m b -> t n b
-m1 |*>| m2 = 
-    m1 |>= \x1 ->
-    m2 |>= \x2 ->
-    (|*|) $ x1 x2
--}
-
 infixl 4  |<|
 -- | Equivalent to (|>|) with the arguments flipped.
 (|<|) :: (Monad m, MFunctor t) => t m b -> (forall a . m a -> n a) -> t n b
@@ -188,13 +180,13 @@ infixl 5 |*|
 (|*|) :: (Monad m, MonadTrans t) => m a -> t m a 
 (|*|) = lift
 
-infixr 3  |>~
-(|>~) :: (Monad n, MMonad t1) => t1 m b -> (forall a. t1 n a) -> t1 n b
-m |>~ k = m |>= \_ -> k
-
 infixr 3  |>=>
 (|>=>) :: (Monad m3, MMonad t) => (forall a. m1 a -> t m2 a) -> (forall b. m2 b -> t m3 b) -> m1 c -> t m3 c
 (|>=>) = (>|>)
+
+infixr 3  |>~
+(|>~) :: (Monad n, MMonad t1) => t1 m b -> (forall a. t1 n a) -> t1 n b
+m |>~ k = m |>= \_ -> k
 
 -------------------------------------------------------------------------------
 -- Level-2 functions

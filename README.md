@@ -4,7 +4,7 @@ A Haskell library that enables more deeper level style programming than the usua
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.2.0/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -182,7 +182,7 @@ cover-braket notation:
 
 Work well likewise.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.2.0/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -202,13 +202,13 @@ plus x y =
 -- 7
 ```
 
-#### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.2.0/docs/DeepControl-Traversable.html)
+#### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Traversable.html)
 
 Identity, List, Maybe, Either, Except and Writer monads are sinkable monads.
 
     Prelude> :m DeepControl.Traversable
     > :t sink
-    sink :: (Applicative f, Traversable c) => c (f a) -> f (c a)  -- alias to 'sequenceA'
+    sink :: (Applicative f, Traversable c) => c (f a) -> f (c a)  -- synonym to 'sequenceA'
 
     > sink $ Just [1]
     [Just 1]
@@ -264,12 +264,12 @@ import DeepControl.Monad ((>>), (>>>=), (>--~), (-->~))
 import Control.Monad.Writer
 
 factorial :: Int ->
-             IO (Maybe (Writer [Int] Int))            -- IO-Maybe-Writer monad
+             IO (Maybe (Writer [Int] Int))         -- IO-Maybe-Writer monad
 factorial n | n < 0  = (.*) Nothing
             | n == 0 = (.**) $ tell [0] >> (.*) 1
-            | n > 0  = factorial (n-1) >>>= \v ->     -- (>>>=) is the level-3 bind function, analogous to (>>=)
-                       print v >--~                   -- (>--~) is a level-3 cover-sequence function, analogous to (>>)
-                       tell [v] -->~                  -- (-->~) is a level-3 cover-sequence function too, analogous to (>>)
+            | n > 0  = factorial (n-1) >>>= \v ->  -- (>>>=) is the level-3 bind function, analogous to (>>=)
+                       print v >--~                -- (>--~) is a level-3 cover-sequence function, analogous to (>>)
+                       tell [v] -->~               -- (-->~) is a level-3 cover-sequence function too, analogous to (>>)
                        (.***) (n * v)
 
 -- > runWriter |$>> factorial 5
@@ -286,7 +286,7 @@ factorial n | n < 0  = (.*) Nothing
 
 Work well likewise.
 
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.2.0/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -368,7 +368,7 @@ transroll and untransroll:
     untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
       :: Num a => ExceptT e Identity [Maybe a]
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.2.0/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Monad-Morph.html)
 
 #### SinkT
 
@@ -497,4 +497,4 @@ calc_program2 filename = runMaybeT . runExceptT $ program2 filename
 
 Work well likewise.
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.2.0/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Arrow.html)

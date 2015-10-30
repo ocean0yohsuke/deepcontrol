@@ -1,7 +1,8 @@
 {-|
 Module      : DeepControl.Monad
 Description : Deepend the usual Control.Monad module.
-Copyright   : (c) 2015 KONISHI Yohsuke 
+Copyright   : (c) The University of Glasgow 2001,
+              (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the LICENSE file in the distribution)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental

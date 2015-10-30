@@ -1,8 +1,7 @@
 {-|
 Module      : DeepControl.Monad.Trans.Except
 Description : Deepened the usual Control.Monad.Except module.
-Copyright   : (C) 2013 Ross Paterson,
-              (c) 2015 KONISHI Yohsuke 
+Copyright   : (c) 2015 KONISHI Yohsuke 
 License     : BSD-style (see the file LICENSE)
 Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
@@ -44,13 +43,7 @@ import DeepControl.Monad.Signatures
 import Control.Monad.Except
 import Data.Functor.Identity
 
-----------------------------------------------------------------
--- 
-
---except :: Either e a -> Except e a
---except = ExceptT . Identity
-
-----------------------------------------------------------------
+---------------------------------------------------------------
 -- Level-2
 
 throwError2 :: (MonadError e m2, Applicative m1) => e -> m1 (m2 a)
@@ -66,7 +59,6 @@ catchError2 = liftCatch catchError
         let m' = sink m
             h' = sink |$> h
         in sink $ catch m' h'
-
 
 ----------------------------------------------------------------
 -- Level-3

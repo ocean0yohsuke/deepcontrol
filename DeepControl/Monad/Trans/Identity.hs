@@ -103,14 +103,6 @@ infixl 3  *:
 (*:) :: (Monad m) => Identity a -> IdentityT m a
 (*:) = IdentityT . (.*) . runIdentity
 
--- TODO: ($>:)
---($>:) :: (m a -> n b) -> IdentityT m a -> IdentityT n b
---($>:) = mapIdentityT
-
--- | Lift a binary operation to the new monad.
--- lift2IdentityT :: (m a -> n b -> p c) -> IdentityT m a -> IdentityT n b -> IdentityT p c
--- lift2IdentityT f a b = IdentityT (f (runIdentityT a) (runIdentityT b))
-
 ----------------------------------------------------------------------
 -- Level-2
 
