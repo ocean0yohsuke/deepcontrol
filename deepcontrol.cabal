@@ -1,5 +1,5 @@
 name:                deepcontrol
-version:             0.5.2.0
+version:             0.5.3.0
 synopsis:            Provide more deeper level style of programming than the usual Control.xxx modules express
 description:         This module provides more deeper level style of programming than the usual Control.xxx modules express, especially for Applicative and Monad.
 license:             BSD3
@@ -13,9 +13,7 @@ build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
 extra-source-files:  README.md
-
 bug-reports:         https://github.com/ocean0yohsuke/deepcontrol/issues
-
 source-repository head
   type:           git
   location:       https://github.com/ocean0yohsuke/deepcontrol.git

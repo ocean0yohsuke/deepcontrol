@@ -24,6 +24,8 @@ module DeepControl.Monad.Morph (
     -- * Level-1
     -- ** trans-map
     (|>|), (|<|), 
+    -- ** trans-sequence
+    (|>~),
     -- ** trans-cover
     (|*|),
     -- ** trans-fish
@@ -32,6 +34,8 @@ module DeepControl.Monad.Morph (
     -- * Level-2
     -- ** trans-bind
     (|>>=),
+    -- ** trans-sequence
+    (|>>~),
     -- ** trans-fish
     (|>>=>),
     -- ** trans-map
@@ -43,6 +47,8 @@ module DeepControl.Monad.Morph (
     -- * Level-3
     -- ** trans-bind
     (|>>>=),
+    -- ** trans-sequence
+    (|>>>~),
     -- ** trans-fish
     (|>>>=>),
      -- ** trans-map
@@ -55,6 +61,8 @@ module DeepControl.Monad.Morph (
     -- * Level-4
     -- ** trans-bind
     (|>>>>=),
+    -- ** trans-sequence
+    (|>>>>~),
     -- ** trans-map
     (|>>>>|), (|<<<<|),
     -- ** trans-cover
@@ -64,6 +72,10 @@ module DeepControl.Monad.Morph (
     (|-***|), (|*-**|), (|**-*|), 
 
     -- * Level-5
+    -- ** trans-bind
+    (|>>>>>=),
+    -- ** trans-sequence
+    (|>>>>>~),
     -- ** trans-map
     (|>>>>>|), (|<<<<<|),
     -- ** trans-cover
@@ -158,23 +170,27 @@ infixl 4  |>|
 (|>|) :: (Monad m, MFunctor t) => (forall a . m a -> n a) -> t m b -> t n b
 (|>|) = hoist
 
+{- -- TODO:
+(|*>|) :: (Monad m, MFunctor t) => ? -> t m b -> t n b
+m1 |*>| m2 = 
+    m1 |>= \x1 ->
+    m2 |>= \x2 ->
+    (|*|) $ x1 x2
+-}
+
 infixl 4  |<|
 -- | Equivalent to (|>|) with the arguments flipped.
 (|<|) :: (Monad m, MFunctor t) => t m b -> (forall a . m a -> n a) -> t n b
 (|<|) l r = hoist r l
-
--- sinkT :: t1 (t2 m) a -> t2 (t1 m) a
 
 infixl 5 |*|
 -- | Alias to @'lift'@
 (|*|) :: (Monad m, MonadTrans t) => m a -> t m a 
 (|*|) = lift
 
-{-
--- TODO:
-(|>~) :: t1 m a -> t1 n a -> t1 n a
+infixr 3  |>~
+(|>~) :: (Monad n, MMonad t1) => t1 m b -> (forall a. t1 n a) -> t1 n b
 m |>~ k = m |>= \_ -> k
--}
 
 infixr 3  |>=>
 (|>=>) :: (Monad m3, MMonad t) => (forall a. m1 a -> t m2 a) -> (forall b. m2 b -> t m3 b) -> m1 c -> t m3 c
@@ -190,6 +206,13 @@ infixr 3  |>>=
            MMonad t1, MMonad t2, SinkT t2) => 
           t1 (t2 m) b -> (forall a. m a -> t1 (t2 n) a) -> t1 (t2 n) b
 m |>>= f = m |>= \x -> squash |>| (sinkT $ f |>| x)
+
+infixr 3  |>>~
+(|>>~) :: (Monad n, Monad m, Monad (t2 n), Monad (t2 (t2 n)),
+           MonadTrans_ x t1, Traversable x, 
+           MMonad t1, MMonad t2, SinkT t2) => 
+          t1 (t2 m) b -> (forall a. t1 (t2 n) a) -> t1 (t2 n) b
+m |>>~ k = m |>>= \_ -> k
 
 infixr 3  |>>=>
 (|>>=>) :: (Monad m3, Monad m2, Monad (t2 m3), Monad (t2 (t2 m3)), 
@@ -228,6 +251,16 @@ infixr 3  |>>>=
     MMonad t1, MMonad t2, MMonad t3) => 
    t1 (t2 (t3 m)) b -> (forall a. m a -> t1 (t2 (t3 n)) a) -> t1 (t2 (t3 n)) b
 m |>>>= f = m |>>= \x -> squash |>>| (sinkT2 $ f |>| x)
+
+infixr 3  |>>>~
+(|>>>~) :: 
+   (Monad n, Monad (t3 n), Monad m, Monad (t3 m), 
+    Monad (t2 (t3 n)), Monad (t2 (t3 (t3 n))), Monad (t3 (t3 n)), Monad (t3 (t2 (t3 n))), Monad (t2 (t2 (t3 n))), 
+    MonadTrans_ x1 t1, Traversable x1, MonadTrans_ x2 t2, Traversable x2, 
+    SinkT t2, SinkT t3, 
+    MMonad t1, MMonad t2, MMonad t3) => 
+   t1 (t2 (t3 m)) b -> (forall a. t1 (t2 (t3 n)) a) -> t1 (t2 (t3 n)) b
+m |>>>~ k = m |>>>= \_ -> k
 
 infixr 3  |>>>=>
 (|>>>=>) :: (Monad m3, Monad m2, Monad (t2 m3), Monad (t2 (t2 m3)), Monad (t2 (t2 (t3 m3))), Monad (t2 (t3 m3)), Monad (t2 (t3 (t3 m3))), 
@@ -286,6 +319,18 @@ infixr 4  |>>>>=
     MMonad t1, MMonad t2, MMonad t3, MMonad t4) => 
    t1 (t2 (t3 (t4 m))) b -> (forall a. m a -> t1 (t2 (t3 (t4 n))) a) -> t1 (t2 (t3 (t4 n))) b
 m |>>>>= f = m |>>>= \x -> squash |>>>| (sinkT3 $ f |>| x)
+
+infixr 3  |>>>>~
+(|>>>>~) :: 
+   (Monad n, Monad (t4 n), Monad (t4 m), Monad m,
+    Monad (t2 (t3 (t4 n))), Monad (t2 (t3 (t4 (t4 n)))), Monad (t2 (t2 (t3 (t4 n)))), 
+    Monad (t3 (t4 n)), Monad (t3 (t4 (t4 n))), Monad (t4 (t4 n)), Monad (t4 (t2 (t3 (t4 n)))), Monad (t2 (t3 (t3 (t4 n)))), Monad (t4 (t3 (t4 n))),
+    Monad (t2 (t4 n)), Monad (t3 (t2 (t3 (t4 n)))), Monad (t3 (t3 (t4 n))), Monad (t3 (t4 m)), 
+    MonadTrans_ x1 t1, Traversable x1, MonadTrans_ x2 t2, Traversable x2, MonadTrans_ x3 t3, Traversable x3,
+    SinkT t2, SinkT t3, SinkT t4, 
+    MMonad t1, MMonad t2, MMonad t3, MMonad t4) => 
+   t1 (t2 (t3 (t4 m))) b -> (forall a. t1 (t2 (t3 (t4 n))) a) -> t1 (t2 (t3 (t4 n))) b
+m |>>>>~ k = m |>>>>= \_ -> k
 
 infixl 4  |>>>>|
 (|>>>>|) :: (Monad m, Monad (t4 m), Monad (t3 (t4 m)), Monad (t2 (t3 (t4 m))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4) => 
@@ -358,6 +403,20 @@ infixr 4  |>>>>>=
     MMonad t1, MMonad t2, MMonad t3, MMonad t4, MMonad t5) => 
    t1 (t2 (t3 (t4 (t5 m)))) b -> (forall a. m a -> t1 (t2 (t3 (t4 (t5 n)))) a) -> t1 (t2 (t3 (t4 (t5 n)))) b
 m |>>>>>= f = m |>>>>= \x -> squash |>>>>| (sinkT4 $ f |>| x)
+
+infixr 3  |>>>>>~
+(|>>>>>~) :: 
+   (Monad n, Monad m, Monad (t5 n), Monad (t5 m),
+    Monad (t2 (t3 (t4 (t5 n)))), Monad (t2 (t3 (t4 (t5 (t5 n))))), Monad (t3 (t4 (t5 n))), Monad (t3 (t4 (t5 (t5 n)))), 
+    Monad (t4 (t5 n)), Monad (t4 (t5 (t5 n))), Monad (t5 (t2 (t3 (t4 (t5 n))))), Monad (t5 (t5 n)), Monad (t5 (t3 (t4 (t5 n)))), 
+    Monad (t2 (t2 (t3 (t4 (t5 n))))), Monad (t5 (t4 (t5 n))), Monad (t2 (t3 (t3 (t4 (t5 n))))), Monad (t2 (t3 (t4 (t4 (t5 n))))), 
+    Monad (t2 (t4 (t5 n))), Monad (t3 (t2 (t3 (t4 (t5 n))))), Monad (t3 (t3 (t4 (t5 n)))), Monad (t3 (t4 (t4 (t5 n)))), 
+    Monad (t3 (t4 (t5 m))), Monad (t4 (t2 (t3 (t4 (t5 n))))), Monad (t4 (t3 (t4 (t5 n)))), Monad (t4 (t4 (t5 n))), Monad (t4 (t5 m)), 
+    MonadTrans_ x1 t1, Traversable x1, MonadTrans_ x2 t2, Traversable x2, MonadTrans_ x3 t3, Traversable x3, MonadTrans_ x4 t4, Traversable x4,
+    SinkT t2, SinkT t3, SinkT t4, SinkT t5, 
+    MMonad t1, MMonad t2, MMonad t3, MMonad t4, MMonad t5) => 
+   t1 (t2 (t3 (t4 (t5 m)))) b -> (forall a. t1 (t2 (t3 (t4 (t5 n)))) a) -> t1 (t2 (t3 (t4 (t5 n)))) b
+m |>>>>>~ k = m |>>>>>= \_ -> k
 
 infixl 4  |>>>>>|
 (|>>>>>|) :: (Monad m, Monad (t5 m), Monad (t4 (t5 m)), Monad (t3 (t4 (t5 m))), Monad (t2 (t3 (t4 (t5 m)))), MFunctor t1, MFunctor t2, MFunctor t3, MFunctor t4, MFunctor t5) => 
