@@ -1,10 +1,10 @@
 # deepcontrol
 
-A Haskell library that enables more deeper level style programming than the usual Control.xxx modules express, especially for Applicative and Monad.
+A Haskell library that provides more deeper level style of programming than the usual Control.Applicative and Control.Monad modules express.
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.4.0/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for more deeper level than the usual Applicative module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -182,7 +182,7 @@ cover-braket notation:
 
 Work well likewise.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.4.0/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for more deeper level than the usual Monad module expresses.
 You would soon realize exactly what more deeper level means by reading the example codes below in order.
@@ -202,7 +202,7 @@ plus x y =
 -- 7
 ```
 
-#### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Traversable.html)
+#### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.4.0/docs/DeepControl-Traversable.html)
 
 Identity, List, Maybe, Either, Except and Writer monads are sinkable monads.
 
@@ -286,7 +286,7 @@ factorial n | n < 0  = (.*) Nothing
 
 Work well likewise.
 
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.4.0/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -297,7 +297,7 @@ import DeepControl.Applicative
 import DeepControl.Traversable (sink)
 import DeepControl.Monad ((>-))
 import DeepControl.Monad.Morph ((|*|), (|>|))
-import DeepControl.Monad.Trans (transroll2, untransroll2)
+import DeepControl.Monad.Trans (transfold2, untransfold2)
 import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..))
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
@@ -331,44 +331,44 @@ calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
 
 ackermann' :: Int -> Int -> 
               ReaderT TimeLimit (MaybeT IO) Int                 -- ReaderT-MaybeT-IO monad
-ackermann' x y = (transroll2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
+ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
                                                                 -- (|>|) is the level-1 trans-map function, analogous to (|$>)
 
 ackermann'' :: Int -> Int -> 
                ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
-ackermann'' x y = (IdentityT2 . untransroll2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 ```
 #### Level-3, Level-4 and Level-5
 
 Work well likewise.
 
-transroll and untransroll:
+transfold and untransfold:
 
     Prelude> :m DeepControl.Monad.Trans 
     > :m + Control.Monad.Trans.List Control.Monad.Trans.Maybe
     > :m + DeepControl.Monad.Trans.Identity DeepControl.Monad.Trans.Except DeepControl.Monad.Trans.Writer
 
-    > transroll3 $ ExceptT (Identity (Right [Just 1]))    -- note: type Except e = ExceptT e Identity
+    > transfold3 $ ExceptT (Identity (Right [Just 1]))    -- note: type Except e = ExceptT e Identity
     MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
 
     > :t ExceptT (Identity (Right [Just 1]))
     ExceptT (Identity (Right [Just 1]))
       :: Num a => ExceptT e Identity [Maybe a]
-    > :t transroll3 $ ExceptT (Identity (Right [Just 1]))
-    transroll3 $ ExceptT (Identity (Right [Just 1]))
+    > :t transfold3 $ ExceptT (Identity (Right [Just 1]))
+    transfold3 $ ExceptT (Identity (Right [Just 1]))
       :: Num a => MaybeT (ListT (ExceptT e Identity)) a
 
-    > untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+    > untransfold3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
     ExceptT (Identity (Right [Just 1]))
 
     > :t MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
     MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
       :: Num a => MaybeT (ListT (ExceptT e Identity)) a
-    > :t untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
-    untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+    > :t untransfold3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+    untransfold3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
       :: Num a => ExceptT e Identity [Maybe a]
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.4.0/docs/DeepControl-Monad-Morph.html)
 
 #### SinkT
 
@@ -497,4 +497,4 @@ calc_program2 filename = runMaybeT . runExceptT $ program2 filename
 
 Work well likewise.
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.3.0/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.4.0/docs/DeepControl-Arrow.html)

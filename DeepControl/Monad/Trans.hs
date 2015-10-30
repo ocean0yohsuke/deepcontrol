@@ -23,19 +23,19 @@ module DeepControl.Monad.Trans (
 
     -- * Level-2
     -- ** trans-roll
-    transroll2, untransroll2,
+    transfold2, untransfold2,
 
     -- * Level-3
     -- ** trans-roll
-    transroll3, untransroll3,
+    transfold3, untransfold3,
 
     -- * Level-4
     -- ** trans-roll
-    transroll4, untransroll4,
+    transfold4, untransfold4,
 
     -- * Level-5
     -- ** trans-roll
-    transroll5, untransroll5,
+    transfold5, untransfold5,
 
     -- * Level-2 example
     -- $Example_Level2
@@ -64,7 +64,7 @@ import Data.Monoid
 ----------------------------------------------------------------------
 -- Level-1
 
--- | Required only for transroll
+-- | Required only for transfold
 class (Monad m, MonadTrans t) => MonadTrans_ m t | m -> t, t -> m where
     trans :: (Monad n) => n (m a) -> t n a
     untrans :: (Monad n) => t n a -> n (m a)
@@ -96,61 +96,61 @@ instance MonadTrans_ (Reader r) (ReaderT r) where
 
 -- | 
 --
--- >>> transroll2 $ [Just 1]
+-- >>> transfold2 $ [Just 1]
 -- MaybeT [Just 1]
 --
--- >>> transroll2 $ Just [1]
+-- >>> transfold2 $ Just [1]
 -- ListT (Just [1])
 --
-transroll2 :: (Monad m1, MonadTrans_ m2 t2) => m1 (m2 a) -> (t2 m1) a
-transroll2 = trans
+transfold2 :: (Monad m1, MonadTrans_ m2 t2) => m1 (m2 a) -> (t2 m1) a
+transfold2 = trans
 
 -- | 
 --
--- >>> untransroll2 $ MaybeT [Just 1]
+-- >>> untransfold2 $ MaybeT [Just 1]
 -- [Just 1]
 --
--- >>> untransroll2 $ ListT (Just [1])
+-- >>> untransfold2 $ ListT (Just [1])
 -- Just [1]
 --
-untransroll2 :: (Monad m1, MonadTrans_ m2 t2) => (t2 m1) a -> m1 (m2 a)
-untransroll2 = untrans
+untransfold2 :: (Monad m1, MonadTrans_ m2 t2) => (t2 m1) a -> m1 (m2 a)
+untransfold2 = untrans
 
 ----------------------------------------------------------------------
 -- Level-3
 
 -- | 
 --
--- >>> transroll3 $ ExceptT (Identity (Right [Just 1]))
+-- >>> transfold3 $ ExceptT (Identity (Right [Just 1]))
 -- MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
 --
-transroll3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => m1 (m2 (m3 a)) -> t3 (t2 m1) a
-transroll3 = trans . trans
+transfold3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => m1 (m2 (m3 a)) -> t3 (t2 m1) a
+transfold3 = trans . trans
 -- | 
 --
--- >>> untransroll3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
+-- >>> untransfold3 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
 -- ExceptT (Identity (Right [Just 1]))
 --
-untransroll3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => t3 (t2 m1) a -> m1 (m2 (m3 a))
-untransroll3 = untrans . untrans
+untransfold3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => t3 (t2 m1) a -> m1 (m2 (m3 a))
+untransfold3 = untrans . untrans
 
 ----------------------------------------------------------------------
 -- Level-4
 
-transroll4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => m1 (m2 (m3 (m4 a))) -> t4 (t3 (t2 m1)) a
-transroll4 = trans . trans . trans
-untransroll4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => t4 (t3 (t2 m1)) a -> m1 (m2 (m3 (m4 a)))
-untransroll4 = untrans . untrans . untrans
+transfold4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => m1 (m2 (m3 (m4 a))) -> t4 (t3 (t2 m1)) a
+transfold4 = trans . trans . trans
+untransfold4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => t4 (t3 (t2 m1)) a -> m1 (m2 (m3 (m4 a)))
+untransfold4 = untrans . untrans . untrans
 
 ----------------------------------------------------------------------
 -- Level-4
 
-transroll5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
+transfold5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
               m1 (m2 (m3 (m4 (m5 a)))) -> t5 (t4 (t3 (t2 m1))) a
-transroll5 = trans . trans . trans . trans
-untransroll5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
+transfold5 = trans . trans . trans . trans
+untransfold5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
                 t5 (t4 (t3 (t2 m1))) a -> m1 (m2 (m3 (m4 (m5 a))))
-untransroll5 = untrans . untrans . untrans . untrans
+untransfold5 = untrans . untrans . untrans . untrans
 
 ----------------------------------------------------------------------
 -- Examples
@@ -162,7 +162,7 @@ Here is a monad transformer example how to implement Ackermann function improved
 >import DeepControl.Traversable (sink)
 >import DeepControl.Monad ((>-))
 >import DeepControl.Monad.Morph ((|*|), (|>|))
->import DeepControl.Monad.Trans (transroll2, untransroll2)
+>import DeepControl.Monad.Trans (transfold2, untransfold2)
 >import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..))
 >import Control.Monad.Reader
 >import Control.Monad.Trans.Maybe
@@ -195,11 +195,11 @@ Here is a monad transformer example how to implement Ackermann function improved
 >
 >ackermann' :: Int -> Int -> 
 >              ReaderT TimeLimit (MaybeT IO) Int                 -- ReaderT-MaybeT-IO monad
->ackermann' x y = (transroll2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
+>ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
 >
 >ackermann'' :: Int -> Int -> 
 >               ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
->ackermann'' x y = (IdentityT2 . untransroll2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+>ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 -}
 
 

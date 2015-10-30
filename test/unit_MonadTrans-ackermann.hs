@@ -4,7 +4,7 @@ import DeepControl.Applicative
 import DeepControl.Traversable (sink)
 import DeepControl.Monad ((>-))
 import DeepControl.Monad.Morph ((|*|), (|>|))
-import DeepControl.Monad.Trans (transroll2, untransroll2)
+import DeepControl.Monad.Trans (transfold2, untransfold2)
 import DeepControl.Monad.Trans.Identity (Identity(..), IdentityT(..), IdentityT2(..))
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
@@ -37,7 +37,7 @@ calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
 
 ackermann' :: Int -> Int -> 
               ReaderT TimeLimit (MaybeT IO) Int                 -- ReaderT-MaybeT-IO monad
-ackermann' x y = (transroll2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
+ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
 
 calc_ackermann' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann' timelimit x y = ackermann' x y >- \r -> runReaderT r timelimit
@@ -45,7 +45,7 @@ calc_ackermann' timelimit x y = ackermann' x y >- \r -> runReaderT r timelimit
 
 ackermann'' :: Int -> Int -> 
                ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
-ackermann'' x y = (IdentityT2 . untransroll2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 
 calc_ackermann'' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann'' timelimit x y = ackermann'' x y >- \r -> runReaderT r timelimit

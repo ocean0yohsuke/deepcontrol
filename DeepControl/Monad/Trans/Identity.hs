@@ -28,7 +28,7 @@ module DeepControl.Monad.Trans.Identity (
     (**:),
     (-*:), (*-:),
     -- ** identity-roll  
-    transrollI2, untransrollI2,
+    transfoldI2, untransfoldI2,
     -- ** lift
     mapIdentityT2, liftCallCC2, liftCatch2,
 
@@ -39,7 +39,7 @@ module DeepControl.Monad.Trans.Identity (
     (--*:), (-*-:), (*--:),
     (-**:), (*-*:), (**-:),
     -- ** identity-roll  
-    transrollI3, untransrollI3,
+    transfoldI3, untransfoldI3,
     -- ** lift 
     mapIdentityT3, liftCallCC3, liftCatch3,
 
@@ -51,7 +51,7 @@ module DeepControl.Monad.Trans.Identity (
     (--**:), (-*-*:), (*--*:), (*-*-:), (-**-:), (**--:), 
     (-***:), (*-**:), (**-*:), (***-:), 
     -- ** identity-roll  
-    transrollI4, untransrollI4,
+    transfoldI4, untransfoldI4,
     -- ** lift 
     mapIdentityT4, liftCallCC4, liftCatch4,
 
@@ -64,7 +64,7 @@ module DeepControl.Monad.Trans.Identity (
     (--***:), (-*-**:), (*--**:), (*-*-*:), (-**-*:), (**--*:), (**-*-:), (*-**-:), (-***-:), (***--:),
     (-****:), (*-***:), (**-**:), (***-*:), (****-:),
     -- ** identity-roll  
-    transrollI5, untransrollI5,
+    transfoldI5, untransfoldI5,
     -- ** lift 
     mapIdentityT5, liftCallCC5, liftCatch5,
 
@@ -126,10 +126,10 @@ instance (MonadPlus m1, Alternative m2, Monad m2, Traversable m2) => MonadPlus (
 instance (MonadIO m1, Monad m1, Monad m2, Traversable m2) => MonadIO (IdentityT2 m1 m2) where
     liftIO = IdentityT2 . (-*) . liftIO
 
-transrollI2 :: (Monad m1, MonadTrans_ m2 t2) => IdentityT2 m1 m2 a -> IdentityT (t2 m1) a
-transrollI2 = IdentityT . transroll2 . runIdentityT2
-untransrollI2 :: (Monad m1, MonadTrans_ m2 t2) => IdentityT (t2 m1) a -> IdentityT2 m1 m2 a
-untransrollI2 = IdentityT2 . untransroll2 . runIdentityT
+transfoldI2 :: (Monad m1, MonadTrans_ m2 t2) => IdentityT2 m1 m2 a -> IdentityT (t2 m1) a
+transfoldI2 = IdentityT . transfold2 . runIdentityT2
+untransfoldI2 :: (Monad m1, MonadTrans_ m2 t2) => IdentityT (t2 m1) a -> IdentityT2 m1 m2 a
+untransfoldI2 = IdentityT2 . untransfold2 . runIdentityT
 
 lift2IdentityT2 :: (m1 (m2 a) -> n1 (n2 b) -> p1 (p2 c)) -> IdentityT2 m1 m2 a -> IdentityT2 n1 n2 b -> IdentityT2 p1 p2 c
 lift2IdentityT2 f a b = IdentityT2 (f (runIdentityT2 a) (runIdentityT2 b))
@@ -199,10 +199,10 @@ instance (MonadPlus m1, Alternative m2, Monad m2, Traversable m2, Alternative m3
 instance (MonadIO m1, Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3) => MonadIO (IdentityT3 m1 m2 m3) where
     liftIO = IdentityT3 . (-**) . liftIO
 
-transrollI3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => IdentityT3 m1 m2 m3 a -> IdentityT (t3 (t2 m1)) a
-transrollI3 = IdentityT . transroll3 . runIdentityT3
-untransrollI3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => IdentityT (t3 (t2 m1)) a -> IdentityT3 m1 m2 m3 a
-untransrollI3 = IdentityT3 . untransroll3 . runIdentityT
+transfoldI3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => IdentityT3 m1 m2 m3 a -> IdentityT (t3 (t2 m1)) a
+transfoldI3 = IdentityT . transfold3 . runIdentityT3
+untransfoldI3 :: (Monad m1, Monad (t2 m1), MonadTrans_ m2 t2, MonadTrans_ m3 t3) => IdentityT (t3 (t2 m1)) a -> IdentityT3 m1 m2 m3 a
+untransfoldI3 = IdentityT3 . untransfold3 . runIdentityT
 
 lift2IdentityT3 :: (m1 (m2 (m3 a)) -> n1 (n2 (n3 b)) -> p1 (p2 (p3 c))) -> IdentityT3 m1 m2 m3 a -> IdentityT3 n1 n2 n3 b -> IdentityT3 p1 p2 p3 c
 lift2IdentityT3 f a b = IdentityT3 (f (runIdentityT3 a) (runIdentityT3 b))
@@ -259,10 +259,10 @@ instance (MonadPlus m1, Alternative m2, Monad m2, Traversable m2, Alternative m3
 instance (MonadIO m1, Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4) => MonadIO (IdentityT4 m1 m2 m3 m4) where
     liftIO = IdentityT4 . (-***) . liftIO
 
-transrollI4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => IdentityT4 m1 m2 m3 m4 a -> IdentityT (t4 (t3 (t2 m1))) a
-transrollI4 = IdentityT . transroll4 . runIdentityT4
-untransrollI4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => IdentityT (t4 (t3 (t2 m1))) a -> IdentityT4 m1 m2 m3 m4 a
-untransrollI4 = IdentityT4 . untransroll4 . runIdentityT
+transfoldI4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => IdentityT4 m1 m2 m3 m4 a -> IdentityT (t4 (t3 (t2 m1))) a
+transfoldI4 = IdentityT . transfold4 . runIdentityT4
+untransfoldI4 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4) => IdentityT (t4 (t3 (t2 m1))) a -> IdentityT4 m1 m2 m3 m4 a
+untransfoldI4 = IdentityT4 . untransfold4 . runIdentityT
 
 lift2IdentityT4 :: (m1 (m2 (m3 (m4 a))) -> n1 (n2 (n3 (n4 b))) -> p1 (p2 (p3 (p4 c)))) -> IdentityT4 m1 m2 m3 m4 a -> IdentityT4 n1 n2 n3 n4 b -> IdentityT4 p1 p2 p3 p4 c
 lift2IdentityT4 f a b = IdentityT4 (f (runIdentityT4 a) (runIdentityT4 b))
@@ -337,12 +337,12 @@ instance (MonadPlus m1, Alternative m2, Monad m2, Traversable m2, Alternative m3
 instance (MonadIO m1, Monad m1, Monad m2, Traversable m2, Monad m3, Traversable m3, Monad m4, Traversable m4, Monad m5, Traversable m5) => MonadIO (IdentityT5 m1 m2 m3 m4 m5) where
     liftIO = IdentityT5 . (-****) . liftIO
 
-transrollI5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
+transfoldI5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
                 IdentityT5 m1 m2 m3 m4 m5 a -> IdentityT (t5 (t4 (t3 (t2 m1)))) a
-transrollI5 = IdentityT . transroll5 . runIdentityT5
-untransrollI5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
+transfoldI5 = IdentityT . transfold5 . runIdentityT5
+untransfoldI5 :: (Monad m1, Monad (t2 m1), Monad (t3 (t2 m1)), Monad (t4 (t3 (t2 m1))), MonadTrans_ m2 t2, MonadTrans_ m3 t3, MonadTrans_ m4 t4, MonadTrans_ m5 t5) => 
                   IdentityT (t5 (t4 (t3 (t2 m1)))) a -> IdentityT5 m1 m2 m3 m4 m5 a
-untransrollI5 = IdentityT5 . untransroll5 . runIdentityT
+untransfoldI5 = IdentityT5 . untransfold5 . runIdentityT
 
 lift2IdentityT5 :: (m1 (m2 (m3 (m4 (m5 a)))) -> n1 (n2 (n3 (n4 (n5 b)))) -> p1 (p2 (p3 (p4 (p5 c))))) -> IdentityT5 m1 m2 m3 m4 m5 a -> IdentityT5 n1 n2 n3 n4 n5 b -> IdentityT5 p1 p2 p3 p4 p5 c
 lift2IdentityT5 f a b = IdentityT5 (f (runIdentityT5 a) (runIdentityT5 b))

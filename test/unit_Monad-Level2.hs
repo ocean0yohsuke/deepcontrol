@@ -255,10 +255,10 @@ poland_calcSI2 xs = (sinkmap polandSI2 xs >> popSI2) >- \x -> runStateT x []
 -- StateT-IdentityT-MaybeT-IO
 
 popSIM :: StateT [a] (MaybeT IO) a
-popSIM = (transroll2 . runIdentityT2) |>| popSI2
+popSIM = (transfold2 . runIdentityT2) |>| popSI2
 
 polandSIM :: String -> StateT [Double] (MaybeT IO) Double
-polandSIM s = (transroll2 . runIdentityT2) |>| polandSI2 s
+polandSIM s = (transfold2 . runIdentityT2) |>| polandSI2 s
 
 poland_calcSIM :: [String] -> IO (Maybe (Double, [Double]))
 poland_calcSIM xs = (sinkmap polandSIM xs >> popSIM) >- \x -> runStateT x []
@@ -328,11 +328,11 @@ poland_calcSIME xs = (sinkmap polandSIME xs >> popSIME) >- \x -> runStateT x []
 -- StateT-IdentityT3-IO-Except-Maybe
 
 pushSI3 :: a -> StateT [a] (IdentityT3 IO (Except ()) Maybe) a
-pushSI3 x = (IdentityT3 . untransroll3 . runIdentityT) |>| pushSIME x
+pushSI3 x = (IdentityT3 . untransfold3 . runIdentityT) |>| pushSIME x
 popSI3 :: StateT [a] (IdentityT3 IO (Except ()) Maybe) a
-popSI3 = (IdentityT3 . untransroll3 . runIdentityT) |>| popSIME
+popSI3 = (IdentityT3 . untransfold3 . runIdentityT) |>| popSIME
 polandSI3 :: String -> StateT [Double] (IdentityT3 IO (Except ()) Maybe) Double
-polandSI3 x = (IdentityT3 . untransroll3 . runIdentityT) |>| polandSIME x
+polandSI3 x = (IdentityT3 . untransfold3 . runIdentityT) |>| polandSIME x
 
 poland_calcSI3 :: [String] -> IO (Either () (Maybe (Double, [Double])))
 poland_calcSI3 xs = (sinkmap polandSI3 xs >> popSI3) >- \x -> runStateT x []

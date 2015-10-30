@@ -1,7 +1,7 @@
 name:                deepcontrol
-version:             0.5.3.0
-synopsis:            Provide more deeper level style of programming than the usual Control.xxx modules express
-description:         This module provides more deeper level style of programming than the usual Control.xxx modules express, especially for Applicative and Monad.
+version:             0.5.4.0
+synopsis:            Provide deep level programming style for Applicative and Monad
+description:         This module provides more deeper level style of programming than the usual Applicative and Monad modules express.
 license:             BSD3
 license-file:        LICENSE
 author:              KONISHI Yohsuke
