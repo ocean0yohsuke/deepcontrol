@@ -1,12 +1,12 @@
 # deepcontrol
 
-A Haskell library that provides more deeper level style of programming than the usual Control.Applicative and Control.Monad modules express.
+A Haskell library that provides deeper level style of programming than the usual Control.Applicative and Control.Monad modules express.
 
 ## Examples
 
 ### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.4.1/docs/DeepControl-Applicative.html)
 
-This module enables you to program in applicative style for deeper level than the usual Applicative module expresses.
+This module enables you to program in applicative style for deeper level than the usual Control.Applicative module expresses.
 You would soon realize exactly what "deeper level" means by reading the example codes below in order.
 
     Prelude> :m DeepControl.Applicative
@@ -184,7 +184,7 @@ Work well likewise.
 
 ### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.4.1/docs/DeepControl-Monad.html)
 
-This module enables you to program in Monad for deeper level than the usual Monad module expresses.
+This module enables you to program in Monad for deeper level than the usual Control.Monad module expresses.
 You would soon realize exactly what "deeper level" means by reading the example codes below in order.
 
 #### Level-0
