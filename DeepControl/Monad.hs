@@ -17,7 +17,7 @@ Note:
       The range of monad for which this module is effective is confined to the range that the instances of @'Traversable'@ are defined.
       This means disappointingly that this module is not effective for not-Traversable monads such as 'Reader' and 'State'.
 
-    * In my opinion this imperfection is hard-wired with the ability of GHC on lambda expression; GHC isn't able to parse @(r->)@ or @((->) r)@　yet.
+    * In my opinion this imperfection is hard-wired with the ability of GHC on lambda expression; GHC is unable to parse @(r->)@ or @((->) r)@　yet.
       Therefore some fundamental expressions such as @(r->)|$>@ or @fmap (r->)@ are useless, it might be theoretically impossible though.
 
 -}
