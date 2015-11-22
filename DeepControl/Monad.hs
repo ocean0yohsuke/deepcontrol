@@ -8,8 +8,8 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module enables you to program in Monad for __deeper__ level than the usual 'Control.Monad' module expresses.
-You would soon realize exactly what __/deeper level/__ means by reading the example codes in order, which are attached on the Monadx(Monad, Monad, etc) classes below.
+This module enables you to program in Monad for __much deeper level__ than the usual 'Control.Monad' module expresses.
+You would soon realize exactly what __/much deeper level/__ means by reading the example codes in order, which are attached on the Monadx(Monad, Monad, etc) classes below.
 
 Note: 
 
