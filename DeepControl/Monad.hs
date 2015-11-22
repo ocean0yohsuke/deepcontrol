@@ -13,12 +13,12 @@ You would soon realize exactly what __/much deeper level/__ means by reading the
 
 Note: 
 
-    * This module never makes mtl(monad-transformer-library) unnessasary. 
-      The range in which this module is helpful is disappointingly confined to the range of @'Traversable'@.
-    
-    * In my opinion this bad confinement is hard-wired with the ability of the compiler, that is to say GHC doesn't parse @(r->)@ or @((->) r)@ as a data constructor; 
-      thus some fundamental expressions such as @(r->)|$>@ or @fmap (r->)@ are useless.
-      Theoretically it might be impossible though.
+    * This module never makes mtl(monad-transformer-library) unnessasary at all. 
+      The range of monad for which this module is effective is confined to the range that the instances of @'Traversable'@ are defined.
+      This means disappointingly that this module is not effective for not-Traversable monads such as 'Reader' and 'State'.
+
+    * In my opinion this imperfection is hard-wired with the ability of GHC on lambda expression; GHC isn't able to parse @(r->)@ or @((->) r)@　yet.
+      Therefore some fundamental expressions such as @(r->)|$>@ or @fmap (r->)@ are useless, it might be theoretically impossible though.
 
 -}
 {-# LANGUAGE TypeSynonymInstances #-}
