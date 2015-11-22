@@ -1,10 +1,10 @@
 # deepcontrol
 
-A Haskell library that provides deeper level style of programming than the usual Control.Applicative and Control.Monad modules express.
+A Haskell library that provides much deeper level style of programming than the usual Control.Applicative and Control.Monad modules express.
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.4.1/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for much deeper level than the usual Control.Applicative module expresses.
 You would soon realize exactly what "much deeper level" means by reading the example codes below in order.
@@ -182,7 +182,7 @@ cover-braket notation:
 
 Work well likewise.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.4.1/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for much deeper level than the usual Control.Monad module expresses.
 You would soon realize exactly what "much deeper level" means by reading the example codes below in order.
@@ -202,7 +202,7 @@ plus x y =
 -- 7
 ```
 
-#### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.4.1/docs/DeepControl-Traversable.html)
+#### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Traversable.html)
 
 Identity, List, Maybe, Either, Except and Writer monads are sinkable monads.
 
@@ -286,7 +286,7 @@ factorial n | n < 0  = (.*) Nothing
 
 Work well likewise.
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.4.1/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Monad-Morph.html)
 
 #### SinkT
 
@@ -415,7 +415,7 @@ calc_program2 filename = runMaybeT . runExceptT $ program2 filename
 
 Work well likewise.
 
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.4.1/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -469,4 +469,4 @@ ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can get 
 
 Work well likewise.
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.4.1/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Arrow.html)

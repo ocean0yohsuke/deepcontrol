@@ -1,6 +1,6 @@
 name:                deepcontrol
-version:             0.5.4.1
-synopsis:            A library that provides deep-level programming style or notation on Applicative and Monad
+version:             0.5.4.2
+synopsis:            A library that provides much deeper level style of programming than the usual Control.Applicative and Control.Monad modules express
 description:         This module provides much deeper level style of programming than the usual Applicative and Monad modules express.
 license:             BSD3
 license-file:        LICENSE
