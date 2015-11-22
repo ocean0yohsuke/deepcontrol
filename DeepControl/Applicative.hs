@@ -8,8 +8,8 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : portable
 
-This module enables you to program in applicative style for more __deeper__ level than the usual 'Control.Applicative' module expresses.
-You would soon realize exactly what __/more deeper level/__ means by reading the example codes in order, which are attached on the functions below.
+This module enables you to program in applicative style for __deeper__ level than the usual 'Control.Applicative' module expresses.
+You would soon realize exactly what __/deeper level/__ means by reading the example codes in order, which are attached on the functions below.
 -}
 module DeepControl.Applicative (
     module Control.Applicative,
@@ -192,9 +192,9 @@ infixl 3  <$|, |*>, <*|, |*, *|
 -- >>> foldr (\x acc -> x <$|(:)|*> acc) ((.*) []) [Just 1, Nothing, Just 3]
 -- Nothing
 --
--- >>> filter (even <$|(&&)|*> (10 >)) [1..100]
+-- >>> filter (even <$|(&&)|*> (10>)) [1..100]
 -- [2,4,6,8]
--- >>> filter (even <$|(&&)|*> (10 >) <$|(&&)|*> (5 <)) [1..100]
+-- >>> filter (even <$|(&&)|*> (10>) <$|(&&)|*> (5<)) [1..100]
 -- [6,8]
 (|*>) :: Applicative f => f (a -> b) -> f a -> f b
 (|*>) = (<*>)

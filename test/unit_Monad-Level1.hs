@@ -143,5 +143,3 @@ tests_ = test [
         actual @?= Right (IntVal 3,9,["a","b","x","y"])
     ]
 
-
-

@@ -14,7 +14,7 @@ import System.Timeout (timeout)
 type TimeLimit = Int
 
 ackermannTimeLimit :: TimeLimit -> Int -> Int -> 
-                      IO (Maybe Int)                      -- IO-Maybe Monad
+                      IO (Maybe Int)                      
 ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
   where
     ackermannIO :: Int -> Int -> IO Int
@@ -23,10 +23,10 @@ ackermannTimeLimit timelimit x y = timeout timelimit (ackermannIO x y)
                     | m > 0 && n > 0  = ackermannIO m (n-1) >>= ackermannIO (m-1)
  
 ackermann :: Int -> Int -> 
-             ReaderT TimeLimit (IdentityT2 IO Maybe) Int  -- ReaderT-IdentityT2-IO-Maybe monad
+             ReaderT TimeLimit (IdentityT2 IO Maybe) Int  
 ackermann x y = do
     timelimit <- ask
-    (|*|) . IdentityT2 $ ackermannTimeLimit timelimit x y -- lift IO-Maybe function to ReaderT-IdentityT2-IO-Maybe function
+    (|*|) . IdentityT2 $ ackermannTimeLimit timelimit x y 
 
 calc_ackermann :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
@@ -36,16 +36,16 @@ calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
 -- [Just 5,Just 6,Just 11,Just 125,Nothing]
 
 ackermann' :: Int -> Int -> 
-              ReaderT TimeLimit (MaybeT IO) Int                 -- ReaderT-MaybeT-IO monad
-ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
+              ReaderT TimeLimit (MaybeT IO) Int                 
+ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y 
 
 calc_ackermann' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann' timelimit x y = ackermann' x y >- \r -> runReaderT r timelimit
                                                >- runMaybeT
 
 ackermann'' :: Int -> Int -> 
-               ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
-ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+               ReaderT TimeLimit (IdentityT2 IO Maybe) Int       
+ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y 
 
 calc_ackermann'' :: TimeLimit -> Int -> Int -> IO (Maybe Int)
 calc_ackermann'' timelimit x y = ackermann'' x y >- \r -> runReaderT r timelimit
