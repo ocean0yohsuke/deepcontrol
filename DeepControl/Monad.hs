@@ -9,16 +9,15 @@ Stability   : experimental
 Portability : ---
 
 This module enables you to program in Monad for __much deeper level__ than the usual 'Control.Monad' module expresses.
-You would soon realize exactly what __/much deeper level/__ means by reading the example codes in order, which are attached on the Monadx(Monad, Monad, etc) classes below.
+You would soon realize exactly what __/much deeper level/__ means by reading the example codes attached on some functions below.
 
 Note: 
 
     * This module never makes mtl(monad-transformer-library) unnessasary at all. 
-      The range of monad for which this module is effective is confined to the range that the instances of @'Traversable'@ are defined.
+      The range of monad, for which this module is effective,  is confined to the range that the instances of @'Traversable'@ are defined.
       This means disappointingly that this module is not effective for not-Traversable monads such as 'Reader' and 'State'.
-
-    * In my opinion this imperfection is hard-wired with the ability of GHC on lambda expression; GHC is unable to parse @(r->)@ or @((->) r)@　yet.
-      Therefore some fundamental expressions such as @(r->)|$>@ or @fmap (r->)@ are useless, it might be theoretically impossible though.
+    * In my opinion this imperfection is hard-wired with the ability of GHC on lambda expression; GHC is unable to parse "@(r->)@" or "@((->) r)@" yet.
+      Therefore some fundamental expressions such as "@(r->)|$>@" or "@fmap (r->)@" are useless, though such calculations might theoretically or mathematically be impossible.
 
 -}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -230,7 +229,7 @@ infixr 1  >--~, ->-~, -->~, >>-~, >->~, ->>~
 -- ("b",2)
 -- [["a0","b0"],["a0","b1","b2"],["a1","a2","b0"],["a1","a2","b1","b2"]]
 --
--- This messy code above can be neatly rewritten to the code below by grace of the cover functions.
+-- Any messy code like this can be neatly rewritten to a code below by grace of some cover functions.
 --
 -- >>> :{
 --  -- IO-List-List monad

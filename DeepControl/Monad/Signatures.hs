@@ -1,18 +1,16 @@
------------------------------------------------------------------------------
--- | Deepened the usual Control.Monad.Signatures module.
--- Module      :  DeepControl.Monad.Signatures
--- Copyright   :  (c) Ross Paterson 2012,
---                (c) 2015 KONISHI Yohsuke
--- License     :  BSD-style (see the file LICENSE)
---
--- Maintainer  :  KONISHI Yohsuke
--- Stability   :  experimental
--- Portability :  portable
---
--- Signatures for monad operations that require specialized lifting.
--- Each signature has a uniformity property that the lifting should satisfy.
------------------------------------------------------------------------------
+{-|
+Module      : DeepControl.Monad.Signatures
+Description : Deepend the usual Control.Monad.Signatures.
+Copyright   : (c) Ross Paterson 2012, 
+              (c) 2015 KONISHI Yohsuke
+License     : BSD-style (see the file LICENSE)
+Maintainer  : KONISHI Yohsuke
+Stability   : experimental
+Portability : portable
 
+Signatures for monad operations that require specialized lifting.
+Each signature has a uniformity property that the lifting should satisfy.
+-}
 module DeepControl.Monad.Signatures (
     -- * Level-1
     module Control.Monad.Signatures,

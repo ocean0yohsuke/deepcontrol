@@ -4,7 +4,7 @@ A Haskell library that provides much deeper level style of programming than the 
 
 ## Examples
 
-### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Applicative.html)
+### [Applicative](https://hackage.haskell.org/package/deepcontrol-0.5.4.3/docs/DeepControl-Applicative.html)
 
 This module enables you to program in applicative style for much deeper level than the usual Control.Applicative module expresses.
 You would soon realize exactly what "much deeper level" means by reading the example codes below in order.
@@ -117,7 +117,7 @@ bra-ket notation:
     [Just (1,2)]
 
     > [[1]] <<$|(+)|*>> [[2]] <<$|(^)|*>> [[3]]
-    [[0]]
+    [[27]]
 
 cover notation:
 
@@ -182,7 +182,7 @@ cover-braket notation:
 
 Work well likewise.
 
-### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Monad.html)
+### [Monad](https://hackage.haskell.org/package/deepcontrol-0.5.4.3/docs/DeepControl-Monad.html)
 
 This module enables you to program in Monad for much deeper level than the usual Control.Monad module expresses.
 You would soon realize exactly what "much deeper level" means by reading the example codes below in order.
@@ -202,7 +202,7 @@ plus x y =
 -- 7
 ```
 
-#### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Traversable.html)
+#### [Traversable](https://hackage.haskell.org/package/deepcontrol-0.5.4.3/docs/DeepControl-Traversable.html)
 
 Identity, List, Maybe, Either, Except and Writer monads are sinkable monads.
 
@@ -220,7 +220,7 @@ Identity, List, Maybe, Either, Except and Writer monads are sinkable monads.
     > sink2 $ Right [Just 1]
     [Just (Right 1)]
 
-So within these monads, deep level(layered) bind functions can be made.
+So within these monads, deep-level bind functions can be made.
 
 #### Level-2
 
@@ -286,11 +286,11 @@ factorial n | n < 0  = (.*) Nothing
 
 Work well likewise.
 
-### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Monad-Morph.html)
+### [Monad-Morph](https://hackage.haskell.org/package/deepcontrol-0.5.4.3/docs/DeepControl-Monad-Morph.html)
 
 #### SinkT
 
-IdentityT, ListT, MaybeT, ExceptT and WriterT monadtrans' are sinkable.
+IdentityT, ListT, MaybeT, ExceptT and WriterT monadtranses are sinkable.
 
     Prelude> :m DeepControl.Monad.Morph
     > :t sinkT
@@ -310,7 +310,7 @@ IdentityT, ListT, MaybeT, ExceptT and WriterT monadtrans' are sinkable.
     > sinkT2 $ MaybeT (ListT (ExceptT (Identity (Right [Just 1]))))
     ListT (ExceptT (MaybeT (Identity (Just (Right [1])))))
 
-So within these monadtrans', deep level(layered) trans-bind functions can be made.
+So within these monadtranses, deep-level trans-bind functions can be made.
 
 #### Level-2
 
@@ -415,7 +415,7 @@ calc_program2 filename = runMaybeT . runExceptT $ program2 filename
 
 Work well likewise.
 
-### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Monad-Trans.html)
+### [Monad-Transformer](https://hackage.haskell.org/package/deepcontrol-0.5.4.3/docs/DeepControl-Monad-Trans.html)
 
 #### Level-2
 
@@ -459,14 +459,14 @@ calc_ackermann timelimit x y = ackermann x y >- \r -> runReaderT r timelimit
 
 ackermann' :: Int -> Int -> 
               ReaderT TimeLimit (MaybeT IO) Int                 -- ReaderT-MaybeT-IO monad
-ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y -- You can get the ordinary monad-transformed function from the natural one.
+ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y -- You can make the ordinary monad-transformed function from the natural one.
 
 ackermann'' :: Int -> Int -> 
                ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
-ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can get the natural monad-transformed function from the ordinary one.
+ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can make the natural monad-transformed function from the ordinary one.
 ```
 #### Level-3, Level-4 and Level-5
 
 Work well likewise.
 
-### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.4.2/docs/DeepControl-Arrow.html)
+### [Arrow](https://hackage.haskell.org/package/deepcontrol-0.5.4.3/docs/DeepControl-Arrow.html)

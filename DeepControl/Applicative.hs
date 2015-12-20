@@ -9,7 +9,7 @@ Stability   : experimental
 Portability : portable
 
 This module enables you to program in applicative style for __much deeper level__ than the usual 'Control.Applicative' module expresses.
-You would soon realize exactly what __/much deeper level/__ means by reading the example codes in order, which are attached on the functions below.
+You would soon realize exactly what __/much deeper level/__ means by reading the example example codes attached on the functions below.
 -}
 module DeepControl.Applicative (
     module Control.Applicative,

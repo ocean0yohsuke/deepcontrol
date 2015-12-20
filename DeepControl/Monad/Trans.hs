@@ -10,7 +10,7 @@ Stability   : experimental
 Portability : ---
 
 This module enables you to program in Monad-Transformer style for more __deeper__ level than the usual @Control.Monad.Trans@ module expresses.
-You would realize exactly what __/more deeper level/__ means by reading the example codes, which are attached on the page bottom.
+You would realize exactly what __/much deeper level/__ means by reading the example codes, which are attached on the page bottom.
 -}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -195,11 +195,11 @@ Here is a monad transformer example how to implement Ackermann function improved
 >
 >ackermann' :: Int -> Int -> 
 >              ReaderT TimeLimit (MaybeT IO) Int                 -- ReaderT-MaybeT-IO monad
->ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y -- You can get usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
+>ackermann' x y = (transfold2 . runIdentityT2) |>| ackermann x y -- You can make usual ReaderT-MaybeT-IO function from ReaderT-IdentityT2-IO-Maybe function
 >
 >ackermann'' :: Int -> Int -> 
 >               ReaderT TimeLimit (IdentityT2 IO Maybe) Int       -- ReaderT-IdentityT2-IO-Maybe monad
->ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can get ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
+>ackermann'' x y = (IdentityT2 . untransfold2) |>| ackermann' x y -- You can make ReaderT-IdentityT2-IO-Maybe function from usual ReaderT-MaybeT-IO function
 -}
 
 

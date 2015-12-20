@@ -7,7 +7,7 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module extended Except monad of mtl(monad-transformer-library).
+This module extended mtl(monad-transformer-library)'s Except monad.
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}

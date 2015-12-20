@@ -9,7 +9,7 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module extended Writer monad of mtl(monad-transformer-library).
+This module extended mtl(monad-transformer-library)'s Writer monad.
 -}
 module DeepControl.Monad.Trans.Writer (
     module Control.Monad.Writer,

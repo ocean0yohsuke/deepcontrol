@@ -8,7 +8,7 @@ Maintainer  : ocean0yohsuke@gmail.com
 Stability   : experimental
 Portability : ---
 
-This module enables you to deal with deep monads in any monad-transformer.
+This module enables you to embed any deep monad into monad-transformer.
 -}
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -427,7 +427,7 @@ infixl 3  -****:, *-***:, **-**:, ***-*:, ****-:
 (****-:) = (---*-:) . (***-:)
 
 {- $Example
-Here is an example showing how to use identity-cover functions
+Here is an example showing how to use level-2 identity-cover functions.
 
 >import DeepControl.Applicative ((|$>))
 >import DeepControl.Monad (Monad)
@@ -453,7 +453,7 @@ Here is an example showing how to use identity-cover functions
 >    n <- get
 >    (|*|) $ tell [n]
 >
->program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transform
+>program ::                             StateT Int (IdentityT2 IO (Writer [Int])) () -- StateT-IdentityT2-IO-Writer monad, a level-2 monad-transformation
 >program = replicateM_ 4 $ do
 >    ((-*:) . IdentityT) |>| tock                                                    -- (-*:) is a level-2 identity-cover function, analogous to (-*)
 >        :: (Monad m, Traversable m) => StateT Int (IdentityT2 IO m             ) ()
